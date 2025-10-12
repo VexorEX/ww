@@ -7,12 +7,12 @@ import * as dotenv from 'dotenv';
 import countryFilter from "./modules/countryFilter";
 import registration from "./modules/registeration";
 import userPanel from "./modules/userPanel";
-import { prisma } from "./prisma";
+import config from './config/config.json'
 
-
-dotenv.config(); // اول همه import ها
-console.log('BOT_TOKEN loaded:', process.env.BOT_TOKEN ? 'YES' : 'NO'); // security: token رو print نکن
-const bot = new Telegraf<CustomContext>("7639208583:AAGI9rCVNrAD-9-fmX5DxEw-FSych-XpgC4", {
+//
+// dotenv.config(); // اول همه import ها
+// console.log('BOT_TOKEN loaded:', process.env.BOT_TOKEN ? 'YES' : 'NO'); // security: token رو print نکن
+const bot = new Telegraf<CustomContext>(config.token, {
     telegram: { apiRoot: "http://46.38.138.55:808/" }
 });
 

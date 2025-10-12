@@ -12,6 +12,9 @@ import admins from '../config/admins.json';
 import config from '../config/config.json';
 import fc from '../config/fc.json';
 import { escapeMarkdownV2 } from "../utils/escape";
+import fs from 'fs';
+import path from 'path';
+const fcPath = path.join(__dirname, '../config/fc.json');
 
 interface Country {
     country: string;
@@ -32,7 +35,7 @@ interface CustomContext extends BaseCustomContext {
 }
 
 const registration = new Composer<CustomContext>();
-const ADMIN_RESOURCE_IDS = admins.resource || [];
+const ADMIN_RESOURCE_IDS = admins.country || [];
 
 async function sendRequestToAdmins(ctx: CustomContext, userId: bigint, username: string | undefined, firstName: string) {
     const hyperlink = `https://t.me/${username || userId}`;
@@ -46,7 +49,7 @@ userid: ${userId}
   `;
 
     const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('رتبه', 'setCountry_rank_none')],
+        [Markup.button.callback('رتبه', 'noop')],
         [Markup.button.callback('قدرت', `rank3_${userId}`), Markup.button.callback('قدرت بزرگ', `rank2_${userId}`)],
         [Markup.button.callback('قدرت منطقه‌ای', `rank1_${userId}`), Markup.button.callback('ساده', `rank0_${userId}`)],
         [Markup.button.callback('رد', `reject_${userId}`)]
@@ -76,7 +79,11 @@ function handleRankAction(rank: number) {
 
         const allRanked = getCountriesByRank(rank);
         const availableNames = getAvailableCountries();
-        const filtered = allRanked.filter(c => !availableNames.includes(c.name));
+        const filtered = allRanked.filter(c => {
+            const code = c.country.toLowerCase();
+            return !availableNames.includes(c.name) && !fc.includes(code);
+        });
+
         if (filtered.length === 0) return ctx.answerCbQuery('❌ همه‌ی کشورها قبلاً تخصیص داده شده‌اند!');
 
         const keyboard = Markup.inlineKeyboard(
@@ -121,6 +128,7 @@ registration.action(['getCountry', 'request_country'], async (ctx) => {
     await sendRequestToAdmins(ctx, userId, username, firstName);
     ctx.session ??= {};
     ctx.session.requestUserId = BigInt(ctx.from.id);
+    await ctx.deleteMessage();
     await ctx.answerCbQuery('✅ درخواست شما به ادمین ارسال شد! منتظر تایید باشید.');
     await ctx.reply('درخواست ارسال شد. ادمین به زودی کشور شما را تنظیم می‌کند.');
 });
@@ -129,15 +137,16 @@ registration.action(/^rank2_(\d+)$/, handleRankAction(2));
 registration.action(/^rank1_(\d+)$/, handleRankAction(1));
 registration.action(/^rank0_(\d+)$/, handleRankAction(0));
 
-registration.action('reject', async (ctx) => {
+registration.action(/reject_(\d+)/, async (ctx) => {
     const adminId = ctx.from.id;
-    const requestUserId = ctx.session?.requestUserId;
+    const requestUserId = BigInt(ctx.match[1]); // گرفتن userId از match
 
-    if (!ADMIN_RESOURCE_IDS.includes(adminId)) return ctx.answerCbQuery('❌ دسترسی ندارید!');
-    if (!requestUserId) return ctx.answerCbQuery('❌ کاربر پیدا نشد!');
+    if (!ADMIN_RESOURCE_IDS.includes(adminId)) {
+        return ctx.answerCbQuery('❌ دسترسی ندارید!');
+    }
 
     await ctx.telegram.sendMessage(Number(requestUserId), '❌ درخواست کشور شما رد شد.');
-    ctx.answerCbQuery('✅ درخواست رد شد.');
+    await ctx.answerCbQuery('✅ درخواست رد شد.');
 });
 
 registration.action(/^setCountry_(\d+)_(\w+)$/, async (ctx) => {
@@ -150,12 +159,18 @@ registration.action(/^setCountry_(\d+)_(\w+)$/, async (ctx) => {
     const country = getCountryByName(countryKey);
     if (!country) return ctx.answerCbQuery('❌ کشور پیدا نشد!');
 
+
     // اگر region توی آبجکت نبود، می‌تونی دستی اضافه کنی یا از ساختار قبلی استفاده کنی
-    const selectedCountry = { ...country, country: countryKey };
+    const selectedCountry = { ...country, country: countryKey.toLowerCase() };
 
     ctx.session ??= {};
     ctx.session.pendingCountry = selectedCountry;
     ctx.session.pendingUserId = requestUserId;
+
+    const countryCode = ctx.session.pendingCountry.country;
+    if (fc.includes(countryCode)) {
+        return ctx.answerCbQuery('⛔ این کشور قبلاً اختصاص داده شده است.');
+    }
 
     const user = await prisma.user.findUnique({ where: { userid: requestUserId } });
     const username = user?.userid ? `@${user.userid}` : `کاربر ${requestUserId}`;
@@ -179,25 +194,20 @@ registration.action('confirm_country', async (ctx) => {
     await prisma.user.upsert({
         where: { userid: pendingUserId },
         update: {
-            country: pendingCountry.name.split(' ')[0].toLowerCase(),
+            country: pendingCountry.country.toLowerCase(),
             countryName: pendingCountry.name,
             government: pendingCountry.gov,
             rank: pendingCountry.rank,
         },
         create: {
             userid: pendingUserId,
-            country: pendingCountry.name.split(' ')[0].toLowerCase(),
+            country: pendingCountry.country.toLowerCase(),
             countryName: pendingCountry.name,
             government: pendingCountry.gov,
             rank: pendingCountry.rank,
             religion: 'سیک 🪯',
         },
     });
-
-    const countryCode = pendingCountry.name.split(' ')[0].toLowerCase();
-    if (!fc.includes(countryCode)) {
-        fc.push(countryCode);
-    }
 
     await ctx.telegram.sendMessage(Number(pendingUserId), `✅ کشور شما تنظیم شد: ${pendingCountry.name}`);
     await ctx.reply(`✅ کشور ${pendingCountry.name} برای کاربر تنظیم شد.`);
@@ -210,11 +220,12 @@ registration.action('confirm_country', async (ctx) => {
 
     const escapedCountry = escapeMarkdownV2(pendingCountry.name);
     const escapedUsername = escapeMarkdownV2(username);
+    const escapedLink = escapeMarkdownV2(`tg://user?id=${pendingUserId}`);
 
     const updateText = `
 🎆 *اختصاص کشور جدید* 🎆
 
-> کشور *${pendingCountry.name}* به [@${username}](tg://user?id=${pendingUserId}) اختصاص یافت\\!
+> کشور *${escapedCountry}* به [@${escapedUsername}](${escapedLink}) اختصاص یافت\\!
 
 برای این فرمانروا در فصل جدید آرزوی موفقیت داریم 🚀
 `;
@@ -223,6 +234,11 @@ registration.action('confirm_country', async (ctx) => {
         parse_mode: 'MarkdownV2'
     });
 
+    const countryCode = pendingCountry.country.toLowerCase();
+    if (!fc.includes(countryCode)) {
+        fc.push(countryCode);
+        fs.writeFileSync(fcPath, JSON.stringify(fc, null, 2), 'utf-8');
+    }
 
     ctx.session.pendingCountry = undefined;
     ctx.session.pendingUserId = undefined;
@@ -237,6 +253,5 @@ registration.action(/^reselect_country_(\d+)$/, async (ctx) => {
     await ctx.reply('🔄 لطفاً دوباره کشور را انتخاب کنید.');
     ctx.answerCbQuery();
 });
-
 
 export default registration;
