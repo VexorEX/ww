@@ -35,7 +35,7 @@ interface CustomContext extends BaseCustomContext {
 }
 
 const registration = new Composer<CustomContext>();
-const ADMIN_RESOURCE_IDS = admins.country || [];
+const ADMIN_COUNTRY_IDS = admins.country || [];
 
 async function sendRequestToAdmins(ctx: CustomContext, userId: bigint, username: string | undefined, firstName: string) {
     const hyperlink = `https://t.me/${username || userId}`;
@@ -65,7 +65,7 @@ userid: ${userId}
     //     [Markup.button.callback('استرالیا', 'setCountry_australia'), Markup.button.callback('رد', 'reject')],
     // ]);
 
-    for (const adminId of ADMIN_RESOURCE_IDS) {
+    for (const adminId of ADMIN_COUNTRY_IDS) {
         await ctx.telegram.sendMessage(adminId, message, { parse_mode: 'Markdown', ...keyboard });
     }
 }
@@ -73,7 +73,7 @@ function handleRankAction(rank: number) {
     return async (ctx: CustomContext) => {
         const adminId = ctx.from.id;
         const userIdStr = ctx.match?.[1];
-        if (!ADMIN_RESOURCE_IDS.includes(adminId)) return ctx.answerCbQuery('❌ دسترسی ندارید!');
+        if (!ADMIN_COUNTRY_IDS.includes(adminId)) return ctx.answerCbQuery('❌ دسترسی ندارید!');
         if (!userIdStr) return ctx.answerCbQuery('❌ شناسه کاربر موجود نیست!');
         const requestUserId = BigInt(userIdStr);
 
@@ -141,7 +141,7 @@ registration.action(/reject_(\d+)/, async (ctx) => {
     const adminId = ctx.from.id;
     const requestUserId = BigInt(ctx.match[1]); // گرفتن userId از match
 
-    if (!ADMIN_RESOURCE_IDS.includes(adminId)) {
+    if (!ADMIN_COUNTRY_IDS.includes(adminId)) {
         return ctx.answerCbQuery('❌ دسترسی ندارید!');
     }
 
@@ -154,7 +154,7 @@ registration.action(/^setCountry_(\d+)_(\w+)$/, async (ctx) => {
     if (!/^\d+$/.test(userIdStr)) return ctx.answerCbQuery('❌ شناسه کاربر نامعتبر است.');
     const requestUserId = BigInt(userIdStr);
     const adminId = ctx.from.id;
-    if (!ADMIN_RESOURCE_IDS.includes(adminId)) return ctx.answerCbQuery('❌ دسترسی ندارید!');
+    if (!ADMIN_COUNTRY_IDS.includes(adminId)) return ctx.answerCbQuery('❌ دسترسی ندارید!');
 
     const country = getCountryByName(countryKey);
     if (!country) return ctx.answerCbQuery('❌ کشور پیدا نشد!');
@@ -186,7 +186,7 @@ registration.action(/^setCountry_(\d+)_(\w+)$/, async (ctx) => {
 
 registration.action('confirm_country', async (ctx) => {
     const adminId = ctx.from.id;
-    if (!ADMIN_RESOURCE_IDS.includes(adminId)) return ctx.answerCbQuery('❌ دسترسی ندارید!');
+    if (!ADMIN_COUNTRY_IDS.includes(adminId)) return ctx.answerCbQuery('❌ دسترسی ندارید!');
 
     const { pendingCountry, pendingUserId } = ctx.session ?? {};
     if (!pendingCountry || !pendingUserId) return ctx.answerCbQuery('❌ اطلاعات ناقص است!');
