@@ -12,9 +12,7 @@ import config from './config/config.json'
 //
 // dotenv.config(); // اول همه import ها
 // console.log('BOT_TOKEN loaded:', process.env.BOT_TOKEN ? 'YES' : 'NO'); // security: token رو print نکن
-const bot = new Telegraf<CustomContext>(config.token, {
-    telegram: { apiRoot: "http://46.38.138.55:808/" }
-});
+const bot = new Telegraf<CustomContext>(config.token);
 
 // bot.use(async (ctx, next) => {
 //     const allowedIds = [7588477963, 5913282749]; // لیست آی‌دی‌های مجاز
