@@ -8,6 +8,7 @@ import countryFilter from "./modules/countryFilter";
 import registration from "./modules/registeration";
 import userPanel from "./modules/userPanel";
 import config from './config/config.json'
+import adminPanel from "./modules/adminPanel";
 
 //
 // dotenv.config(); // اول همه import ها
@@ -36,15 +37,13 @@ bot.use(economy.middleware());
 bot.use(military.middleware());
 bot.use(countryFilter); // Composer نه middleware
 bot.use(registration); // برای /start و action ها - Composer نه middleware
-bot.use(userPanel);
+bot.use(adminPanel);
 
 bot.launch();
 console.log('بات راه‌اندازی شد!');
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
-
-
 
 // registration.action('rank3', async (ctx) => {
 //     const adminId = ctx.from.id;

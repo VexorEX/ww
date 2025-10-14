@@ -1,0 +1,562 @@
+import { Composer, Markup } from 'telegraf';
+import type { CustomContext } from '../../middlewares/userAuth';
+import { prisma } from '../../prisma';
+import config from '../../config/config.json';
+import fs from 'fs';
+import path from 'path';
+import { assetCategories , bigintFields } from '../../constants/assetCategories';
+
+const adminPanel = new Composer<CustomContext>();
+const CONFIG_PATH = path.join(__dirname, '../../config/config.json');
+const REWARD_LOG_PATH = path.join(__dirname, '../../config/dailyRewardLog.json');
+const ADMIN_IDS: number[] = config.manage.country.admins || [];
+
+//
+// ✅ پنل اصلی با /panel
+//
+adminPanel.command('panel', async (ctx) => {
+    if (!ADMIN_IDS.includes(ctx.from.id)) return ctx.reply('⛔ شما ادمین نیستید.');
+
+    const keyboard = Markup.inlineKeyboard([
+        [Markup.button.callback('🛠 ویرایش دارایی', 'admin_edit_asset')],
+        [Markup.button.callback('🧩 مدیریت منو', 'admin_toggle_menu')],
+        [Markup.button.callback('🎁 ارسال جایزه روزانه', 'admin_daily_reward')],
+        [Markup.button.callback('❌ بستن', 'delete')]
+    ]);
+
+    await ctx.reply('🎛 پنل مدیریت:', keyboard);
+});
+
+adminPanel.action('admin_edit_asset', async (ctx) => {
+    ctx.session ??= {};
+    await ctx.reply('📌 لطفاً شناسه کاربر را وارد کن:\nمثال: /editasset 123456789');
+    ctx.answerCbQuery();
+});
+
+adminPanel.action('admin_toggle_menu', async (ctx) => {
+    ctx.session ??= {};
+
+    const sections = Object.entries(config.manage).filter(([_, val]) =>
+        typeof val === 'object' && val !== null && 'status' in val
+    );
+
+    const keyboard = Markup.inlineKeyboard(
+        sections.map(([key, val]) => {
+            const status = (val as { status: boolean }).status;
+            return [Markup.button.callback(`${status ? '✅' : '❌'} ${key}`, `toggle_section_${key}`)];
+        })
+    );
+
+
+    await ctx.reply('🧩 وضعیت نمایش دکمه‌های منو:', keyboard);
+    ctx.answerCbQuery();
+});
+
+adminPanel.action(/^toggle_section_(\w+)$/, async (ctx) => {
+    const section = ctx.match[1];
+    const current = config.manage[section]?.status;
+
+    if (typeof current !== 'boolean') return ctx.answerCbQuery('❌ بخش نامعتبر است.');
+    config.manage[section].status = !current;
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
+
+    await ctx.editMessageText(`✅ وضعیت "${section}" به ${!current ? 'فعال' : 'غیرفعال'} تغییر یافت.`);
+    ctx.answerCbQuery();
+});
+
+adminPanel.action('admin_daily_reward', async (ctx) => {
+    ctx.session ??= {};
+    const keyboard = Markup.inlineKeyboard([
+        [Markup.button.callback('🎁 ارسال جایزه روزانه', 'send_daily_reward')]
+    ]);
+    await ctx.reply('🎯 فقط یک‌بار در روز قابل اجراست:', keyboard);
+    ctx.answerCbQuery();
+});
+
+adminPanel.action('send_daily_reward', async (ctx) => {
+    if (!ADMIN_IDS.includes(ctx.from.id)) return ctx.answerCbQuery('⛔ دسترسی ندارید.');
+
+    const today = new Date().toISOString().split('T')[0];
+    let lastSent = '';
+
+    try {
+        const log = JSON.parse(fs.readFileSync(REWARD_LOG_PATH, 'utf-8'));
+        lastSent = log.lastSent || '';
+    } catch {
+        lastSent = '';
+    }
+
+    if (lastSent === today) return ctx.answerCbQuery('⛔ جایزه امروز قبلاً ارسال شده.');
+
+    const users = await prisma.user.findMany();
+    let count = 0;
+
+    for (const user of users) {
+        const profit = BigInt(user.dailyProfit || 0);
+        const current = BigInt(user.capital || 0);
+        await prisma.user.update({
+            where: { userid: user.userid },
+            data: { capital: current + profit }
+        });
+        count++;
+    }
+
+    fs.writeFileSync(REWARD_LOG_PATH, JSON.stringify({ lastSent: today }, null, 2), 'utf-8');
+    await ctx.reply(`✅ جایزه روزانه برای ${count} کاربر ارسال شد.`);
+    ctx.answerCbQuery('🎁 ارسال شد!');
+});
+
+//
+// ✅ ویرایش دارایی با /editasset
+//
+adminPanel.command('editasset', async (ctx) => {
+    if (!ADMIN_IDS.includes(ctx.from.id)) return ctx.reply('⛔ دسترسی ندارید.');
+    const args = ctx.message.text.split(' ');
+    const userIdStr = args[1];
+    if (!userIdStr || !/^\d+$/.test(userIdStr)) return ctx.reply('❌ فرمت صحیح نیست. مثال: /editasset 123456789');
+
+    ctx.session ??= {};
+    ctx.session.editUserId = BigInt(userIdStr);
+
+    const keyboard = Markup.inlineKeyboard(
+        Object.keys(assetCategories).map((cat) => [Markup.button.callback(cat, `edit_cat_${cat}`)])
+    );
+
+    await ctx.reply('🔧 دسته دارایی را انتخاب کن:', keyboard);
+});
+
+adminPanel.action(/^edit_cat_(\w+)$/, async (ctx) => {
+    ctx.session ??= {};
+    const category = ctx.match[1];
+    const items = assetCategories[category];
+    if (!items) return ctx.answerCbQuery('❌ دسته نامعتبر است.');
+
+    ctx.session.editCategory = category;
+
+    const keyboard = Markup.inlineKeyboard(
+        items.map((item) => [Markup.button.callback(item, `edit_item_${item}`)])
+    );
+
+    await ctx.editMessageText(`🔍 موردی که می‌خواهی ویرایش کنی را انتخاب کن:`, keyboard);
+    ctx.answerCbQuery();
+});
+
+adminPanel.action(/^edit_item_(\w+)$/, async (ctx) => {
+    ctx.session ??= {};
+    ctx.session.editItem = ctx.match[1];
+    ctx.session.editStep = 'awaiting_value';
+    await ctx.reply('✏️ مقدار جدید را وارد کن:\n+25 برای افزایش، -25 برای کاهش، 25 برای مقدار مستقیم');
+    ctx.answerCbQuery();
+});
+
+adminPanel.on('text', async (ctx, next) => {
+    ctx.session ??= {};
+    if (ctx.session.editStep !== 'awaiting_value') return next();
+
+    const valueStr = ctx.message.text.trim();
+    const value = Number(valueStr);
+    if (isNaN(value)) return ctx.reply('❌ مقدار عددی معتبر نیست.');
+
+    const { editUserId, editItem } = ctx.session;
+    const user = await prisma.user.findUnique({ where: { userid: editUserId } });
+    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+
+    const isBigInt = ['capital', 'dailyProfit', 'crowd'].includes(editItem);
+
+    let newValue: number | bigint;
+
+    if (isBigInt) {
+        const current = BigInt(user[editItem] || 0);
+        if (valueStr.startsWith('+')) {
+            newValue = current + BigInt(value);
+        } else if (valueStr.startsWith('-')) {
+            newValue = current - BigInt(Math.abs(value));
+        } else {
+            newValue = BigInt(value);
+        }
+    } else {
+        const current = Number(user[editItem] || 0);
+        if (valueStr.startsWith('+')) {
+            newValue = current + value;
+        } else if (valueStr.startsWith('-')) {
+            newValue = current - Math.abs(value);
+        } else {
+            newValue = value;
+        }
+    }
+
+    await prisma.user.update({
+        where: { userid: editUserId },
+        data: { [editItem]: isBigInt ? newValue : Number(newValue) }
+    });
+
+    await ctx.reply(`✅ مقدار جدید ${editItem} برای کاربر ${editUserId} تنظیم شد: ${newValue.toLocaleString()}`);
+    ctx.session.editStep = undefined;
+});
+
+export default adminPanel;
+
+
+
+ in hanozam az command estefade mikone o man nmikham injori bashe behtare ke in bakhsh ro be shekl ghesmat management besazim (agar lazeme oon ro ham alan mifrestam
+ import { Composer, Markup } from 'telegraf';
+ import { CustomContext } from '../middlewares/userAuth';
+ import { getCountryData } from '../utils/displayCountry';
+ import {escapeMarkdownV2} from '../utils/escape';
+ import countries from '../config/countries.json';
+ import more from '../config/more.json';
+ import config from '../config/config.json';
+ import { prisma } from '../prisma';
+
+ const countryManagement = new Composer<CustomContext>();
+
+ function getContinentEmoji(countryCode: string): string {
+     for (const [continent, list] of Object.entries(countries)) {
+         if (countryCode in list) {
+             switch (continent) {
+                 case 'america': return '🌎 آمریکا';
+                 case 'asia': return '🌏 آسیا';
+                 case 'europe': return '🌍 اروپا';
+                 case 'africa': return '🌍 آفریقا';
+                 case 'australia': return '🌏 اقیانوسیه';
+                 default: return '🌐 نامشخص';
+             }
+         }
+     }
+     return '🌐 نامشخص';
+ }
+ function formatNumber(input: string | number): string {
+     const num = typeof input === 'string' ? parseInt(input.replace(/,/g, ''), 10) : input;
+     if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(1) + 'B';
+     if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
+     if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+     return num.toString();
+ }
+ function getRankLabel(rank: number): string {
+     return more.ranks[`rank${rank}`] || `رتبه ${rank}`;
+ }
+
+ function getReligionLabel(key: string): string {
+     return more.religion[key] || key;
+ }
+ function buildCountryInlineKeyboard(user: any): Markup.Markup<any> {
+     return Markup.inlineKeyboard([
+         [
+             Markup.button.callback(`${user.countryName}`, 'NA'),
+             Markup.button.callback(`${more.governments[user.government] || user.government}`, 'set_gov'),
+             Markup.button.callback(`${getReligionLabel(user.religion)}`, 'set_religion')
+         ],
+         [
+             Markup.button.callback(getContinentEmoji(user.country), 'NA'),
+             Markup.button.callback(`🎖 ${getRankLabel(user.rank)}`, 'NA')
+         ],
+         [Markup.button.callback('═══════════════', 'NA')],
+         [
+             Markup.button.callback('👥 جمعیت', 'NA'),
+             Markup.button.callback('💰 درآمد روزانه', 'NA'),
+             Markup.button.callback('🏦 سرمایه', 'NA')
+         ],
+         [
+             Markup.button.callback(`👥 ${formatNumber(user.crowd)}`, 'NA'),
+             Markup.button.callback(`💰 ${formatNumber(user.dailyProfit)}`, 'NA'),
+             Markup.button.callback(`🏦 ${formatNumber(user.capital)}`, 'NA')
+         ],
+         [
+             Markup.button.callback('🛡 امنیت', 'NA'),
+             Markup.button.callback('😊 رضایت', 'NA')
+         ],
+         [
+             Markup.button.callback(`🛡 ${user.security}`, 'NA'),
+             Markup.button.callback(`😊 ${user.satisfaction}`, 'NA')
+         ],
+         [Markup.button.callback('═══════════════', 'NA')],
+         [
+             Markup.button.callback('🪨 منابع', 'get_resources'),
+             Markup.button.callback('⚔️ نظامی', 'get_armies')
+         ],
+         [Markup.button.callback('🔙 بازگشت', 'back_main')]
+     ]);
+ }
+
+ function buildReligionUpdateMessage(countryName: string, oldRel: string, newRel: string): string {
+     return `${countryName} به طور رسمی دین رسمی خود را انتخاب کرد! 🕊
+
+ > دین قبلی: ${oldRel || 'نامشخص'}
+ > دین جدید: ${newRel}
+
+ شرح: کشور ${countryName} طی روزهای اخیر دین خود را به طور رسمی انتخاب و ثبت کرد 📝`;
+ }
+ function buildGovUpdateMessage(countryName: string, oldGov: string, newGov: string): string {
+     return `${countryName} به طور رسمی نوع حکومت خود را انتخاب کرد! 👤
+
+ > حکومت قبلی: ${oldGov || 'نامشخص'}
+ > حکومت جدید: ${newGov}
+
+ شرح: کشور ${countryName} طی روزهای اخیر نوع حکومت خود را به طور رسمی انتخاب و ثبت کرد این کار ممکن است واکنش‌های مردمی مثبت یا منفی به دنبال داشته باشد 🏛`;
+ }
+
+ async function sendUpdateToChannel(type: 'religion' | 'gov', message: string, ctx: CustomContext) {
+     const imageUrl = config.images[type]; // باید لینک مستقیم باشه
+     const caption = escapeMarkdownV2(message);
+
+     if (imageUrl?.startsWith('http')) {
+         await ctx.telegram.sendPhoto(config.channels.updates, imageUrl, {
+             caption,
+             parse_mode: 'MarkdownV2'
+         });
+     } else {
+         await ctx.telegram.sendMessage(config.channels.updates, caption, {
+             parse_mode: 'MarkdownV2'
+         });
+     }
+ }
+ countryManagement.action('management', async (ctx) => {
+     const country = ctx.user?.country;
+     if (!country) return ctx.reply('❌ کشور شما مشخص نیست.');
+     const result = await getCountryData(country);
+     if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+     const keyboard = buildCountryInlineKeyboard(result.user);
+     await ctx.reply(`🎯 مدیریت کشور ${result.user.countryName}`, keyboard);
+ });
+
+ countryManagement.action('set_gov', async (ctx) => {
+     if (!config.manage.management.governments.status) {
+         await ctx.answerCbQuery('⛔ تغییر حکومت در حال حاضر غیرفعال است.');
+         return;
+     }
+
+     const keyboard = Markup.inlineKeyboard(
+         Object.entries(more.governments).map(([key, label]) => [
+             Markup.button.callback(label, `change_gov_${key}`)
+         ])
+     );
+     await ctx.editMessageText('👑 نوع حکومت مورد نظر را انتخاب کن:', keyboard);
+     ctx.answerCbQuery();
+ });
+ countryManagement.action(/^change_gov_(\w+)$/, async (ctx) => {
+     const newGov = ctx.match[1];
+     const user = await prisma.user.findUnique({ where: { userid: BigInt(ctx.from.id) } });
+     const oldGov = user?.government || 'نامشخص';
+     const countryName = user?.countryName || 'کشور شما';
+
+     await prisma.user.update({
+         where: { userid: BigInt(ctx.from.id) },
+         data: { government: newGov }
+     });
+
+     await ctx.editMessageText(`✅ حکومت شما به ${more.governments[newGov]} تغییر یافت.`);
+     ctx.answerCbQuery();
+
+     const message = buildGovUpdateMessage(countryName, more.governments[oldGov] || oldGov, more.governments[newGov]);
+     try {
+         await sendUpdateToChannel('gov', message, ctx);
+     } catch (err) {
+         console.error('❌ خطا در ارسال پیام به کانال:', err);
+     }
+ });
+
+ countryManagement.action('set_religion', async (ctx) => {
+     if (!config.manage.management.religion.status) {
+         await ctx.answerCbQuery('⛔ تغییر دین در حال حاضر غیرفعال است.');
+         return;
+     }
+
+     const keyboard = Markup.inlineKeyboard(
+         Object.entries(more.religion).map(([key, label]) => [
+             Markup.button.callback(label, `change_religion_${key}`)
+         ])
+     );
+     await ctx.editMessageText('🕌 دین مورد نظر را انتخاب کن:', keyboard);
+     ctx.answerCbQuery();
+ });
+ countryManagement.action(/^change_religion_(\w+)$/, async (ctx) => {
+     const newRel = ctx.match[1];
+     const user = await prisma.user.findUnique({ where: { userid: BigInt(ctx.from.id) } });
+     const oldRel = user?.religion || 'نامشخص';
+     const countryName = user?.countryName || 'کشور شما';
+
+     await prisma.user.update({
+         where: { userid: BigInt(ctx.from.id) },
+         data: { religion: newRel }
+     });
+
+     await ctx.editMessageText(`✅ دین شما به ${more.religion[newRel]} تغییر یافت.`);
+     ctx.answerCbQuery();
+
+     const message = buildReligionUpdateMessage(countryName, more.religion[oldRel] || oldRel, more.religion[newRel]);
+     try {
+         await sendUpdateToChannel('religion', message, ctx);
+     } catch (err) {
+         console.error('❌ خطا در ارسال پیام به کانال:', err);
+     }
+ });
+
+ const armyCategories = [
+     { name: '🌍 نیروهای زمینی', callback: 'army_ground' },
+     { name: '🛡 سامانه‌های دفاعی', callback: 'army_defence' },
+     { name: '🌊 نیروهای دریایی', callback: 'army_marine' },
+     { name: '✈️ نیروهای هوایی', callback: 'army_aerial' },
+ ];
+ const armyActions = [
+     { name: '🔙 بازگشت', callback: 'back_main' },
+     { name: '❌ بستن', callback: 'delete' },
+ ];
+ const keyboardArm = Markup.inlineKeyboard([
+     [Markup.button.callback(armyCategories[0].name, armyCategories[0].callback),
+         Markup.button.callback(armyCategories[1].name, armyCategories[1].callback)],
+     [Markup.button.callback(armyCategories[2].name, armyCategories[2].callback),
+         Markup.button.callback(armyCategories[3].name, armyCategories[3].callback)],
+     armyActions.map(a => Markup.button.callback(a.name, a.callback))
+ ]);
+ countryManagement.action('get_armies', async (ctx) => {
+     await ctx.reply('⚔️ دسته‌بندی نیروهای نظامی را انتخاب کن:', keyboardArm);
+     ctx.answerCbQuery();
+ });
+
+ const resourceCategories = [
+     { name: '📦 منابع پایه', callback: 'res_base' },
+     { name: '🏗 تجهیزات استخراج', callback: 'res_mines' },
+ ];
+ const resourceActions = [
+     { name: '🔙 بازگشت', callback: 'back_main' },
+     { name: '❌ بستن', callback: 'delete' },
+ ];
+ const keyboardRes = Markup.inlineKeyboard([
+     [Markup.button.callback(resourceCategories[0].name, resourceCategories[0].callback),
+         Markup.button.callback(resourceCategories[1].name, resourceCategories[1].callback)],
+     resourceActions.map(a => Markup.button.callback(a.name, a.callback))
+ ]);
+ countryManagement.action('get_resources', async (ctx) => {
+     await ctx.reply('📊 دسته‌بندی منابع کشور را انتخاب کن:', keyboardRes);
+     ctx.answerCbQuery();
+ });
+ countryManagement.action('res_base', async (ctx) => {
+     const country = ctx.user?.country;
+     const result = await getCountryData(country);
+     if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+     const u = result.user;
+
+     const keyboard = Markup.inlineKeyboard([
+         buildRow('🔩 آهن', u.iron),
+         buildRow('💰 طلا', u.gold),
+         buildRow('☢ اورانیوم', u.uranium),
+         buildRow('🛢 نفت', u.oil),
+         [Markup.button.callback('🔙 بازگشت', 'get_resources')]
+     ]);
+
+     await ctx.reply('📦 منابع پایه کشور شما:', keyboard);
+     ctx.answerCbQuery();
+ });
+ countryManagement.action('res_mines', async (ctx) => {
+     const country = ctx.user?.country;
+     const result = await getCountryData(country);
+     if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+     const u = result.user;
+
+     const keyboard = Markup.inlineKeyboard([
+         buildRow('⛏ معدن آهن', u.ironMine),
+         buildRow('🏆 معدن طلا', u.goldMine),
+         buildRow('⚛ معدن اورانیوم', u.uraniumMine),
+         buildRow('🏭 پالایشگاه نفت', u.refinery),
+         [Markup.button.callback('🔙 بازگشت', 'get_resources')]
+     ]);
+
+     await ctx.reply('🏗 تجهیزات استخراج کشور شما:', keyboard);
+     ctx.answerCbQuery();
+ });
+
+ function buildRow(label: string, value: string | number) {
+     return [Markup.button.callback(label, 'NA'), Markup.button.callback(`${value}`, 'NA')];
+ }
+
+ countryManagement.action('get_armies', async (ctx) => {
+     const keyboard = Markup.inlineKeyboard([
+         [Markup.button.callback('🌍 زمینی', 'army_ground')],
+         [Markup.button.callback('🌊 دریایی', 'army_marine')],
+         [Markup.button.callback('✈️ هوایی', 'army_aerial')],
+         [Markup.button.callback('🛡 دفاعی', 'army_defence')],
+         [Markup.button.callback('🔙 بازگشت', 'back_main')]
+     ]);
+     await ctx.reply('⚔️ دسته‌بندی نیروهای نظامی را انتخاب کن:', keyboard);
+     ctx.answerCbQuery();
+ });
+ countryManagement.action('army_ground', async (ctx) => {
+     const country = ctx.user?.country;
+     const result = await getCountryData(country);
+     if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+     const u = result.user;
+
+     const keyboard = Markup.inlineKeyboard([
+         buildRow('👨‍✈️ پیاده‌نظام', u.soldier),
+         buildRow('🛡 تانک سبک', u.tank),
+         buildRow('🧱 تانک سنگین', u.heavyTank),
+         [Markup.button.callback('🔙 بازگشت', 'get_armies')]
+     ]);
+     await ctx.reply('🌍 نیروهای زمینی کشور شما:', keyboard);
+     ctx.answerCbQuery();
+ });
+ countryManagement.action('army_marine', async (ctx) => {
+     const country = ctx.user?.country;
+     const result = await getCountryData(country);
+     if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+     const u = result.user;
+
+     const keyboard = Markup.inlineKeyboard([
+         buildRow('🚢 نبردناو', u.battleship),
+         buildRow('🛳 کشتی دریایی', u.marineShip),
+         buildRow('⚓️ شکننده دریایی', u.breakerShip),
+         buildRow('☢ زیردریایی هسته‌ای', u.nuclearSubmarine),
+         [Markup.button.callback('🔙 بازگشت', 'get_armies')]
+     ]);
+     await ctx.reply('🌊 نیروهای دریایی کشور شما:', keyboard);
+     ctx.answerCbQuery();
+ });
+ countryManagement.action('army_aerial', async (ctx) => {
+     const country = ctx.user?.country;
+     const result = await getCountryData(country);
+     if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+     const u = result.user;
+
+     const keyboard = Markup.inlineKeyboard([
+         buildRow('✈️ F-16', u.f16),
+         buildRow('✈️ F-22', u.f22),
+         buildRow('✈️ F-35', u.f35),
+         buildRow('✈️ J-20', u.j20),
+         buildRow('✈️ SU-57', u.su57),
+         buildRow('✈️ B-2', u.b2),
+         buildRow('🛩 پهپاد جاسوسی', u.espionageDrone),
+         buildRow('🛩 پهپاد انتحاری', u.suicideDrone),
+         buildRow('🛩 پهپاد عبوری', u.crossDrone),
+         buildRow('🛩 پهپاد شاهد', u.witnessDrone),
+         buildRow('🚀 موشک ساده', u.simpleRocket),
+         buildRow('🚀 موشک نقطه‌زن', u.dotTargetRocket),
+         buildRow('🚀 موشک قاره‌پیما', u.continentalRocket),
+         buildRow('🚀 موشک بالستیک', u.ballisticRocket),
+         buildRow('🚀 موشک شیمیایی', u.chemicalRocket),
+         buildRow('🚀 موشک هایپرسونیک', u.hyperSonicRocket),
+         buildRow('🚀 موشک خوشه‌ای', u.clusterRocket),
+         [Markup.button.callback('🔙 بازگشت', 'get_armies')]
+     ]);
+     await ctx.reply('✈️ نیروهای هوایی کشور شما:', keyboard);
+     ctx.answerCbQuery();
+ });
+ countryManagement.action('army_defence', async (ctx) => {
+     const country = ctx.user?.country;
+     const result = await getCountryData(country);
+     if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+     const u = result.user;
+
+     const keyboard = Markup.inlineKeyboard([
+         buildRow('🛡 ضد موشک', u.antiRocket),
+         buildRow('🛡 گنبد آهنین', u.ironDome),
+         buildRow('🛡 S-400', u.s400),
+         buildRow('🛡 TAAD', u.taad),
+         buildRow('🛡 HQ-9', u.hq9),
+         buildRow('🛡 آکاش', u.acash),
+         [Markup.button.callback('🔙 بازگشت', 'get_armies')]
+     ]);
+     await ctx.reply('🛡 سامانه‌های دفاعی کشور شما:', keyboard);
+     ctx.answerCbQuery();
+ });
+
+ export default countryManagement;

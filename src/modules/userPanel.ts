@@ -1,7 +1,6 @@
 import { Composer, Markup } from "telegraf";
 import { CustomContext } from "../middlewares/userAuth";
 import config from "../config/config.json";
-import admins from "../config/admins.json";
 import management from './countryManagement'
 import shop from "./countryShop";
 import { escapeMarkdownV2 } from "../utils/escape";
@@ -10,15 +9,34 @@ import state from "./countryState";
 
 const userPanel = new Composer<CustomContext>();
 
-const userMainKeyboard = config.manage.perm ? Markup.inlineKeyboard([
-    [Markup.button.callback('📜 بیانیه', 'state')],
-    [Markup.button.callback('🛠 مدیریت کشور', 'management'), Markup.button.callback('🛒 خرید', 'shop')],
-    [Markup.button.callback('─────────────', 'noop')],
-    [Markup.button.callback('🏗 ساخت و ساز', 'building')],
-    // [Markup.button.callback('📈 سهام', 'user_saham'), Markup.button.callback('⚓ تجارت', 'user_tejarat')],
-]) : Markup.inlineKeyboard([
-    [Markup.button.callback('⛔ بازی متوقف شده', 'noop')]
-]);
+const userMainKeyboard = config.manage.status
+    ? Markup.inlineKeyboard([
+        config.manage?.state?.status
+            ? [Markup.button.callback('📜 بیانیه', 'state')]
+            : [],
+        [
+            ...(config.manage?.management?.status
+                ? [Markup.button.callback('🛠 مدیریت کشور', 'management')]
+                : []),
+            ...(config.manage?.shop?.status
+                ? [Markup.button.callback('🛒 خرید', 'shop')]
+                : [])
+        ],
+        [Markup.button.callback('─────────────', 'noop')],
+        config.manage?.buildings?.status
+            ? [Markup.button.callback('🏗 ساخت و ساز', 'building')]
+            : [],
+        [
+            ...(config.manage?.stock?.status
+                ? [Markup.button.callback('📈 سهام', 'stock')]
+                : []),
+            ...(config.manage?.business?.status
+                ? [Markup.button.callback('⚓ تجارت', 'business')]
+                : [])
+        ]
+    ].filter((row) => row.length > 0))
+    : Markup.inlineKeyboard([[Markup.button.callback('⛔ بازی متوقف شده', 'noop')]]);
+
 const adminPanelKeyboard = Markup.inlineKeyboard([
     [Markup.button.callback('✏️ ویرایش دارایی', 'admin_editAssets'), Markup.button.callback('🌪 بلای طبیعی', 'admin_disaster')],
     [Markup.button.callback('🌐 سازمان ملل', 'admin_un')],
