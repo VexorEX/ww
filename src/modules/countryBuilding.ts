@@ -3,10 +3,9 @@ import type { CustomContext } from '../middlewares/userAuth';
 import { escapeMarkdownV2 } from '../utils/escape';
 import { prisma } from '../prisma';
 import config from '../config/config.json';
-import admins from '../config/admins.json';
 import { createProductionLine } from "./helper/Building";
 import { changeCapital } from "./economy";
-
+const admins: number[] = config.manage.buildings.admins;
 const building = new Composer<CustomContext>();
 
 // منوی اصلی ساخت‌وساز
@@ -47,6 +46,7 @@ building.action('build_car', async (ctx) => {
 
 // دریافت نام خودرو
 building.on('text', async (ctx, next) => {
+    ctx.session ??= {};
     if (ctx.session.buildingStep === 'awaiting_car_name') {
         const name = ctx.message.text?.trim();
         if (!name || name.length < 2) {
@@ -64,6 +64,7 @@ building.on('text', async (ctx, next) => {
 
 // دریافت تصویر خودرو و نمایش پیش‌نمایش
 building.on('photo', async (ctx, next) => {
+    ctx.session ??= {};
     if (ctx.session.buildingStep !== 'awaiting_car_image') return next();
 
     const photo = ctx.message.photo?.at(-1);
@@ -99,6 +100,8 @@ building.on('photo', async (ctx, next) => {
 
 // ارسال درخواست به ادمین
 building.action('submit_building', async (ctx) => {
+    ctx.session ??= {};
+
     const { carName, carImage, carImageFileId, setupCost } = ctx.session;
     const countryName = ctx.user?.countryName;
     const userId = BigInt(ctx.from.id);
@@ -144,16 +147,18 @@ building.action('submit_building', async (ctx) => {
         [Markup.button.callback('❌ رد درخواست', `admin_reject_building_${userId}`)]
     ]);
 
-    await ctx.telegram.sendPhoto(admins.buildings, carImageFileId, {
-        caption: escapeMarkdownV2(
-            `📥 درخواست ساخت خط تولید خودرو\n\n` +
-            `> کشور: **${countryName}**\n` +
-            `> محصول: **${carName}**\n\n` +
-            `بودجه: 250M\nظرفیت تولید روزانه: 15 خودرو`
-        ),
-        parse_mode: 'MarkdownV2',
-        reply_markup: adminKeyboard.reply_markup
-    });
+    for (const admin of admins) {
+        await ctx.telegram.sendPhoto(admin, carImageFileId, {
+            caption: escapeMarkdownV2(
+                `📥 درخواست ساخت خط تولید خودرو\n\n` +
+                `> کشور: **${countryName}**\n` +
+                `> محصول: **${carName}**\n\n` +
+                `بودجه: 250M\nظرفیت تولید روزانه: 15 خودرو`
+            ),
+            parse_mode: 'MarkdownV2',
+            reply_markup: adminKeyboard.reply_markup
+        });
+    }
 
     await ctx.reply('📤 درخواست شما برای بررسی ادمین ارسال شد.');
     ctx.session.buildingStep = undefined;
@@ -203,9 +208,10 @@ building.action(/admin_reject_building_(\d+)/, async (ctx) => {
     const userId = BigInt(ctx.match[1]);
     const adminId = ctx.from.id;
 
-    if (admins.buildings !== adminId) {
+    if (!admins.includes(adminId)) {
         return ctx.answerCbQuery('⛔ فقط ادمین می‌تونه رد کنه.');
     }
+
 
     const pending = await prisma.pendingProductionLine.findUnique({ where: { ownerId: userId } });
     if (!pending) {

@@ -3,30 +3,13 @@ import userAuth from './middlewares/userAuth';
 import economy from './modules/economy';
 import military from './modules/military';
 import type { CustomContext } from './middlewares/userAuth';
-import * as dotenv from 'dotenv';
 import countryFilter from "./modules/countryFilter";
 import registration from "./modules/registeration";
-import userPanel from "./modules/userPanel";
 import config from './config/config.json'
-
-//
-// dotenv.config(); // اول همه import ها
-// console.log('BOT_TOKEN loaded:', process.env.BOT_TOKEN ? 'YES' : 'NO'); // security: token رو print نکن
+import adminPanel from "./modules/adminPanel";
+import notifyAdmins from "./utils/notifyAdmins";
 const bot = new Telegraf<CustomContext>(config.token);
 
-// bot.use(async (ctx, next) => {
-//     const allowedIds = [7588477963, 5913282749]; // لیست آی‌دی‌های مجاز
-//
-//     if (!allowedIds.includes(ctx.from?.id)) {
-//         if ('message' in ctx && ctx.message) {
-//             await ctx.reply('sihtir');
-//         }
-//         return; // ادامه نده
-//     }
-//
-//     // اگر آی‌دی مجاز بود، ادامه بده
-//     await next();
-// });
 
 bot.use(session()); // برای ctx.state و session
 bot.use(userAuth); // uncomment: برای ctx.user
@@ -34,15 +17,43 @@ bot.use(economy.middleware());
 bot.use(military.middleware());
 bot.use(countryFilter); // Composer نه middleware
 bot.use(registration); // برای /start و action ها - Composer نه middleware
-bot.use(userPanel);
+bot.use(adminPanel);
+
+bot.catch(async (err: unknown, ctx) => {
+    const update = ctx.update as any;
+
+    const errorText = [
+        `❌ خطا در اکشن: ${ctx.updateType}`,
+        `👤 کاربر: ${ctx.from?.id} - ${ctx.from?.username || 'بدون نام کاربری'}`,
+        `📄 پیام: ${update?.message?.text || update?.callback_query?.data || 'نامشخص'}`,
+        `🧠 خطا: ${(err as Error)?.message || (err as any)?.toString?.() || String(err)}`
+    ].join('\n');
+
+    try {
+        await ctx.reply('❌ مشکلی پیش آمده. تیم فنی مطلع شد.');
+    } catch (_) {}
+
+    try {
+        await notifyAdmins(bot, errorText);
+    } catch (e) {
+        console.error('❌ ارسال پیام به ادمین ناموفق بود:', e);
+    }
+});
+
 
 bot.launch();
 console.log('بات راه‌اندازی شد!');
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
-
-
+process.on('uncaughtException', async (err) => {
+    console.error('❌ uncaughtException:', err);
+    await notifyAdmins(bot, `⛔️ خطای سیستمی:\n${err.message || err.toString()}`);
+});
+process.on('unhandledRejection', async (reason) => {
+    console.error('❌ unhandledRejection:', reason);
+    await notifyAdmins(bot, `⛔️ رد نشده:\n${reason}`);
+});
 
 // registration.action('rank3', async (ctx) => {
 //     const adminId = ctx.from.id;

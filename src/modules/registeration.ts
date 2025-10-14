@@ -8,12 +8,12 @@ import {
     getCountriesByRegion,
     getCountryByName
 } from '../utils/countryUtils';
-import admins from '../config/admins.json';
 import config from '../config/config.json';
 import fc from '../config/fc.json';
 import { escapeMarkdownV2 } from "../utils/escape";
 import fs from 'fs';
 import path from 'path';
+import userPanel from "./userPanel";
 const fcPath = path.join(__dirname, '../config/fc.json');
 
 interface Country {
@@ -35,7 +35,8 @@ interface CustomContext extends BaseCustomContext {
 }
 
 const registration = new Composer<CustomContext>();
-const ADMIN_COUNTRY_IDS = admins.country || [];
+const ADMIN_COUNTRY_IDS : number[] = config.manage.country.admins || [];
+
 
 async function sendRequestToAdmins(ctx: CustomContext, userId: bigint, username: string | undefined, firstName: string) {
     const hyperlink = `https://t.me/${username || userId}`;
@@ -106,6 +107,11 @@ registration.command('start', async (ctx) => {
 
     if (ctx.session.hasVolunteered) {
         await ctx.reply('✅ شما قبلاً داوطلب شده‌اید و منتظر اختصاص کشور هستید.');
+        return;
+    }
+
+    if (!config.manage.country.status) {
+        await ctx.reply("❌ فعلاً کشوردهی فعال نیست.");
         return;
     }
 
@@ -253,5 +259,7 @@ registration.action(/^reselect_country_(\d+)$/, async (ctx) => {
     await ctx.reply('🔄 لطفاً دوباره کشور را انتخاب کنید.');
     ctx.answerCbQuery();
 });
+
+registration.use(userPanel);
 
 export default registration;

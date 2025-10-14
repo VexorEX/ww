@@ -1,13 +1,12 @@
 import { Composer, Markup } from 'telegraf';
 import type { CustomContext } from '../middlewares/userAuth';
 import { escapeMarkdownV2 } from '../utils/escape';
-import { prisma } from '../prisma';
 import config from '../config/config.json';
-import admins from '../config/admins.json';
 import { changeCapital } from "./economy";
 
+const admins :number[] = config.manage.state.admins;
 const state = new Composer<CustomContext>();
-const isstateAdmin = (id: number) => admins.state.includes(id);
+const isstateAdmin = (id: number) => admins.includes(id);
 
 
 state.action('state', async (ctx) => {

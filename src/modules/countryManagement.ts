@@ -6,8 +6,6 @@ import countries from '../config/countries.json';
 import more from '../config/more.json';
 import config from '../config/config.json';
 import { prisma } from '../prisma';
-import fs from 'fs';
-import path from 'path';
 
 const countryManagement = new Composer<CustomContext>();
 
@@ -121,6 +119,11 @@ countryManagement.action('management', async (ctx) => {
 });
 
 countryManagement.action('set_gov', async (ctx) => {
+    if (!config.manage.management.governments.status) {
+        await ctx.answerCbQuery('⛔ تغییر حکومت در حال حاضر غیرفعال است.');
+        return;
+    }
+
     const keyboard = Markup.inlineKeyboard(
         Object.entries(more.governments).map(([key, label]) => [
             Markup.button.callback(label, `change_gov_${key}`)
@@ -152,6 +155,11 @@ countryManagement.action(/^change_gov_(\w+)$/, async (ctx) => {
 });
 
 countryManagement.action('set_religion', async (ctx) => {
+    if (!config.manage.management.religion.status) {
+        await ctx.answerCbQuery('⛔ تغییر دین در حال حاضر غیرفعال است.');
+        return;
+    }
+
     const keyboard = Markup.inlineKeyboard(
         Object.entries(more.religion).map(([key, label]) => [
             Markup.button.callback(label, `change_religion_${key}`)

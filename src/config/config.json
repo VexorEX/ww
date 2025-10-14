@@ -1,7 +1,125 @@
 {
-  "token": "8093518474:AAF7CslVqKQOJcuWcEkwPMIrgE6npv4I-6g",
+  "token": "7639208583:AAGI9rCVNrAD-9-fmX5DxEw-FSych-XpgC4",
   "manage": {
-    "perm": false
+    "status": true,
+    "error": {
+      "admin": ["7588477963"]
+    },
+    "country": {
+      "admins": [
+        6749274447,
+        7588477963
+      ],
+      "status": true
+    },
+    "resource": {
+      "admins": [
+        6749274447,
+        7588477963
+      ],
+      "status": false
+    },
+    "state": {
+      "admins": [
+        6749274447,
+        7588477963
+      ],
+      "status": true
+    },
+    "shop": {
+      "admins": [6749274447,
+        7588477963],
+      "status": true,
+      "prices": {
+        "ground": {
+          "soldier": "1(crowd)",
+          "tank": "10(iron)",
+          "heavyTank": "25(iron)"
+        },
+        "aerial": {
+          "f35": "100(iron)",
+          "f16": "50(iron)",
+          "su57": "85(iron)",
+          "f47": "155(iron)",
+          "b2": "500(iron)",
+          "j20": "100(iron)",
+          "am50": "100(iron)",
+          "tu16": "400(iron)",
+          "espionageDrone": "100(iron)",
+          "witnessDrone": "2(oil)+1(iron)",
+          "crossDrone": "1(oil)",
+          "suicideDrone": "1(iron)"
+        },
+        "marine": {
+          "battleship": "10(iron)",
+          "marineShip": "15(iron)",
+          "breakerShip": "20(iron)",
+          "nuclearSubmarine": "1500(iron)"
+        },
+        "missile": {
+          "simpleRocket": "2(oil)",
+          "cruiseRocket": "3(oil)",
+          "dotTargetRocket": "4(oil)",
+          "continentalRocket": "5(oil)",
+          "ballisticRocket": "10(oil)",
+          "chemicalRocket": "20(oil)",
+          "hyperSonicRocket": "25(oil)",
+          "clusterRocket": "30(oil)"
+        },
+        "defence": {
+          "taad": "150(iron)",
+          "ironDome": "150(iron)",
+          "hq9": "125(iron)",
+          "acash": "125(iron)",
+          "antiRocket": "55(iron)",
+          "s400": "150(iron)",
+          "s300": "100(iron)"
+        }
+      }
+    },
+    "business": {
+      "admins": [6749274447,
+        7588477963],
+      "status": false
+    },
+    "buildings": {
+      "admins": [
+        6749274447,
+        7588477963
+      ],
+      "status": true
+    },
+    "stock": {
+      "admins": [6749274447,
+        7588477963],
+      "status": false
+    },
+    "management": {
+      "admins": [6749274447,
+        7588477963],
+      "status": true,
+      "religion": {
+        "admins": [
+          6749274447,
+        7588477963
+        ],
+        "status": true,
+        "default": ""
+      },
+      "governments": {
+        "admins": [
+          6749274447,
+        7588477963
+        ],
+        "status": true,
+        "default": ""
+      },
+      "dailyReward": {
+        "admins": [6749274447,
+        7588477963],
+        "default": 0
+      }
+    }
   },
   "channels": {
     "state": "-1002754782095",
