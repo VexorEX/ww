@@ -5,7 +5,7 @@ import type { CustomContext } from '../middlewares/userAuth';
 const adminIds = config.manage.error.admin;
 
 
-export async function notifyAdmins(bot: Telegraf<CustomContext>, message: string) {
+export default async function notifyAdmins(bot: Telegraf<CustomContext>, message: string) {
 
     for (const adminId of adminIds) {
         await bot.telegram.sendMessage(adminId, `⚠️ خطا در بات:\n${message}`);
