@@ -9,7 +9,7 @@ import config from './config/config.json'
 import adminPanel from "./modules/adminPanel";
 import notifyAdmins from "./utils/notifyAdmins";
 
-const bot = new Telegraf<CustomContext>(config.token,{telegram:{apiRoot:"http://"}});
+const bot = new Telegraf<CustomContext>(config.token);
 
 
 bot.use(session()); // برای ctx.state و session
