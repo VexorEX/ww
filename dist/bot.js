@@ -1,0 +1,25 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const telegraf_1 = require("telegraf");
+const userAuth_1 = __importDefault(require("./middlewares/userAuth"));
+const economy_1 = __importDefault(require("./modules/economy"));
+const military_1 = __importDefault(require("./modules/military"));
+const countryFilter_1 = __importDefault(require("./modules/countryFilter"));
+const registeration_1 = __importDefault(require("./modules/registeration"));
+const userPanel_1 = __importDefault(require("./modules/userPanel"));
+const config_json_1 = __importDefault(require("./config/config.json"));
+const bot = new telegraf_1.Telegraf(config_json_1.default.token);
+bot.use((0, telegraf_1.session)());
+bot.use(userAuth_1.default);
+bot.use(economy_1.default.middleware());
+bot.use(military_1.default.middleware());
+bot.use(countryFilter_1.default);
+bot.use(registeration_1.default);
+bot.use(userPanel_1.default);
+bot.launch();
+console.log('بات راه‌اندازی شد!');
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));

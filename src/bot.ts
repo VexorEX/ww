@@ -8,7 +8,6 @@ import registration from "./modules/registeration";
 import config from './config/config.json'
 import adminPanel from "./modules/adminPanel";
 import notifyAdmins from "./utils/notifyAdmins";
-
 const bot = new Telegraf<CustomContext>(config.token);
 
 
