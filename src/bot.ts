@@ -44,6 +44,14 @@ console.log('بات راه‌اندازی شد!');
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
+process.on('uncaughtException', async (err) => {
+    console.error('❌ uncaughtException:', err);
+    await notifyAdmins(bot, `⛔️ خطای سیستمی:\n${err.message || err.toString()}`);
+});
+process.on('unhandledRejection', async (reason) => {
+    console.error('❌ unhandledRejection:', reason);
+    await notifyAdmins(bot, `⛔️ رد نشده:\n${reason}`);
+});
 
 // registration.action('rank3', async (ctx) => {
 //     const adminId = ctx.from.id;
