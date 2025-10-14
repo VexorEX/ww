@@ -3,19 +3,15 @@ import userAuth from './middlewares/userAuth';
 import economy from './modules/economy';
 import military from './modules/military';
 import type { CustomContext } from './middlewares/userAuth';
-import * as dotenv from 'dotenv';
 import countryFilter from "./modules/countryFilter";
 import registration from "./modules/registeration";
-import userPanel from "./modules/userPanel";
 import config from './config/config.json'
 import adminPanel from "./modules/adminPanel";
 
 //
 // dotenv.config(); // اول همه import ها
 // console.log('BOT_TOKEN loaded:', process.env.BOT_TOKEN ? 'YES' : 'NO'); // security: token رو print نکن
-const bot = new Telegraf<CustomContext>(config.token, {
-    telegram: { apiRoot: "http://46.38.138.55:808/" }
-});
+const bot = new Telegraf<CustomContext>(config.token);
 
 // bot.use(async (ctx, next) => {
 //     const allowedIds = [7588477963, 5913282749]; // لیست آی‌دی‌های مجاز

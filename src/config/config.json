@@ -11,18 +11,21 @@
     },
     "resource": {
       "admins": [
+        6749274447,
         7588477963
       ],
       "status": false
     },
     "state": {
       "admins": [
+        6749274447,
         7588477963
       ],
       "status": true
     },
     "shop": {
-      "admins": [7588477963],
+      "admins": [6749274447,
+        7588477963],
       "status": true,
       "prices": {
         "ground": {
@@ -72,45 +75,52 @@
       }
     },
     "business": {
-      "admins": 7588477963,
+      "admins": 6749274447,
+        7588477963,
       "status": false
     },
     "buildings": {
       "admins": [
+        6749274447,
         7588477963
       ],
       "status": true
     },
     "stock": {
-      "admins": [7588477963],
+      "admins": [6749274447,
+        7588477963],
       "status": false
     },
     "management": {
-      "admins": [7588477963],
+      "admins": [6749274447,
+        7588477963],
       "status": true,
       "religion": {
         "admins": [
-          7588477963
+          6749274447,
+        7588477963
         ],
         "status": true,
         "default": ""
       },
       "governments": {
         "admins": [
-          7588477963
+          6749274447,
+        7588477963
         ],
         "status": true,
         "default": ""
       },
       "dailyReward": {
-        "admins": [7588477963],
+        "admins": [6749274447,
+        7588477963],
         "default": 0
       }
     }
   },
   "channels": {
-    "state": "-1002587148503",
-    "updates": "-1002587148503"
+    "state": "-1002754782095",
+    "updates": "-1002754782095"
   },
   "images": {
     "gov": "https://img9.irna.ir/d/r2/2024/12/21/4/171573917.jpg?ts=1734769973771",
