@@ -20,24 +20,27 @@ bot.use(countryFilter); // Composer نه middleware
 bot.use(registration); // برای /start و action ها - Composer نه middleware
 bot.use(adminPanel);
 
-bot.catch(async (err, ctx) => {
-    console.error('❌ خطای غیرمنتظره:', err);
+bot.catch(async (err: unknown, ctx) => {
+    const update = ctx.update as any;
 
     const errorText = [
         `❌ خطا در اکشن: ${ctx.updateType}`,
         `👤 کاربر: ${ctx.from?.id} - ${ctx.from?.username || 'بدون نام کاربری'}`,
-        `📄 پیام: ${'message' in ctx ? ctx.message?.text : 'callbackQuery' in ctx ? ctx?.callbackQuery?.data : 'نامشخص'}`,
-            `🧠 خطا: ${err.message || err.toString()}`
+        `📄 پیام: ${update?.message?.text || update?.callback_query?.data || 'نامشخص'}`,
+        `🧠 خطا: ${(err as Error)?.message || (err as any)?.toString?.() || String(err)}`
     ].join('\n');
-
-    await notifyAdmins(bot, errorText);
 
     try {
         await ctx.reply('❌ مشکلی پیش آمده. تیم فنی مطلع شد.');
-    } catch (_) {
-        // اگر ریپلای نشد، نادیده بگیر
+    } catch (_) {}
+
+    try {
+        await notifyAdmins(bot, errorText);
+    } catch (e) {
+        console.error('❌ ارسال پیام به ادمین ناموفق بود:', e);
     }
 });
+
 
 bot.launch();
 console.log('بات راه‌اندازی شد!');
