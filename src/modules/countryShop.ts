@@ -1,7 +1,9 @@
 import { Composer, Markup } from 'telegraf';
 import type { CustomContext } from '../middlewares/userAuth';
 import config from '../config/config.json';
-import { prisma } from "../prisma";
+import more from '../config/more.json';
+import { prisma } from '../prisma';
+import { changeUserField } from './economy';
 
 const shop = new Composer<CustomContext>();
 
@@ -37,20 +39,6 @@ shop.action('shop', async (ctx) => {
     ctx.answerCbQuery();
 });
 
-//
-// ✅ نمایش آیتم‌های هر دسته با قیمت
-//
-function getEmojiForItem(item: string): string {
-    const map: Record<string, string> = {
-        soldier: '👨‍✈️', tank: '🛡', heavyTank: '🧱',
-        f35: '✈️', f16: '✈️', su57: '✈️', b2: '✈️',
-        battleship: '🚢', marineShip: '🛳', nuclearSubmarine: '☢',
-        taad: '🛡', ironDome: '🛡', hq9: '🛡'
-        // بقیه رو هم می‌تونی اضافه کنی
-    };
-    return map[item] || '📦';
-}
-
 function parsePrice(priceStr: string, qty: number): Record<string, number> {
     const parts = priceStr.split('+');
     const result: Record<string, number> = {};
@@ -74,21 +62,25 @@ function checkResources(user: any, cost: Record<string, number>): string[] {
     return lacks;
 }
 
-function subtractResources(user: any, cost: Record<string, number>): Record<string, bigint> {
-    const result: Record<string, bigint> = {};
-    for (const [res, amount] of Object.entries(cost)) {
-        const current = BigInt(user[res] || 0);
-        result[res] = current - BigInt(amount);
-    }
-    return result;
-}
-
 function buildShopKeyboard(category: keyof typeof config.manage.shop.prices): Markup.Markup<any> {
-    const items = config.manage.shop.prices[category];
-    const rows = Object.entries(items).map(([key, price]) => {
-        const label = `${key} (${price})`;
-        return [Markup.button.callback(label, `buy_item_${category}_${key}`)];
-    });
+    const prices = config.manage.shop.prices[category];
+    const labels = more.armyLabels?.[category] || {};
+    const rows: any[] = [];
+
+    for (const [key, price] of Object.entries(prices)) {
+        const label = labels[key] || key;
+        const priceFa = price
+            .replace(/iron/g, 'آهن')
+            .replace(/oil/g, 'نفت')
+            .replace(/crowd/g, 'جمعیت')
+            .replace(/capital/g, 'سرمایه');
+
+        rows.push([
+            Markup.button.callback(label, 'noop'),
+            Markup.button.callback(priceFa, 'noop'),
+            Markup.button.callback('🛒 خرید', `buy_confirm_${category}_${key}`)
+        ]);
+    }
 
     rows.push(shopActions.map(a => Markup.button.callback(a.name, a.callback)));
     return Markup.inlineKeyboard(rows);
@@ -96,20 +88,8 @@ function buildShopKeyboard(category: keyof typeof config.manage.shop.prices): Ma
 
 shop.action(/^buy_(ground|marine|aerial|defence)$/, async (ctx) => {
     const category = ctx.match[1] as keyof typeof config.manage.shop.prices;
-    const items = config.manage.shop.prices[category];
-    const rows: any[] = [];
-
-    for (const [key, price] of Object.entries(items)) {
-        const emoji = getEmojiForItem(key); // تابع کمکی برای ایموجی
-        rows.push([
-            Markup.button.callback(`${emoji} ${key}`, 'noop'),
-            Markup.button.callback(`${price}`, 'noop'),
-            Markup.button.callback('🛒 خرید', `buy_confirm_${category}_${key}`)
-        ]);
-    }
-
-    rows.push(shopActions.map(a => Markup.button.callback(a.name, a.callback)));
-    await ctx.reply(`🛒 دسته ${category} را انتخاب کن:`, Markup.inlineKeyboard(rows));
+    const keyboard = buildShopKeyboard(category);
+    await ctx.reply(`🛒 آیتم‌های دسته ${category} را انتخاب کن:`, keyboard);
     ctx.answerCbQuery();
 });
 
@@ -137,38 +117,34 @@ shop.on('text', async (ctx, next) => {
     const priceStr = config.manage.shop.prices[buyCategory]?.[buyItem];
     if (!priceStr) return ctx.reply('❌ آیتم یافت نشد.');
 
+    const cost = parsePrice(priceStr, qty);
     const user = await prisma.user.findUnique({ where: { userid: BigInt(ctx.from.id) } });
     if (!user) return ctx.reply('❌ کاربر یافت نشد.');
 
-    const cost = parsePrice(priceStr, qty); // تابع کمکی برای تبدیل قیمت به عدد
-    const lacks = checkResources(user, cost); // بررسی منابع
-
+    const lacks = checkResources(user, cost);
     if (lacks.length > 0) {
         return ctx.reply(`⛔ منابع کافی نیست:\n${lacks.map(r => `• ${r}`).join('\n')}`);
     }
 
-    await prisma.user.update({
-        where: { userid: BigInt(ctx.from.id) },
-        data: subtractResources(user, cost) // تابع کمکی برای کم کردن منابع
-    });
+    for (const [res, amount] of Object.entries(cost)) {
+        const result = await changeUserField(BigInt(ctx.from.id), res as any, 'subtract', amount);
+        if (result !== 'ok') return ctx.reply(`❌ خطا در کم کردن ${res}`);
+    }
+    const addResult = await changeUserField(BigInt(ctx.from.id), buyItem as any, 'add', qty);
+    if (addResult !== 'ok') return ctx.reply(`❌ خطا در افزودن آیتم "${buyItem}" به موجودی.`);
 
-    await ctx.reply(`✅ خرید ${qty} عدد "${buyItem}" انجام شد.\nمقدار زیر از منابع شما کم شد:\n${Object.entries(cost).map(([k, v]) => `• ${v} ${k}`).join('\n')}`);
-    ctx.session.buyStep = undefined;
+    const label = more.armyLabels?.[buyCategory]?.[buyItem] || buyItem;
+    await ctx.reply(
+        `✅ خرید ${qty} عدد "${label}" انجام شد.\n` +
+        `📉 منابع مصرف‌شده:\n` +
+        Object.entries(cost)
+            .map(([k, v]) => `• ${v} ${k === 'iron' ? 'آهن' : k === 'oil' ? 'نفت' : k === 'crowd' ? 'جمعیت' : k === 'capital' ? 'سرمایه' : k}`)
+            .join('\n')
+    );
+
+    delete ctx.session.buyStep;
+    delete ctx.session.buyCategory;
+    delete ctx.session.buyItem;
 });
-
-//
-// ✅ انتخاب آیتم خاص (در آینده می‌تونه به خرید وصل بشه)
-//
-shop.action(/^buy_item_(ground|marine|aerial|defence)_(\w+)$/, async (ctx) => {
-    const category = ctx.match[1] as keyof typeof config.manage.shop.prices;
-    const item = ctx.match[2];
-    const price = config.manage.shop.prices[category]?.[item];
-
-    if (!price) return ctx.answerCbQuery('❌ آیتم یافت نشد.');
-
-    await ctx.reply(`✅ آیتم "${item}" انتخاب شد.\n💰 قیمت: ${price}`);
-    ctx.answerCbQuery();
-});
-
 
 export default shop;
