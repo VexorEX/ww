@@ -2,6 +2,9 @@
   "token": "7639208583:AAGI9rCVNrAD-9-fmX5DxEw-FSych-XpgC4",
   "manage": {
     "status": true,
+    "error": {
+      "admin": ["7588477963"]
+    },
     "country": {
       "admins": [
         6749274447,
@@ -75,8 +78,8 @@
       }
     },
     "business": {
-      "admins": 6749274447,
-        7588477963,
+      "admins": [6749274447,
+        7588477963],
       "status": false
     },
     "buildings": {

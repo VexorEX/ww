@@ -7,25 +7,10 @@ import countryFilter from "./modules/countryFilter";
 import registration from "./modules/registeration";
 import config from './config/config.json'
 import adminPanel from "./modules/adminPanel";
+import notifyAdmins from "./utils/notifyAdmins";
 
-//
-// dotenv.config(); // اول همه import ها
-// console.log('BOT_TOKEN loaded:', process.env.BOT_TOKEN ? 'YES' : 'NO'); // security: token رو print نکن
-const bot = new Telegraf<CustomContext>(config.token);
+const bot = new Telegraf<CustomContext>(config.token,{telegram:{apiRoot:"http://"}});
 
-// bot.use(async (ctx, next) => {
-//     const allowedIds = [7588477963, 5913282749]; // لیست آی‌دی‌های مجاز
-//
-//     if (!allowedIds.includes(ctx.from?.id)) {
-//         if ('message' in ctx && ctx.message) {
-//             await ctx.reply('sihtir');
-//         }
-//         return; // ادامه نده
-//     }
-//
-//     // اگر آی‌دی مجاز بود، ادامه بده
-//     await next();
-// });
 
 bot.use(session()); // برای ctx.state و session
 bot.use(userAuth); // uncomment: برای ctx.user
@@ -34,6 +19,25 @@ bot.use(military.middleware());
 bot.use(countryFilter); // Composer نه middleware
 bot.use(registration); // برای /start و action ها - Composer نه middleware
 bot.use(adminPanel);
+
+bot.catch(async (err, ctx) => {
+    console.error('❌ خطای غیرمنتظره:', err);
+
+    const errorText = [
+        `❌ خطا در اکشن: ${ctx.updateType}`,
+        `👤 کاربر: ${ctx.from?.id} - ${ctx.from?.username || 'بدون نام کاربری'}`,
+        `📄 پیام: ${'message' in ctx ? ctx.message?.text : 'callbackQuery' in ctx ? ctx?.callbackQuery?.data : 'نامشخص'}`,
+            `🧠 خطا: ${err.message || err.toString()}`
+    ].join('\n');
+
+    await notifyAdmins(bot, errorText);
+
+    try {
+        await ctx.reply('❌ مشکلی پیش آمده. تیم فنی مطلع شد.');
+    } catch (_) {
+        // اگر ریپلای نشد، نادیده بگیر
+    }
+});
 
 bot.launch();
 console.log('بات راه‌اندازی شد!');
