@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import countries from '../config/countries.json'
+import { prisma } from '../prisma';
+
 
 interface Country {
     country: any;
@@ -137,4 +139,13 @@ export function getCountryByName(name: string) {
     }
 
     return null; // اگر پیدا نشد
+}
+
+export async function getCountryByUserId(userId: number): Promise<string | null> {
+    const user = await prisma.user.findUnique({
+        where: { userid:userId },
+        select: { country: true },
+    });
+
+    return user?.country || null;
 }

@@ -20,8 +20,8 @@ model User {
   government   String
   religion     String @default("islam")
   crowd        BigInt @default(15000000)
-  capital      BigInt @default(1500000000)
-  dailyProfit  BigInt @default(1000000000)
+  capital      BigInt @default(150000000)
+  dailyProfit  BigInt @default(100000000)
   satisfaction Int    @default(80)
   security     Int    @default(80)
   lottery      Int    @default(0)

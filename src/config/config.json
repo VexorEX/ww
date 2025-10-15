@@ -1,7 +1,8 @@
 {
-  "token": "7639208583:AAGI9rCVNrAD-9-fmX5DxEw-FSych-XpgC4",
+  "token": "8093518474:AAF7CslVqKQOJcuWcEkwPMIrgE6npv4I-6g",
   "manage": {
     "status": true,
+    "admins": [6749274447,7588477963],
     "error": {
       "admin": ["7588477963"]
     },

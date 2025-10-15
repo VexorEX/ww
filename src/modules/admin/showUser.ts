@@ -1,13 +1,13 @@
 import { Composer, Markup } from 'telegraf';
 import { CustomContext } from '../../middlewares/userAuth';
 import { getCountryData } from '../../utils/displayCountry';
-import {escapeMarkdownV2} from '../../utils/escape';
 import countries from '../../config/countries.json';
 import more from '../../config/more.json';
 import config from '../../config/config.json';
 import {getCountryByUserId} from "../../utils/countryUtils";
 
 const showUser = new Composer<CustomContext>();
+const admins = config.manage.resource.admins
 
 function getContinentEmoji(countryCode: string): string {
     for (const [continent, list] of Object.entries(countries)) {
@@ -77,14 +77,38 @@ function buildCountryInlineKeyboard(user: any): Markup.Markup<any> {
     ]);
 }
 
-showUser.action('showUser', async (ctx,userId) => {
-    const country = getCountryByUserId(Number(userId));
-    if (!country) return ctx.reply('❌ کشور مشخص نیست.');
-    const result = await getCountryData(await country);
+showUser.action('admin_resourceStats', async (ctx) => {
+    const adminIds = admins || [];
+    if (!adminIds.includes(ctx.from?.id)) {
+        return ctx.reply('⛔️ فقط ادمین‌ها به این بخش دسترسی دارند.');
+    }
+
+    ctx.session.awaitingUserId = true;
+    return ctx.reply('🆔 لطفاً آیدی عددی کاربر را ارسال کنید:');
+});
+showUser.on('text', async (ctx) => {
+    if (!ctx.session.awaitingUserId) return;
+
+    const adminIds = admins || [];
+    if (!adminIds.includes(ctx.from?.id)) {
+        return ctx.reply('⛔️ فقط ادمین‌ها به این بخش دسترسی دارند.');
+    }
+
+    const userId = Number(ctx.message.text.trim());
+    if (isNaN(userId)) return ctx.reply('❌ آیدی معتبر نیست. لطفاً فقط عدد وارد کنید.');
+
+    ctx.session.awaitingUserId = false;
+
+    const countryCode = await getCountryByUserId(userId);
+    if (!countryCode) return ctx.reply('❌ کشور مشخص نیست.');
+
+    const result = await getCountryData(countryCode);
     if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+
     const keyboard = buildCountryInlineKeyboard(result.user);
     await ctx.reply(`🎯 مدیریت کشور ${result.user.countryName}`, keyboard);
 });
+
 
 const armyCategories = [
     { name: '🌍 نیروهای زمینی', callback: 'army_ground' },
@@ -255,8 +279,3 @@ showUser.action('army_defence', async (ctx) => {
 });
 
 export default showUser;
-
-
-
-
-mikham in ro edit konam makhsos admin ke userid bede o data country ro betone bbine(faghat bebine)

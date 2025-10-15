@@ -2,6 +2,10 @@ import { Composer } from 'telegraf';
 import type { CustomContext } from '../../middlewares/userAuth';
 import { prisma } from '../../prisma';
 import config from '../../config/config.json';
+import fc from '../../config/fc.json';
+import { getCountryByUserId } from "../../utils/countryUtils";
+import path from "path";
+import fs from "fs";
 
 const adminCommands = new Composer<CustomContext>();
 
@@ -25,18 +29,30 @@ adminCommands.command('remuser', async (ctx) => {
     const userId = BigInt(userIdStr);
 
     try {
+        // گرفتن کد کشور قبل از حذف
+        const countryCode = await getCountryByUserId(Number(userId));
+
         // حذف کاربر از جدول user
         await prisma.user.delete({ where: { userid: userId } });
 
-        // اگر جدول‌های مرتبط دیگه‌ای هم داری (مثلاً productionLine یا session)، اینجا حذف کن
+        // حذف داده‌های مرتبط
         await prisma.pendingProductionLine.deleteMany({ where: { ownerId: userId } });
         await prisma.productionLine.deleteMany({ where: { ownerId: userId } });
 
-        return ctx.reply(`✅ اطلاعات کاربر ${userId} با موفقیت حذف شد.`);
+        // حذف کشور از fc.json
+        if (countryCode && fc[countryCode]) {
+            delete fc[countryCode];
+
+            const fcPath = path.join(__dirname, '../config/fc.json');
+            fs.writeFileSync(fcPath, JSON.stringify(fc, null, 2), 'utf-8');
+        }
+
+        return ctx.reply(`✅ اطلاعات کاربر ${userId} و کشور ${countryCode || 'نامشخص'} با موفقیت حذف شد.`);
     } catch (err) {
         console.error('❌ خطا در حذف کاربر:', err);
         return ctx.reply('❌ خطا در حذف کاربر. ممکن است کاربر وجود نداشته باشد.');
     }
 });
+
 
 export default adminCommands;
