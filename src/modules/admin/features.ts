@@ -1,114 +1,14 @@
 import { Composer, Markup } from 'telegraf';
 import type { CustomContext } from '../../middlewares/userAuth';
 import { prisma } from '../../prisma';
-import config from '../../config/config.json';
-import fs from 'fs';
-import path from 'path';
 import { assetCategories , bigintFields } from '../../constants/assetCategories';
 
 const adminPanel = new Composer<CustomContext>();
-const CONFIG_PATH = path.join(__dirname, '../../config/config.json');
-const REWARD_LOG_PATH = path.join(__dirname, '../../config/dailyRewardLog.json');
-const ADMIN_IDS: number[] = config.manage.country.admins || [];
-
-//
-// ✅ پنل اصلی با /panel
-//
-adminPanel.command('panel', async (ctx) => {
-    if (!ADMIN_IDS.includes(ctx.from.id)) return ctx.reply('⛔ شما ادمین نیستید.');
-
-    const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('🛠 ویرایش دارایی', 'admin_edit_asset')],
-        [Markup.button.callback('🧩 مدیریت منو', 'admin_toggle_menu')],
-        [Markup.button.callback('🎁 ارسال جایزه روزانه', 'admin_daily_reward')],
-        [Markup.button.callback('❌ بستن', 'delete')]
-    ]);
-
-    await ctx.reply('🎛 پنل مدیریت:', keyboard);
-});
-
-adminPanel.action('admin_toggle_menu', async (ctx) => {
-    ctx.session ??= {};
-
-    const sections = Object.entries(config.manage).filter(([_, val]) =>
-        typeof val === 'object' && val !== null && 'status' in val
-    );
-
-    const keyboard = Markup.inlineKeyboard(
-        sections.map(([key, val]) => {
-            const status = (val as { status: boolean }).status;
-            return [Markup.button.callback(`${status ? '✅' : '❌'} ${key}`, `toggle_section_${key}`)];
-        })
-    );
-
-
-    await ctx.reply('🧩 وضعیت نمایش دکمه‌های منو:', keyboard);
-    ctx.answerCbQuery();
-});
-adminPanel.action(/^toggle_section_(\w+)$/, async (ctx) => {
-    const section = ctx.match[1];
-    const current = config.manage[section]?.status;
-
-    if (typeof current !== 'boolean') return ctx.answerCbQuery('❌ بخش نامعتبر است.');
-    config.manage[section].status = !current;
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
-
-    try {
-        await ctx.editMessageText(`✅ وضعیت "${section}" به ${!current ? 'فعال' : 'غیرفعال'} تغییر یافت.`);
-    } catch (err) {
-        console.error('❌ خطا در ویرایش پیام:', err);
-        await ctx.reply(`✅ وضعیت "${section}" به ${!current ? 'فعال' : 'غیرفعال'} تغییر یافت.`);
-    }
-
-    ctx.answerCbQuery();
-});
-
-adminPanel.action('admin_daily_reward', async (ctx) => {
-    ctx.session ??= {};
-    const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('🎁 ارسال جایزه روزانه', 'send_daily_reward')]
-    ]);
-    await ctx.reply('🎯 فقط یک‌بار در روز قابل اجراست:', keyboard);
-    ctx.answerCbQuery();
-});
-
-adminPanel.action('send_daily_reward', async (ctx) => {
-    if (!ADMIN_IDS.includes(ctx.from.id)) return ctx.answerCbQuery('⛔ دسترسی ندارید.');
-
-    const today = new Date().toISOString().split('T')[0];
-    let lastSent = '';
-
-    try {
-        const log = JSON.parse(fs.readFileSync(REWARD_LOG_PATH, 'utf-8'));
-        lastSent = log.lastSent || '';
-    } catch {
-        lastSent = '';
-    }
-
-    if (lastSent === today) return ctx.answerCbQuery('⛔ جایزه امروز قبلاً ارسال شده.');
-
-    const users = await prisma.user.findMany();
-    let count = 0;
-
-    for (const user of users) {
-        const profit = BigInt(user.dailyProfit || 0);
-        const current = BigInt(user.capital || 0);
-        await prisma.user.update({
-            where: { userid: user.userid },
-            data: { capital: current + profit }
-        });
-        count++;
-    }
-
-    fs.writeFileSync(REWARD_LOG_PATH, JSON.stringify({ lastSent: today }, null, 2), 'utf-8');
-    await ctx.reply(`✅ جایزه روزانه برای ${count} کاربر ارسال شد.`);
-    ctx.answerCbQuery('🎁 ارسال شد!');
-});
 
 //
 // ✅ ویرایش دارایی با /editasset
 //
-adminPanel.action('admin_edit_asset', async (ctx) => {
+adminPanel.action('admin_editAsset', async (ctx) => {
     ctx.session ??= {};
     ctx.session.editStep = 'awaiting_user_id';
 

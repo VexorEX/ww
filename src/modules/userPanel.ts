@@ -37,16 +37,6 @@ const userMainKeyboard = config.manage.status
     ].filter((row) => row.length > 0))
     : Markup.inlineKeyboard([[Markup.button.callback('⛔ بازی متوقف شده', 'noop')]]);
 
-const adminPanelKeyboard = Markup.inlineKeyboard([
-    [Markup.button.callback('✏️ ویرایش دارایی', 'admin_editAssets'), Markup.button.callback('🌪 بلای طبیعی', 'admin_disaster')],
-    [Markup.button.callback('🌐 سازمان ملل', 'admin_un')],
-    [Markup.button.callback('📰 روزنامه', 'admin_news'), Markup.button.callback('📢 اعلان‌ها', 'admin_announcements')],
-    [Markup.button.callback('📊 آمار جهانی', 'admin_globalStats'), Markup.button.callback('⛏ آمار منابع', 'admin_resourceStats'), Markup.button.callback('📋 آمار عمومی', 'admin_publicStats')],
-    [Markup.button.callback('📣 پیام همگانی', 'admin_broadcast')],
-    [Markup.button.callback('─────────────', 'noop')],
-    [Markup.button.callback('🔙 بازگشت', 'admin_back'), Markup.button.callback('❌ بستن', 'admin_close')],
-]);
-
 
 export async function handleUserStart(ctx: CustomContext) {
     await ctx.reply(`🎮 خوش آمدی ${ctx.from.first_name}! کشور شما: ${ctx.user?.countryName}`, userMainKeyboard);
