@@ -29,6 +29,33 @@ building.action('build_car', async (ctx) => {
 
     const user = await prisma.user.findUnique({ where: { userid: userId } });
     if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+    const pending = await prisma.pendingProductionLine.findUnique({ where: { ownerId: userId } });
+
+    if (pending) {
+        const oneHourAgo = Date.now() - 60 * 60 * 1000;
+        const requestTime = ctx.session.buildingRequestTime ?? 0;
+
+        if (requestTime < oneHourAgo) {
+            // برگرداندن سرمایه
+            const refund = await changeCapital(userId, 'add', Number(pending.setupCost));
+            if (refund === 'not_found') {
+                await ctx.reply('❌ کاربر یافت نشد برای بازگشت سرمایه.');
+            } else if (refund === 'invalid' || refund === 'error') {
+                await ctx.reply('❌ خطا در بازگشت سرمایه.');
+            } else {
+                await ctx.reply(`⌛ درخواست قبلی منقضی شد و مبلغ ${Number(pending.setupCost / BigInt(1_000_000)).toLocaleString()}M به حساب شما برگشت.`);
+            }
+
+            await prisma.pendingProductionLine.delete({ where: { ownerId: userId } });
+            ctx.session.buildingUsedToday = false;
+            ctx.session.lastBuildDate = undefined;
+            ctx.session.buildingRequestTime = undefined;
+            return;
+        } else {
+            return ctx.reply('⛔ هنوز درخواست قبلی در حال بررسیه. لطفاً صبر کن یا بعداً دوباره تلاش کن.');
+        }
+    }
+
 
     // بررسی محدودیت ساخت‌وساز روزانه
     ctx.session ??= {};
@@ -53,7 +80,6 @@ building.action('build_car', async (ctx) => {
     await ctx.reply('🚗 نام محصول خود را وارد کن:');
     ctx.answerCbQuery();
 });
-
 // دریافت نام خودرو
 building.on('text', async (ctx, next) => {
     ctx.session ??= {};
@@ -71,7 +97,6 @@ building.on('text', async (ctx, next) => {
     }
 
 });
-
 // دریافت تصویر خودرو و نمایش پیش‌نمایش
 building.on('photo', async (ctx, next) => {
     ctx.session ??= {};
@@ -83,29 +108,46 @@ building.on('photo', async (ctx, next) => {
     const imageUrl = await ctx.telegram.getFileLink(photo.file_id);
     ctx.session.carImage = imageUrl.href;
 
-    const preview = escapeMarkdownV2(
-        `🏭 پیش‌نمایش خط تولید خودرو\n\n` +
-        `> کشور سازنده: **${ctx.user?.countryName}**\n` +
-        `> محصول: **${ctx.session.carName}**\n\n` +
-        `بودجه راه‌اندازی: 250M\nظرفیت تولید روزانه: 15 خودرو\n\n` +
-        `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`
-    );
-
-    const confirmKeyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('✅ ارسال برای تأیید ادمین', 'submit_building')],
-        [Markup.button.callback('🔙 بازگشت', 'building')]
-    ]);
+    ctx.session.buildingStep = 'awaiting_build_description';
+    await ctx.reply('📝 توضیحی درباره محصولت بنویس (مثلاً ویژگی‌ها یا هدف تولید):');
 
     ctx.session.carImageFileId = photo.file_id;
 
-    await ctx.replyWithPhoto(photo.file_id, {
-        caption: preview,
-        parse_mode: 'MarkdownV2',
-        reply_markup: confirmKeyboard.reply_markup
-    });
-
-
     ctx.session.buildingStep = 'awaiting_admin_review';
+});
+building.on('text', async (ctx, next) => {
+    ctx.session ??= {};
+    if (ctx.session.buildingStep === 'awaiting_build_description') {
+        const description = ctx.message.text?.trim();
+        if (!description || description.length < 5) {
+            return ctx.reply('❌ توضیح خیلی کوتاهه. لطفاً بیشتر توضیح بده.');
+        }
+
+        ctx.session.buildingDescription = description;
+        ctx.session.buildingStep = 'awaiting_admin_review';
+
+        const preview = escapeMarkdownV2(
+            `🏭 پیش‌نمایش خط تولید خودرو\n\n` +
+            `> کشور سازنده: **${ctx.user?.countryName}**\n` +
+            `> محصول: **${ctx.session.carName}**\n` +
+            `> توضیح: ${ctx.session.buildingDescription}\n\n` +
+            `بودجه راه‌اندازی: 250M\nظرفیت تولید روزانه: 15 خودرو\n\n` +
+            `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`
+        );
+
+        const confirmKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('✅ ارسال برای تأیید ادمین', 'submit_building')],
+            [Markup.button.callback('🔙 بازگشت', 'building')]
+        ]);
+
+        await ctx.replyWithPhoto(ctx.session.carImageFileId, {
+            caption: preview,
+            parse_mode: 'MarkdownV2',
+            reply_markup: confirmKeyboard.reply_markup
+        });
+    } else {
+        return next();
+    }
 });
 
 // ارسال درخواست به ادمین
@@ -113,6 +155,7 @@ building.action('submit_building', async (ctx) => {
     ctx.session ??= {};
     ctx.session.buildingUsedToday = true;
     ctx.session.lastBuildDate = new Date().toDateString();
+    ctx.session.buildingRequestTime = Date.now();
 
     const { carName, carImage, carImageFileId, setupCost } = ctx.session;
     const countryName = ctx.user?.countryName;
@@ -164,7 +207,8 @@ building.action('submit_building', async (ctx) => {
             caption: escapeMarkdownV2(
                 `📥 درخواست ساخت خط تولید خودرو\n\n` +
                 `> کشور: **${countryName}**\n` +
-                `> محصول: **${carName}**\n\n` +
+                `> محصول: **${carName}**\n` +
+                `> توضیح: ${ctx.session.buildingDescription}\n\n` +
                 `بودجه: 250M\nظرفیت تولید روزانه: 15 خودرو`
             ),
             parse_mode: 'MarkdownV2',
@@ -175,7 +219,6 @@ building.action('submit_building', async (ctx) => {
     await ctx.reply('📤 درخواست شما برای بررسی ادمین ارسال شد.');
     ctx.session.buildingStep = undefined;
 });
-
 // تأیید نهایی توسط ادمین
 building.action(/admin_approve_building_(\d+)/, async (ctx) => {
     const userId = BigInt(ctx.match[1]);
@@ -214,7 +257,6 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
 
     await ctx.reply('✅ خط تولید ثبت شد و به کانال ارسال شد.');
 });
-
 // رد درخواست توسط ادمین
 building.action(/admin_reject_building_(\d+)/, async (ctx) => {
     const userId = BigInt(ctx.match[1]);
@@ -244,7 +286,7 @@ building.action(/admin_reject_building_(\d+)/, async (ctx) => {
 
     // اطلاع‌رسانی به کاربر
     try {
-        await ctx.telegram.sendMessage(Number(userId), 
+        await ctx.telegram.sendMessage(Number(userId),
             `❌ درخواست ساخت خط تولید شما رد شد.\n💰 مبلغ ${Number(pending.setupCost / BigInt(1_000_000)).toLocaleString()}M به حساب شما برگشت.`
         );
     } catch (err) {
