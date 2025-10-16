@@ -1,12 +1,12 @@
 import config from "../../config/config.json";
-import {Markup} from "telegraf";
+import {Composer, Markup} from "telegraf";
 import fs from "fs";
-import adminPanel from "./features";
 import path from "path";
+import type {CustomContext} from "../../middlewares/userAuth";
 const CONFIG_PATH = path.join(__dirname, '../../config/config.json');
+const toggleMenu = new Composer<CustomContext>();
 
-
-adminPanel.action('admin_toggleMenu', async (ctx) => {
+toggleMenu.action('admin_toggleMenu', async (ctx) => {
     ctx.session ??= {};
 
     const sections = Object.entries(config.manage).filter(([_, val]) =>
@@ -24,7 +24,7 @@ adminPanel.action('admin_toggleMenu', async (ctx) => {
     await ctx.reply('🧩 وضعیت نمایش دکمه‌های منو:', keyboard);
     ctx.answerCbQuery();
 });
-adminPanel.action(/^toggle_section_(\w+)$/, async (ctx) => {
+toggleMenu.action(/^toggle_section_(\w+)$/, async (ctx) => {
     const section = ctx.match[1];
     const current = config.manage[section]?.status;
 
@@ -42,4 +42,4 @@ adminPanel.action(/^toggle_section_(\w+)$/, async (ctx) => {
     ctx.answerCbQuery();
 });
 
-export default adminPanel;
+export default toggleMenu;

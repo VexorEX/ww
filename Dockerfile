@@ -4,7 +4,6 @@ WORKDIR /app
 
 COPY . .
 
-RUN npm install
-RUN npm install -g ts-node typescript
+RUN pnpm install
 
-CMD ["npm","run","dev"]
+CMD ["pnpm","dev"]
