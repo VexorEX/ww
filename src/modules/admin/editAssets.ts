@@ -2,6 +2,7 @@ import { Composer, Markup } from 'telegraf';
 import type { CustomContext } from '../../middlewares/userAuth';
 import { prisma } from '../../prisma';
 import { assetCategories , bigintFields } from '../../constants/assetCategories';
+import { calculateNewValue } from "../helper/calculate";
 
 const editAsset = new Composer<CustomContext>();
 
@@ -45,51 +46,23 @@ editAsset.on('text', async (ctx, next) => {
 
         const isBigInt = bigintFields.includes(editItem);
         const current = isBigInt ? BigInt(user[editItem] || 0) : Number(user[editItem] || 0);
+        const newValue = calculateNewValue(current, valueStr, isBigInt);
 
-        const typedValue = isBigInt ? BigInt(value) : value;
+        await prisma.user.update({
+            where: { userid: editUserId },
+            data: { [editItem]: newValue }
+        });
 
-        if (isBigInt) {
-            const typedValue = BigInt(value);
-            const current = BigInt(user[editItem] || 0);
-
-            let newValue = valueStr.startsWith('+') ? current + typedValue
-                : valueStr.startsWith('-') ? current - typedValue
-                    : typedValue;
-
-            if (newValue < BigInt(0)) newValue = BigInt(0);
-
-            await prisma.user.update({
-                where: { userid: editUserId },
-                data: { [editItem]: newValue }
-            });
-
-            await ctx.reply(`✅ مقدار جدید ${editItem} برای کاربر ${editUserId} تنظیم شد: ${newValue.toLocaleString()}`);
-        } else {
-            const typedValue = value;
-            const current = Number(user[editItem] || 0);
-
-            let newValue = valueStr.startsWith('+') ? current + typedValue
-                : valueStr.startsWith('-') ? current - Math.abs(typedValue)
-                    : typedValue;
-
-            if (newValue < 0) newValue = 0;
-
-            await prisma.user.update({
-                where: { userid: editUserId },
-                data: { [editItem]: newValue }
-            });
-
-            await ctx.reply(`✅ مقدار جدید ${editItem} برای کاربر ${editUserId} تنظیم شد: ${newValue.toLocaleString()}`);
-        }
-
+        await ctx.reply(`✅ مقدار جدید ${editItem} برای کاربر ${editUserId} تنظیم شد: ${newValue.toLocaleString()}`);
         ctx.session.editStep = undefined;
 
     }
 
     // مرحله دریافت مقدار برای همه کاربران
     if (ctx.session.editStep === 'awaiting_value_all') {
-        const value = Number(valueStr);
-        if (isNaN(value)) return ctx.reply('❌ مقدار عددی معتبر نیست.');
+        const valueStr = ctx.message.text?.trim();
+        const valueNum = Number(valueStr?.replace(/[+-]/, ''));
+        if (isNaN(valueNum)) return ctx.reply('❌ مقدار عددی معتبر نیست.');
 
         const { editItem } = ctx.session;
         const isBigInt = bigintFields.includes(editItem);
@@ -97,12 +70,12 @@ editAsset.on('text', async (ctx, next) => {
 
         for (const user of users) {
             if (isBigInt) {
-                const typedValue = BigInt(value);
                 const current = BigInt(user[editItem] || 0);
+                const typedValue = BigInt(valueNum);
 
                 let newValue = valueStr.startsWith('+') ? current + typedValue
                     : valueStr.startsWith('-') ? current - typedValue
-                        : typedValue;
+                        : BigInt(valueStr);
 
                 if (newValue < BigInt(0)) newValue = BigInt(0);
 
@@ -111,12 +84,12 @@ editAsset.on('text', async (ctx, next) => {
                     data: { [editItem]: newValue }
                 });
             } else {
-                const typedValue = value;
                 const current = Number(user[editItem] || 0);
+                const typedValue = valueNum;
 
                 let newValue = valueStr.startsWith('+') ? current + typedValue
-                    : valueStr.startsWith('-') ? current - Math.abs(typedValue)
-                        : typedValue;
+                    : valueStr.startsWith('-') ? current - typedValue
+                        : Number(valueStr);
 
                 if (newValue < 0) newValue = 0;
 
