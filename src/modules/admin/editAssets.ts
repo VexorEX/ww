@@ -219,12 +219,14 @@ editAsset.on('text', async (ctx, next) => {
         return;
     }
 
+    console.log('🔥 text received:', ctx.message.text);
+    await ctx.reply('متن دریافت شد.');
     return next();
 });
 
 editAsset.action('cancel_edit', async (ctx) => {
     ctx.session.editStep = undefined;
-    await ctx.reply('❌ عملیات ویرایش لغو شد.');
+    await ctx.editMessageText('❌ عملیات ویرایش لغو شد.',{});
     ctx.answerCbQuery();
 });
 
