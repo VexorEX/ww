@@ -9,94 +9,7 @@ const cancelBtn = Markup.inlineKeyboard([
     [Markup.button.callback('❌ لغو', 'cancel_edit')]
 ])
 
-//
-// ✅ ویرایش دارایی با /editasset
-//
-editAsset.action('admin_editAsset', async (ctx) => {
-    ctx.session ??= {};
-    ctx.session.editStep = 'awaiting_user_id';
 
-    await ctx.reply('📌 لطفاً شناسه کاربر را وارد کن:\nمثال: 7588477963');
-    ctx.answerCbQuery();
-});
-editAsset.action(/^edit_cat_(\w+)$/, async (ctx) => {
-    ctx.session ??= {};
-    const category = ctx.match[1];
-    const items = assetCategories[category];
-    if (!items) return ctx.answerCbQuery('❌ دسته نامعتبر است.');
-
-    ctx.session.editCategory = category;
-
-    const keyboard = Markup.inlineKeyboard([
-        ...items.map((item) => [Markup.button.callback(item, `edit_item_${item}`)]),
-        [Markup.button.callback('❌ لغو', 'cancel_edit')]
-    ]);
-
-
-    try {
-        await ctx.editMessageText('🔍 موردی که می‌خواهی ویرایش کنی را انتخاب کن:', keyboard);
-    } catch (err) {
-        console.error('❌ خطا در editMessageText:', err);
-        await ctx.reply('❌ خطا در ویرایش پیام. لطفاً دوباره تلاش کن.');
-    }
-
-    ctx.answerCbQuery();
-});
-editAsset.action(/^edit_item_(\w+)$/, async (ctx) => {
-    ctx.session ??= {};
-    ctx.session.editItem = ctx.match[1];
-    ctx.session.editStep = 'awaiting_value';
-    await ctx.reply('✏️ مقدار جدید را وارد کن:\n+25 برای افزایش، -25 برای کاهش، 25 برای مقدار مستقیم', cancelBtn);
-    ctx.answerCbQuery();
-});
-
-
-editAsset.action('admin_editAssetAll', async (ctx) => {
-    ctx.session ??= {};
-    ctx.session.editStep = 'awaiting_category_all';
-
-    const keyboard = Markup.inlineKeyboard([
-        ...Object.entries(assetCategories).map(([key]) => [
-            Markup.button.callback(`📦 ${key}`, `edit_all_cat_${key}`)
-        ]),
-        [Markup.button.callback('❌ لغو', 'cancel_edit')]
-    ]);
-
-
-    await ctx.reply('📊 دسته دارایی را برای ویرایش گروهی انتخاب کن:', keyboard);
-    ctx.answerCbQuery();
-});
-editAsset.action(/^edit_all_cat_(\w+)$/, async (ctx) => {
-    ctx.session ??= {};
-    const category = ctx.match[1];
-    const items = assetCategories[category];
-    if (!items) return ctx.answerCbQuery('❌ دسته نامعتبر است.');
-
-    ctx.session.editCategory = category;
-
-    const keyboard = Markup.inlineKeyboard([
-        ...items.map((item) => [Markup.button.callback(item, `edit_all_item_${item}`)]),
-        [Markup.button.callback('❌ لغو', 'cancel_edit')]
-    ]);
-
-
-    try {
-        await ctx.editMessageText('🔍 موردی که می‌خواهی برای همه ویرایش کنی را انتخاب کن:', keyboard);
-    } catch (err) {
-        console.error('❌ خطا در editMessageText:', err);
-        await ctx.reply('❌ خطا در ویرایش پیام. لطفاً دوباره تلاش کن.');
-    }
-
-    ctx.answerCbQuery();
-});
-editAsset.action(/^edit_all_item_(\w+)$/, async (ctx) => {
-    ctx.session ??= {};
-    ctx.session.editItem = ctx.match[1];
-    ctx.session.editStep = 'awaiting_value_all';
-
-    await ctx.reply('✏️ مقدار جدید را وارد کن:\n+25 برای افزایش، -25 برای کاهش، 25 برای مقدار مستقیم',cancelBtn);
-    ctx.answerCbQuery();
-});
 editAsset.on('text', async (ctx, next) => {
     ctx.session ??= {};
     const valueStr = ctx.message.text?.trim();
@@ -222,6 +135,95 @@ editAsset.on('text', async (ctx, next) => {
     console.log('🔥 text received:', ctx.message.text);
     await ctx.reply('متن دریافت شد.');
     return next();
+});
+
+//
+// ✅ ویرایش دارایی با /editasset
+//
+editAsset.action('admin_editAsset', async (ctx) => {
+    ctx.session ??= {};
+    ctx.session.editStep = 'awaiting_user_id';
+
+    await ctx.reply('📌 لطفاً شناسه کاربر را وارد کن:\nمثال: 7588477963');
+    ctx.answerCbQuery();
+});
+editAsset.action(/^edit_cat_(\w+)$/, async (ctx) => {
+    ctx.session ??= {};
+    const category = ctx.match[1];
+    const items = assetCategories[category];
+    if (!items) return ctx.answerCbQuery('❌ دسته نامعتبر است.');
+
+    ctx.session.editCategory = category;
+
+    const keyboard = Markup.inlineKeyboard([
+        ...items.map((item) => [Markup.button.callback(item, `edit_item_${item}`)]),
+        [Markup.button.callback('❌ لغو', 'cancel_edit')]
+    ]);
+
+
+    try {
+        await ctx.editMessageText('🔍 موردی که می‌خواهی ویرایش کنی را انتخاب کن:', keyboard);
+    } catch (err) {
+        console.error('❌ خطا در editMessageText:', err);
+        await ctx.reply('❌ خطا در ویرایش پیام. لطفاً دوباره تلاش کن.');
+    }
+
+    ctx.answerCbQuery();
+});
+editAsset.action(/^edit_item_(\w+)$/, async (ctx) => {
+    ctx.session ??= {};
+    ctx.session.editItem = ctx.match[1];
+    ctx.session.editStep = 'awaiting_value';
+    await ctx.reply('✏️ مقدار جدید را وارد کن:\n+25 برای افزایش، -25 برای کاهش، 25 برای مقدار مستقیم', cancelBtn);
+    ctx.answerCbQuery();
+});
+
+
+editAsset.action('admin_editAssetAll', async (ctx) => {
+    ctx.session ??= {};
+    ctx.session.editStep = 'awaiting_category_all';
+
+    const keyboard = Markup.inlineKeyboard([
+        ...Object.entries(assetCategories).map(([key]) => [
+            Markup.button.callback(`📦 ${key}`, `edit_all_cat_${key}`)
+        ]),
+        [Markup.button.callback('❌ لغو', 'cancel_edit')]
+    ]);
+
+
+    await ctx.reply('📊 دسته دارایی را برای ویرایش گروهی انتخاب کن:', keyboard);
+    ctx.answerCbQuery();
+});
+editAsset.action(/^edit_all_cat_(\w+)$/, async (ctx) => {
+    ctx.session ??= {};
+    const category = ctx.match[1];
+    const items = assetCategories[category];
+    if (!items) return ctx.answerCbQuery('❌ دسته نامعتبر است.');
+
+    ctx.session.editCategory = category;
+
+    const keyboard = Markup.inlineKeyboard([
+        ...items.map((item) => [Markup.button.callback(item, `edit_all_item_${item}`)]),
+        [Markup.button.callback('❌ لغو', 'cancel_edit')]
+    ]);
+
+
+    try {
+        await ctx.editMessageText('🔍 موردی که می‌خواهی برای همه ویرایش کنی را انتخاب کن:', keyboard);
+    } catch (err) {
+        console.error('❌ خطا در editMessageText:', err);
+        await ctx.reply('❌ خطا در ویرایش پیام. لطفاً دوباره تلاش کن.');
+    }
+
+    ctx.answerCbQuery();
+});
+editAsset.action(/^edit_all_item_(\w+)$/, async (ctx) => {
+    ctx.session ??= {};
+    ctx.session.editItem = ctx.match[1];
+    ctx.session.editStep = 'awaiting_value_all';
+
+    await ctx.reply('✏️ مقدار جدید را وارد کن:\n+25 برای افزایش، -25 برای کاهش، 25 برای مقدار مستقیم',cancelBtn);
+    ctx.answerCbQuery();
 });
 
 editAsset.action('cancel_edit', async (ctx) => {
