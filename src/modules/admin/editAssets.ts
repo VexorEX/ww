@@ -134,22 +134,43 @@ editAsset.on('text', async (ctx, next) => {
         const current = isBigInt ? BigInt(user[editItem] || 0) : Number(user[editItem] || 0);
 
         const typedValue = isBigInt ? BigInt(value) : value;
-        let newValue = valueStr.startsWith('+') ? current + typedValue
-            : valueStr.startsWith('-') ? current - (isBigInt ? typedValue : Math.abs(typedValue))
-                : typedValue;
 
-        if (!isBigInt && newValue < 0) newValue = 0;
-        if (isBigInt && newValue < BigInt(0)) newValue = BigInt(0);
+        if (isBigInt) {
+            const typedValue = BigInt(value);
+            const current = BigInt(user[editItem] || 0);
 
+            let newValue = valueStr.startsWith('+') ? current + typedValue
+                : valueStr.startsWith('-') ? current - typedValue
+                    : typedValue;
 
-        await prisma.user.update({
-            where: { userid: editUserId },
-            data: { [editItem]: isBigInt ? BigInt(newValue) : Number(newValue) }
-        });
+            if (newValue < BigInt(0)) newValue = BigInt(0);
 
-        await ctx.reply(`✅ مقدار جدید ${editItem} برای کاربر ${editUserId} تنظیم شد: ${newValue.toLocaleString()}`);
+            await prisma.user.update({
+                where: { userid: editUserId },
+                data: { [editItem]: newValue }
+            });
+
+            await ctx.reply(`✅ مقدار جدید ${editItem} برای کاربر ${editUserId} تنظیم شد: ${newValue.toLocaleString()}`);
+        } else {
+            const typedValue = value;
+            const current = Number(user[editItem] || 0);
+
+            let newValue = valueStr.startsWith('+') ? current + typedValue
+                : valueStr.startsWith('-') ? current - Math.abs(typedValue)
+                    : typedValue;
+
+            if (newValue < 0) newValue = 0;
+
+            await prisma.user.update({
+                where: { userid: editUserId },
+                data: { [editItem]: newValue }
+            });
+
+            await ctx.reply(`✅ مقدار جدید ${editItem} برای کاربر ${editUserId} تنظیم شد: ${newValue.toLocaleString()}`);
+        }
+
         ctx.session.editStep = undefined;
-        return;
+
     }
 
     // مرحله دریافت مقدار برای همه کاربران
@@ -162,18 +183,35 @@ editAsset.on('text', async (ctx, next) => {
         const users = await prisma.user.findMany({ select: { userid: true, [editItem]: true } });
 
         for (const user of users) {
-            const current = isBigInt ? BigInt(user[editItem] || 0) : Number(user[editItem] || 0);
-            let newValue = valueStr.startsWith('+') ? current + value
-                : valueStr.startsWith('-') ? current - Math.abs(value)
-                    : value;
-            if (!isBigInt && newValue < 0) newValue = 0;
-            if (isBigInt && newValue < BigInt(0)) newValue = BigInt(0);
+            if (isBigInt) {
+                const typedValue = BigInt(value);
+                const current = BigInt(user[editItem] || 0);
 
+                let newValue = valueStr.startsWith('+') ? current + typedValue
+                    : valueStr.startsWith('-') ? current - typedValue
+                        : typedValue;
 
-            await prisma.user.update({
-                where: { userid: user.userid },
-                data: { [editItem]: isBigInt ? BigInt(newValue) : Number(newValue) }
-            });
+                if (newValue < BigInt(0)) newValue = BigInt(0);
+
+                await prisma.user.update({
+                    where: { userid: user.userid },
+                    data: { [editItem]: newValue }
+                });
+            } else {
+                const typedValue = value;
+                const current = Number(user[editItem] || 0);
+
+                let newValue = valueStr.startsWith('+') ? current + typedValue
+                    : valueStr.startsWith('-') ? current - Math.abs(typedValue)
+                        : typedValue;
+
+                if (newValue < 0) newValue = 0;
+
+                await prisma.user.update({
+                    where: { userid: user.userid },
+                    data: { [editItem]: newValue }
+                });
+            }
         }
 
         await ctx.reply(`✅ مقدار جدید ${editItem} برای همه کاربران اعمال شد.`);
