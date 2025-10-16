@@ -3,6 +3,7 @@ import type { CustomContext } from '../../middlewares/userAuth';
 import { prisma } from '../../prisma';
 import { assetCategories , bigintFields } from '../../constants/assetCategories';
 import { calculateNewValue } from "../helper/calculate";
+import {changeFieldForAllUsers, changeUserField ,Operation } from "../economy";
 
 const editAsset = new Composer<CustomContext>();
 
@@ -34,73 +35,56 @@ editAsset.on('text', async (ctx, next) => {
 
     // مرحله دریافت مقدار برای یک کاربر
     if (ctx.session.editStep === 'awaiting_value') {
-        const value = Number(valueStr);
-
+        const valueStr = ctx.message.text?.trim();
+        const value = Number(valueStr?.replace(/[+-]/, ''));
         if (isNaN(value)) return ctx.reply('❌ مقدار عددی معتبر نیست.');
 
         const { editUserId, editItem } = ctx.session;
         if (!editUserId || !editItem) return ctx.reply('❌ اطلاعات ناقص است.');
 
-        const user = await prisma.user.findUnique({ where: { userid: editUserId } });
-        if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+        const operation: Operation =
+            valueStr.startsWith('+') ? 'add'
+                : valueStr.startsWith('-') ? 'subtract'
+                    : 'set';
 
-        const isBigInt = bigintFields.includes(editItem);
-        const current = isBigInt ? BigInt(user[editItem] || 0) : Number(user[editItem] || 0);
-        const newValue = calculateNewValue(current, valueStr, isBigInt);
+        const result = await changeUserField(editUserId, editItem, operation, value);
 
-        await prisma.user.update({
-            where: { userid: editUserId },
-            data: { [editItem]: newValue }
-        });
+        if (result === 'ok') {
+            await ctx.reply(`✅ مقدار جدید ${editItem} برای کاربر ${editUserId} اعمال شد.`);
+        } else if (result === 'not_found') {
+            await ctx.reply('❌ کاربر یافت نشد.');
+        } else if (result === 'invalid') {
+            await ctx.reply('❌ عملیات نامعتبر بود.');
+        } else {
+            await ctx.reply('❌ خطا در ویرایش. لطفاً دوباره تلاش کن.');
+        }
 
-        await ctx.reply(`✅ مقدار جدید ${editItem} برای کاربر ${editUserId} تنظیم شد: ${newValue.toLocaleString()}`);
         ctx.session.editStep = undefined;
-
+        return;
     }
 
     // مرحله دریافت مقدار برای همه کاربران
     if (ctx.session.editStep === 'awaiting_value_all') {
         const valueStr = ctx.message.text?.trim();
-        const valueNum = Number(valueStr?.replace(/[+-]/, ''));
-        if (isNaN(valueNum)) return ctx.reply('❌ مقدار عددی معتبر نیست.');
+        const value = Number(valueStr?.replace(/[+-]/, ''));
+        if (isNaN(value)) return ctx.reply('❌ مقدار عددی معتبر نیست.');
 
         const { editItem } = ctx.session;
-        const isBigInt = bigintFields.includes(editItem);
-        const users = await prisma.user.findMany({ select: { userid: true, [editItem]: true } });
+        const operation: Operation =
+            valueStr.startsWith('+') ? 'add'
+                : valueStr.startsWith('-') ? 'subtract'
+                    : 'set';
 
-        for (const user of users) {
-            if (isBigInt) {
-                const current = BigInt(user[editItem] || 0);
-                const typedValue = BigInt(valueNum);
+        const result = await changeFieldForAllUsers(editItem, operation, value);
 
-                let newValue = valueStr.startsWith('+') ? current + typedValue
-                    : valueStr.startsWith('-') ? current - typedValue
-                        : BigInt(valueStr);
-
-                if (newValue < BigInt(0)) newValue = BigInt(0);
-
-                await prisma.user.update({
-                    where: { userid: user.userid },
-                    data: { [editItem]: newValue }
-                });
-            } else {
-                const current = Number(user[editItem] || 0);
-                const typedValue = valueNum;
-
-                let newValue = valueStr.startsWith('+') ? current + typedValue
-                    : valueStr.startsWith('-') ? current - typedValue
-                        : Number(valueStr);
-
-                if (newValue < 0) newValue = 0;
-
-                await prisma.user.update({
-                    where: { userid: user.userid },
-                    data: { [editItem]: newValue }
-                });
-            }
+        if (result === 'ok') {
+            await ctx.reply(`✅ مقدار جدید ${editItem} برای همه کاربران اعمال شد.`);
+        } else if (result === 'invalid') {
+            await ctx.reply('❌ عملیات نامعتبر بود.');
+        } else {
+            await ctx.reply('❌ خطا در ویرایش گروهی. لطفاً دوباره تلاش کن.');
         }
 
-        await ctx.reply(`✅ مقدار جدید ${editItem} برای همه کاربران اعمال شد.`);
         ctx.session.editStep = undefined;
         return;
     }

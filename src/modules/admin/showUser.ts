@@ -86,7 +86,7 @@ showUser.action('admin_resourceStats', async (ctx) => {
     ctx.session.awaitingUserId = true;
     return ctx.reply('🆔 لطفاً آیدی عددی کاربر را ارسال کنید:');
 });
-showUser.on('text', async (ctx) => {
+showUser.on('text', async (ctx,next) => {
     if (!ctx.session.awaitingUserId) return;
 
     const adminIds = admins || [];
@@ -107,6 +107,8 @@ showUser.on('text', async (ctx) => {
 
     const keyboard = buildCountryInlineKeyboard(result.user);
     await ctx.reply(`🎯 مدیریت کشور ${result.user.countryName}`, keyboard);
+
+    return next();
 });
 
 

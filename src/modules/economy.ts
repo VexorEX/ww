@@ -4,7 +4,7 @@ import type { CustomContext } from '../middlewares/userAuth';
 
 const economy = new Composer<CustomContext>();
 
-type Operation =
+export type Operation =
     | 'add'
     | 'subtract'
     | 'multiply'
