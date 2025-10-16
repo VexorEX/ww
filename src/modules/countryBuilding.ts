@@ -25,17 +25,27 @@ building.action('building', async (ctx) => {
 // شروع فرآیند ساخت خودرو
 building.action('build_car', async (ctx) => {
     const userId = BigInt(ctx.from.id);
-    const setupCost = 250_000_000; // 250M
-    
+    const setupCost = 250_000_000;
+
     const user = await prisma.user.findUnique({ where: { userid: userId } });
-    if (!user) {
-        return ctx.reply('❌ کاربر یافت نشد.');
+    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+
+    // بررسی محدودیت ساخت‌وساز روزانه
+    ctx.session ??= {};
+    if (ctx.session.buildingUsedToday) {
+        return ctx.reply('⛔ شما امروز قبلاً ساخت‌وساز انجام داده‌اید. لطفاً فردا دوباره تلاش کنید.');
     }
-    
+    const today = new Date().toDateString();
+    ctx.session ??= {};
+
+    if (ctx.session.lastBuildDate === today) {
+        return ctx.reply('⛔ شما امروز قبلاً ساخت‌وساز انجام داده‌اید. لطفاً فردا دوباره تلاش کنید.');
+    }
+
     if (user.capital < setupCost) {
         return ctx.reply(`❌ بودجه کافی ندارید!\n💰 بودجه مورد نیاز: ${(setupCost / 1_000_000).toLocaleString()}M\n💳 بودجه فعلی شما: ${Number(user.capital / BigInt(1_000_000)).toLocaleString()}M`);
     }
-    
+
     ctx.session ??= {};
     ctx.session.buildingType = 'car';
     ctx.session.buildingStep = 'awaiting_car_name';
@@ -101,6 +111,8 @@ building.on('photo', async (ctx, next) => {
 // ارسال درخواست به ادمین
 building.action('submit_building', async (ctx) => {
     ctx.session ??= {};
+    ctx.session.buildingUsedToday = true;
+    ctx.session.lastBuildDate = new Date().toDateString();
 
     const { carName, carImage, carImageFileId, setupCost } = ctx.session;
     const countryName = ctx.user?.countryName;

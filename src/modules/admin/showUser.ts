@@ -94,7 +94,7 @@ showUser.on('text', async (ctx) => {
         return ctx.reply('⛔️ فقط ادمین‌ها به این بخش دسترسی دارند.');
     }
 
-    const userId = Number(ctx.message.text.trim());
+    const userId = Number(ctx.message.text);
     if (isNaN(userId)) return ctx.reply('❌ آیدی معتبر نیست. لطفاً فقط عدد وارد کنید.');
 
     ctx.session.awaitingUserId = false;
