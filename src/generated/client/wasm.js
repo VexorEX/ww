@@ -187,7 +187,9 @@ exports.Prisma.ProductionLineScalarFieldEnum = {
   dailyLimit: 'dailyLimit',
   setupCost: 'setupCost',
   createdAt: 'createdAt',
-  carName: 'carName'
+  carName: 'carName',
+  unitPrice: 'unitPrice',
+  profitPercent: 'profitPercent'
 };
 
 exports.Prisma.PendingProductionLineScalarFieldEnum = {
@@ -196,6 +198,7 @@ exports.Prisma.PendingProductionLineScalarFieldEnum = {
   type: 'type',
   imageUrl: 'imageUrl',
   imageFileId: 'imageFileId',
+  description: 'description',
   dailyLimit: 'dailyLimit',
   setupCost: 'setupCost',
   country: 'country'

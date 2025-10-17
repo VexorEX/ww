@@ -2914,6 +2914,8 @@ export namespace Prisma {
     ownerId: number | null
     dailyLimit: number | null
     setupCost: number | null
+    unitPrice: number | null
+    profitPercent: number | null
   }
 
   export type ProductionLineSumAggregateOutputType = {
@@ -2921,6 +2923,8 @@ export namespace Prisma {
     ownerId: bigint | null
     dailyLimit: number | null
     setupCost: bigint | null
+    unitPrice: number | null
+    profitPercent: number | null
   }
 
   export type ProductionLineMinAggregateOutputType = {
@@ -2934,6 +2938,8 @@ export namespace Prisma {
     setupCost: bigint | null
     createdAt: Date | null
     carName: string | null
+    unitPrice: number | null
+    profitPercent: number | null
   }
 
   export type ProductionLineMaxAggregateOutputType = {
@@ -2947,6 +2953,8 @@ export namespace Prisma {
     setupCost: bigint | null
     createdAt: Date | null
     carName: string | null
+    unitPrice: number | null
+    profitPercent: number | null
   }
 
   export type ProductionLineCountAggregateOutputType = {
@@ -2960,6 +2968,8 @@ export namespace Prisma {
     setupCost: number
     createdAt: number
     carName: number
+    unitPrice: number
+    profitPercent: number
     _all: number
   }
 
@@ -2969,6 +2979,8 @@ export namespace Prisma {
     ownerId?: true
     dailyLimit?: true
     setupCost?: true
+    unitPrice?: true
+    profitPercent?: true
   }
 
   export type ProductionLineSumAggregateInputType = {
@@ -2976,6 +2988,8 @@ export namespace Prisma {
     ownerId?: true
     dailyLimit?: true
     setupCost?: true
+    unitPrice?: true
+    profitPercent?: true
   }
 
   export type ProductionLineMinAggregateInputType = {
@@ -2989,6 +3003,8 @@ export namespace Prisma {
     setupCost?: true
     createdAt?: true
     carName?: true
+    unitPrice?: true
+    profitPercent?: true
   }
 
   export type ProductionLineMaxAggregateInputType = {
@@ -3002,6 +3018,8 @@ export namespace Prisma {
     setupCost?: true
     createdAt?: true
     carName?: true
+    unitPrice?: true
+    profitPercent?: true
   }
 
   export type ProductionLineCountAggregateInputType = {
@@ -3015,6 +3033,8 @@ export namespace Prisma {
     setupCost?: true
     createdAt?: true
     carName?: true
+    unitPrice?: true
+    profitPercent?: true
     _all?: true
   }
 
@@ -3115,6 +3135,8 @@ export namespace Prisma {
     setupCost: bigint
     createdAt: Date
     carName: string | null
+    unitPrice: number | null
+    profitPercent: number | null
     _count: ProductionLineCountAggregateOutputType | null
     _avg: ProductionLineAvgAggregateOutputType | null
     _sum: ProductionLineSumAggregateOutputType | null
@@ -3147,6 +3169,8 @@ export namespace Prisma {
     setupCost?: boolean
     createdAt?: boolean
     carName?: boolean
+    unitPrice?: boolean
+    profitPercent?: boolean
   }, ExtArgs["result"]["productionLine"]>
 
   export type ProductionLineSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -3160,6 +3184,8 @@ export namespace Prisma {
     setupCost?: boolean
     createdAt?: boolean
     carName?: boolean
+    unitPrice?: boolean
+    profitPercent?: boolean
   }, ExtArgs["result"]["productionLine"]>
 
   export type ProductionLineSelectScalar = {
@@ -3173,6 +3199,8 @@ export namespace Prisma {
     setupCost?: boolean
     createdAt?: boolean
     carName?: boolean
+    unitPrice?: boolean
+    profitPercent?: boolean
   }
 
 
@@ -3190,6 +3218,8 @@ export namespace Prisma {
       setupCost: bigint
       createdAt: Date
       carName: string | null
+      unitPrice: number | null
+      profitPercent: number | null
     }, ExtArgs["result"]["productionLine"]>
     composites: {}
   }
@@ -3593,6 +3623,8 @@ export namespace Prisma {
     readonly setupCost: FieldRef<"ProductionLine", 'BigInt'>
     readonly createdAt: FieldRef<"ProductionLine", 'DateTime'>
     readonly carName: FieldRef<"ProductionLine", 'String'>
+    readonly unitPrice: FieldRef<"ProductionLine", 'Int'>
+    readonly profitPercent: FieldRef<"ProductionLine", 'Int'>
   }
     
 
@@ -3909,6 +3941,7 @@ export namespace Prisma {
     type: string | null
     imageUrl: string | null
     imageFileId: string | null
+    description: string | null
     dailyLimit: number | null
     setupCost: bigint | null
     country: string | null
@@ -3920,6 +3953,7 @@ export namespace Prisma {
     type: string | null
     imageUrl: string | null
     imageFileId: string | null
+    description: string | null
     dailyLimit: number | null
     setupCost: bigint | null
     country: string | null
@@ -3931,6 +3965,7 @@ export namespace Prisma {
     type: number
     imageUrl: number
     imageFileId: number
+    description: number
     dailyLimit: number
     setupCost: number
     country: number
@@ -3956,6 +3991,7 @@ export namespace Prisma {
     type?: true
     imageUrl?: true
     imageFileId?: true
+    description?: true
     dailyLimit?: true
     setupCost?: true
     country?: true
@@ -3967,6 +4003,7 @@ export namespace Prisma {
     type?: true
     imageUrl?: true
     imageFileId?: true
+    description?: true
     dailyLimit?: true
     setupCost?: true
     country?: true
@@ -3978,6 +4015,7 @@ export namespace Prisma {
     type?: true
     imageUrl?: true
     imageFileId?: true
+    description?: true
     dailyLimit?: true
     setupCost?: true
     country?: true
@@ -4076,6 +4114,7 @@ export namespace Prisma {
     type: string
     imageUrl: string
     imageFileId: string
+    description: string
     dailyLimit: number
     setupCost: bigint
     country: string
@@ -4106,6 +4145,7 @@ export namespace Prisma {
     type?: boolean
     imageUrl?: boolean
     imageFileId?: boolean
+    description?: boolean
     dailyLimit?: boolean
     setupCost?: boolean
     country?: boolean
@@ -4117,6 +4157,7 @@ export namespace Prisma {
     type?: boolean
     imageUrl?: boolean
     imageFileId?: boolean
+    description?: boolean
     dailyLimit?: boolean
     setupCost?: boolean
     country?: boolean
@@ -4128,6 +4169,7 @@ export namespace Prisma {
     type?: boolean
     imageUrl?: boolean
     imageFileId?: boolean
+    description?: boolean
     dailyLimit?: boolean
     setupCost?: boolean
     country?: boolean
@@ -4143,6 +4185,7 @@ export namespace Prisma {
       type: string
       imageUrl: string
       imageFileId: string
+      description: string
       dailyLimit: number
       setupCost: bigint
       country: string
@@ -4544,6 +4587,7 @@ export namespace Prisma {
     readonly type: FieldRef<"PendingProductionLine", 'String'>
     readonly imageUrl: FieldRef<"PendingProductionLine", 'String'>
     readonly imageFileId: FieldRef<"PendingProductionLine", 'String'>
+    readonly description: FieldRef<"PendingProductionLine", 'String'>
     readonly dailyLimit: FieldRef<"PendingProductionLine", 'Int'>
     readonly setupCost: FieldRef<"PendingProductionLine", 'BigInt'>
     readonly country: FieldRef<"PendingProductionLine", 'String'>
@@ -6759,7 +6803,9 @@ export namespace Prisma {
     dailyLimit: 'dailyLimit',
     setupCost: 'setupCost',
     createdAt: 'createdAt',
-    carName: 'carName'
+    carName: 'carName',
+    unitPrice: 'unitPrice',
+    profitPercent: 'profitPercent'
   };
 
   export type ProductionLineScalarFieldEnum = (typeof ProductionLineScalarFieldEnum)[keyof typeof ProductionLineScalarFieldEnum]
@@ -6771,6 +6817,7 @@ export namespace Prisma {
     type: 'type',
     imageUrl: 'imageUrl',
     imageFileId: 'imageFileId',
+    description: 'description',
     dailyLimit: 'dailyLimit',
     setupCost: 'setupCost',
     country: 'country'
@@ -7179,6 +7226,8 @@ export namespace Prisma {
     setupCost?: BigIntFilter<"ProductionLine"> | bigint | number
     createdAt?: DateTimeFilter<"ProductionLine"> | Date | string
     carName?: StringNullableFilter<"ProductionLine"> | string | null
+    unitPrice?: IntNullableFilter<"ProductionLine"> | number | null
+    profitPercent?: IntNullableFilter<"ProductionLine"> | number | null
   }
 
   export type ProductionLineOrderByWithRelationInput = {
@@ -7192,6 +7241,8 @@ export namespace Prisma {
     setupCost?: SortOrder
     createdAt?: SortOrder
     carName?: SortOrderInput | SortOrder
+    unitPrice?: SortOrderInput | SortOrder
+    profitPercent?: SortOrderInput | SortOrder
   }
 
   export type ProductionLineWhereUniqueInput = Prisma.AtLeast<{
@@ -7208,6 +7259,8 @@ export namespace Prisma {
     setupCost?: BigIntFilter<"ProductionLine"> | bigint | number
     createdAt?: DateTimeFilter<"ProductionLine"> | Date | string
     carName?: StringNullableFilter<"ProductionLine"> | string | null
+    unitPrice?: IntNullableFilter<"ProductionLine"> | number | null
+    profitPercent?: IntNullableFilter<"ProductionLine"> | number | null
   }, "id">
 
   export type ProductionLineOrderByWithAggregationInput = {
@@ -7221,6 +7274,8 @@ export namespace Prisma {
     setupCost?: SortOrder
     createdAt?: SortOrder
     carName?: SortOrderInput | SortOrder
+    unitPrice?: SortOrderInput | SortOrder
+    profitPercent?: SortOrderInput | SortOrder
     _count?: ProductionLineCountOrderByAggregateInput
     _avg?: ProductionLineAvgOrderByAggregateInput
     _max?: ProductionLineMaxOrderByAggregateInput
@@ -7242,6 +7297,8 @@ export namespace Prisma {
     setupCost?: BigIntWithAggregatesFilter<"ProductionLine"> | bigint | number
     createdAt?: DateTimeWithAggregatesFilter<"ProductionLine"> | Date | string
     carName?: StringNullableWithAggregatesFilter<"ProductionLine"> | string | null
+    unitPrice?: IntNullableWithAggregatesFilter<"ProductionLine"> | number | null
+    profitPercent?: IntNullableWithAggregatesFilter<"ProductionLine"> | number | null
   }
 
   export type PendingProductionLineWhereInput = {
@@ -7253,6 +7310,7 @@ export namespace Prisma {
     type?: StringFilter<"PendingProductionLine"> | string
     imageUrl?: StringFilter<"PendingProductionLine"> | string
     imageFileId?: StringFilter<"PendingProductionLine"> | string
+    description?: StringFilter<"PendingProductionLine"> | string
     dailyLimit?: IntFilter<"PendingProductionLine"> | number
     setupCost?: BigIntFilter<"PendingProductionLine"> | bigint | number
     country?: StringFilter<"PendingProductionLine"> | string
@@ -7264,6 +7322,7 @@ export namespace Prisma {
     type?: SortOrder
     imageUrl?: SortOrder
     imageFileId?: SortOrder
+    description?: SortOrder
     dailyLimit?: SortOrder
     setupCost?: SortOrder
     country?: SortOrder
@@ -7278,6 +7337,7 @@ export namespace Prisma {
     type?: StringFilter<"PendingProductionLine"> | string
     imageUrl?: StringFilter<"PendingProductionLine"> | string
     imageFileId?: StringFilter<"PendingProductionLine"> | string
+    description?: StringFilter<"PendingProductionLine"> | string
     dailyLimit?: IntFilter<"PendingProductionLine"> | number
     setupCost?: BigIntFilter<"PendingProductionLine"> | bigint | number
     country?: StringFilter<"PendingProductionLine"> | string
@@ -7289,6 +7349,7 @@ export namespace Prisma {
     type?: SortOrder
     imageUrl?: SortOrder
     imageFileId?: SortOrder
+    description?: SortOrder
     dailyLimit?: SortOrder
     setupCost?: SortOrder
     country?: SortOrder
@@ -7308,6 +7369,7 @@ export namespace Prisma {
     type?: StringWithAggregatesFilter<"PendingProductionLine"> | string
     imageUrl?: StringWithAggregatesFilter<"PendingProductionLine"> | string
     imageFileId?: StringWithAggregatesFilter<"PendingProductionLine"> | string
+    description?: StringWithAggregatesFilter<"PendingProductionLine"> | string
     dailyLimit?: IntWithAggregatesFilter<"PendingProductionLine"> | number
     setupCost?: BigIntWithAggregatesFilter<"PendingProductionLine"> | bigint | number
     country?: StringWithAggregatesFilter<"PendingProductionLine"> | string
@@ -7842,6 +7904,8 @@ export namespace Prisma {
     setupCost: bigint | number
     createdAt?: Date | string
     carName?: string | null
+    unitPrice?: number | null
+    profitPercent?: number | null
   }
 
   export type ProductionLineUncheckedCreateInput = {
@@ -7855,6 +7919,8 @@ export namespace Prisma {
     setupCost: bigint | number
     createdAt?: Date | string
     carName?: string | null
+    unitPrice?: number | null
+    profitPercent?: number | null
   }
 
   export type ProductionLineUpdateInput = {
@@ -7867,6 +7933,8 @@ export namespace Prisma {
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     carName?: NullableStringFieldUpdateOperationsInput | string | null
+    unitPrice?: NullableIntFieldUpdateOperationsInput | number | null
+    profitPercent?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type ProductionLineUncheckedUpdateInput = {
@@ -7880,6 +7948,8 @@ export namespace Prisma {
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     carName?: NullableStringFieldUpdateOperationsInput | string | null
+    unitPrice?: NullableIntFieldUpdateOperationsInput | number | null
+    profitPercent?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type ProductionLineCreateManyInput = {
@@ -7893,6 +7963,8 @@ export namespace Prisma {
     setupCost: bigint | number
     createdAt?: Date | string
     carName?: string | null
+    unitPrice?: number | null
+    profitPercent?: number | null
   }
 
   export type ProductionLineUpdateManyMutationInput = {
@@ -7905,6 +7977,8 @@ export namespace Prisma {
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     carName?: NullableStringFieldUpdateOperationsInput | string | null
+    unitPrice?: NullableIntFieldUpdateOperationsInput | number | null
+    profitPercent?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type ProductionLineUncheckedUpdateManyInput = {
@@ -7918,6 +7992,8 @@ export namespace Prisma {
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     carName?: NullableStringFieldUpdateOperationsInput | string | null
+    unitPrice?: NullableIntFieldUpdateOperationsInput | number | null
+    profitPercent?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type PendingProductionLineCreateInput = {
@@ -7926,6 +8002,7 @@ export namespace Prisma {
     type: string
     imageUrl: string
     imageFileId: string
+    description: string
     dailyLimit: number
     setupCost: bigint | number
     country: string
@@ -7937,6 +8014,7 @@ export namespace Prisma {
     type: string
     imageUrl: string
     imageFileId: string
+    description: string
     dailyLimit: number
     setupCost: bigint | number
     country: string
@@ -7948,6 +8026,7 @@ export namespace Prisma {
     type?: StringFieldUpdateOperationsInput | string
     imageUrl?: StringFieldUpdateOperationsInput | string
     imageFileId?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
     dailyLimit?: IntFieldUpdateOperationsInput | number
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     country?: StringFieldUpdateOperationsInput | string
@@ -7959,6 +8038,7 @@ export namespace Prisma {
     type?: StringFieldUpdateOperationsInput | string
     imageUrl?: StringFieldUpdateOperationsInput | string
     imageFileId?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
     dailyLimit?: IntFieldUpdateOperationsInput | number
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     country?: StringFieldUpdateOperationsInput | string
@@ -7970,6 +8050,7 @@ export namespace Prisma {
     type: string
     imageUrl: string
     imageFileId: string
+    description: string
     dailyLimit: number
     setupCost: bigint | number
     country: string
@@ -7981,6 +8062,7 @@ export namespace Prisma {
     type?: StringFieldUpdateOperationsInput | string
     imageUrl?: StringFieldUpdateOperationsInput | string
     imageFileId?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
     dailyLimit?: IntFieldUpdateOperationsInput | number
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     country?: StringFieldUpdateOperationsInput | string
@@ -7992,6 +8074,7 @@ export namespace Prisma {
     type?: StringFieldUpdateOperationsInput | string
     imageUrl?: StringFieldUpdateOperationsInput | string
     imageFileId?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
     dailyLimit?: IntFieldUpdateOperationsInput | number
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     country?: StringFieldUpdateOperationsInput | string
@@ -8502,6 +8585,17 @@ export namespace Prisma {
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -8518,6 +8612,8 @@ export namespace Prisma {
     setupCost?: SortOrder
     createdAt?: SortOrder
     carName?: SortOrder
+    unitPrice?: SortOrder
+    profitPercent?: SortOrder
   }
 
   export type ProductionLineAvgOrderByAggregateInput = {
@@ -8525,6 +8621,8 @@ export namespace Prisma {
     ownerId?: SortOrder
     dailyLimit?: SortOrder
     setupCost?: SortOrder
+    unitPrice?: SortOrder
+    profitPercent?: SortOrder
   }
 
   export type ProductionLineMaxOrderByAggregateInput = {
@@ -8538,6 +8636,8 @@ export namespace Prisma {
     setupCost?: SortOrder
     createdAt?: SortOrder
     carName?: SortOrder
+    unitPrice?: SortOrder
+    profitPercent?: SortOrder
   }
 
   export type ProductionLineMinOrderByAggregateInput = {
@@ -8551,6 +8651,8 @@ export namespace Prisma {
     setupCost?: SortOrder
     createdAt?: SortOrder
     carName?: SortOrder
+    unitPrice?: SortOrder
+    profitPercent?: SortOrder
   }
 
   export type ProductionLineSumOrderByAggregateInput = {
@@ -8558,6 +8660,8 @@ export namespace Prisma {
     ownerId?: SortOrder
     dailyLimit?: SortOrder
     setupCost?: SortOrder
+    unitPrice?: SortOrder
+    profitPercent?: SortOrder
   }
 
   export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
@@ -8591,12 +8695,29 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
   export type PendingProductionLineCountOrderByAggregateInput = {
     ownerId?: SortOrder
     name?: SortOrder
     type?: SortOrder
     imageUrl?: SortOrder
     imageFileId?: SortOrder
+    description?: SortOrder
     dailyLimit?: SortOrder
     setupCost?: SortOrder
     country?: SortOrder
@@ -8614,6 +8735,7 @@ export namespace Prisma {
     type?: SortOrder
     imageUrl?: SortOrder
     imageFileId?: SortOrder
+    description?: SortOrder
     dailyLimit?: SortOrder
     setupCost?: SortOrder
     country?: SortOrder
@@ -8625,6 +8747,7 @@ export namespace Prisma {
     type?: SortOrder
     imageUrl?: SortOrder
     imageFileId?: SortOrder
+    description?: SortOrder
     dailyLimit?: SortOrder
     setupCost?: SortOrder
     country?: SortOrder
@@ -8735,6 +8858,14 @@ export namespace Prisma {
 
   export type NullableStringFieldUpdateOperationsInput = {
     set?: string | null
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type NestedBigIntFilter<$PrismaModel = never> = {
@@ -8858,6 +8989,17 @@ export namespace Prisma {
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
+  export type NestedIntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[]
@@ -8889,7 +9031,7 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
-  export type NestedIntNullableFilter<$PrismaModel = never> = {
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | null
     notIn?: number[] | null
@@ -8897,7 +9039,23 @@ export namespace Prisma {
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
 
