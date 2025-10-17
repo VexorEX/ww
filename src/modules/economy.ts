@@ -95,16 +95,11 @@ export async function changeUserField(
         const isBigInt = bigintFields.includes(field);
         let current: number | bigint = user[field] ?? (isBigInt ? BigInt(0) : 0);
 
-
-        if (current === null || current === undefined) current = isBigInt ? BigInt(0) : 0;
-
         let result: number | bigint;
-        result = result < (isBigInt ? BigInt(0) : 0) ? (isBigInt ? BigInt(0) : 0) : result;
-
 
         if (isBigInt) {
-            let val = BigInt(value);
-            let cur = BigInt(current);
+            const val = BigInt(value);
+            const cur = BigInt(current);
             switch (operation) {
                 case 'add': result = cur + val; break;
                 case 'subtract': result = cur - val; break;
@@ -119,8 +114,9 @@ export async function changeUserField(
                 case 'set': result = val; break;
                 default: return 'invalid';
             }
+            if (result < BigInt(0)) result = BigInt(0);
         } else {
-            let cur = Number(current);
+            const cur = Number(current);
             switch (operation) {
                 case 'add': result = cur + value; break;
                 case 'subtract': result = cur - value; break;
@@ -135,6 +131,7 @@ export async function changeUserField(
                 case 'set': result = value; break;
                 default: return 'invalid';
             }
+            if (result < 0) result = 0;
         }
 
         await prisma.user.update({
@@ -160,11 +157,7 @@ export async function changeFieldForAllUsers(
 
         for (const user of users) {
             let current: number | bigint = user[field] ?? (isBigInt ? BigInt(0) : 0);
-
-            if (current === null || current === undefined) current = isBigInt ? BigInt(0) : 0;
-
             let result: number | bigint;
-            result = result < (isBigInt ? BigInt(0) : 0) ? (isBigInt ? BigInt(0) : 0) : result;
 
             if (isBigInt) {
                 const val = BigInt(value);
@@ -183,6 +176,7 @@ export async function changeFieldForAllUsers(
                     case 'set': result = val; break;
                     default: return 'invalid';
                 }
+                if (result < BigInt(0)) result = BigInt(0);
             } else {
                 const cur = Number(current);
                 switch (operation) {
@@ -199,13 +193,13 @@ export async function changeFieldForAllUsers(
                     case 'set': result = value; break;
                     default: return 'invalid';
                 }
+                if (result < 0) result = 0;
             }
 
             await prisma.user.update({
                 where: { userid: user.userid },
                 data: { [field]: isBigInt ? BigInt(result) : Number(result) }
             });
-
         }
 
         return 'ok';
