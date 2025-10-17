@@ -121,7 +121,7 @@ building.on('photo', async (ctx, next) => {
 building.on('text', async (ctx, next) => {
     ctx.session ??= {};
     if (ctx.session.buildingStep === 'awaiting_build_description') {
-        const description = ctx.message.text?.trim();
+        const description = ctx.message.text;
         if (!description || description.length < 5) {
             return ctx.reply('❌ توضیح خیلی کوتاهه. لطفاً بیشتر توضیح بده.');
         }
