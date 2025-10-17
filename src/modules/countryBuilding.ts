@@ -29,7 +29,7 @@ building.action('build_car', async (ctx) => {
 
     const user = await prisma.user.findUnique({ where: { userid: userId } });
     if (!user) return ctx.reply('❌ کاربر یافت نشد.');
-    const pending = await prisma.pendingProductionLine.findMany({ where: { ownerId: userId } });
+    const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
 
     if (pending) {
         const oneHourAgo = Date.now() - 60 * 60 * 1000;
@@ -157,88 +157,58 @@ building.action('submit_building', async (ctx) => {
     ctx.session.lastBuildDate = new Date().toDateString();
     ctx.session.buildingRequestTime = Date.now();
 
-    const { carName, carImage, carImageFileId, setupCost } = ctx.session;
-    const countryName = ctx.user?.countryName;
     const userId = BigInt(ctx.from.id);
+    const country = ctx.user?.countryName;
+    const {
+        buildingType,
+        buildingName,
+        buildingImageFileId,
+        buildingDescription
+    } = ctx.session;
 
-    if (!carName || !carImage || !carImageFileId || !countryName || !setupCost) {
+    if (!buildingType || !buildingName || !buildingImageFileId || !buildingDescription || !country) {
         return ctx.reply('❌ اطلاعات ناقص است.');
     }
 
-    // کسر پول با استفاده از changeCapital
-    const result = await changeCapital(userId, 'subtract', setupCost);
-    if (result === 'not_found') {
-        return ctx.reply('❌ کاربر یافت نشد.');
-    }
-    if (result === 'invalid' || result === 'error') {
-        return ctx.reply('❌ خطا در کسر پول.');
+    const imageUrl = await ctx.telegram.getFileLink(buildingImageFileId).then(link => link.href);
+
+    let setupCost: number;
+    let profitPercent: number | null = null;
+
+    if (buildingType === 'car') {
+        setupCost = 250_000_000;
+    } else {
+        setupCost = Math.floor(55_000_000 + Math.random() * 695_000_000);
+        profitPercent = Math.floor(10 + Math.random() * 72);
     }
 
-    await prisma.pendingProductionLine.upsert({
-        where: { ownerId: userId },
-        update: {
-            name: carName,
-            type: 'car',
-            imageUrl: carImage,
-            imageFileId: carImageFileId,
-            dailyLimit: 15,
-            setupCost: BigInt(setupCost),
-            country: countryName
-        },
-        create: {
+    const result = await changeCapital(userId, 'subtract', setupCost);
+    if (result !== 'ok') return ctx.reply('❌ خطا در کسر سرمایه.');
+
+    await prisma.pendingProductionLine.create({
+        data: {
             ownerId: userId,
-            name: carName,
-            type: 'car',
-            imageUrl: carImage,
-            imageFileId: carImageFileId,
+            name: buildingName,
+            type: buildingType,
+            imageUrl,
+            imageFileId: buildingImageFileId,
+            description: buildingDescription,
             dailyLimit: 15,
             setupCost: BigInt(setupCost),
-            country: countryName
+            country,
+            profitPercent
         }
     });
 
-
-    if (['film', 'music', 'game'].includes(buildingType)) {
-        const profitPercent = Math.floor(10 + Math.random() * 72);
-
-        await prisma.pendingProductionLine.create({
-            data: {
-                ownerId: userId,
-                name: buildingName,
-                type: buildingType,
-                imageFileId: buildingImageFileId,
-                imageUrl,
-                description: buildingDescription,
-                setupCost: BigInt(setupCost),
-                dailyLimit: 15,
-                country,
-                profitPercent
-            }
-        });
-
-        // ارسال به ادمین‌ها
-        for (const admin of admins) {
-            await ctx.telegram.sendPhoto(admin, buildingImageFileId, {
-                caption: escapeMarkdownV2(
-                    `📥 درخواست ساخت پروژه ${buildingType}\n\n` +
-                    `> کشور: **${country}**\n` +
-                    `> نام: **${buildingName}**\n` +
-                    `> توضیح: ${buildingDescription}\n` +
-                    `> بودجه: ${Math.floor(setupCost / 1_000_000)}M\n` +
-                    `> سوددهی: ${profitPercent}%`
-                ),
-                parse_mode: 'MarkdownV2',
-                reply_markup: Markup.inlineKeyboard([
-                    [Markup.button.callback('✅ تأیید ساخت', `admin_approve_building_${userId}`)],
-                    [Markup.button.callback('❌ رد درخواست', `admin_reject_building_${userId}`)]
-                ]).reply_markup
-            });
-        }
-
-        await ctx.reply('📤 درخواست شما برای بررسی ادمین ارسال شد.');
-        ctx.session.buildingStep = undefined;
-    }
-
+    const caption = escapeMarkdownV2(
+        `📥 درخواست ساخت ${buildingType === 'car' ? 'خط تولید خودرو' : `پروژه ${buildingType}`}\n\n` +
+        `> کشور: **${country}**\n` +
+        `> نام: **${buildingName}**\n` +
+        `> توضیح: ${buildingDescription}\n` +
+        `> بودجه: ${Math.floor(setupCost / 1_000_000)}M` +
+        (profitPercent !== null ? `\n> سوددهی: ${profitPercent}%` : '') +
+        (buildingType === 'car' ? `\nظرفیت تولید روزانه: 15 خودرو` : '')
+    );
 
     const adminKeyboard = Markup.inlineKeyboard([
         [Markup.button.callback('✅ تأیید ساخت', `admin_approve_building_${userId}`)],
@@ -246,14 +216,8 @@ building.action('submit_building', async (ctx) => {
     ]);
 
     for (const admin of admins) {
-        await ctx.telegram.sendPhoto(admin, carImageFileId, {
-            caption: escapeMarkdownV2(
-                `📥 درخواست ساخت خط تولید خودرو\n\n` +
-                `> کشور: **${countryName}**\n` +
-                `> محصول: **${carName}**\n` +
-                `> توضیح: ${ctx.session.buildingDescription}\n\n` +
-                `بودجه: 250M\nظرفیت تولید روزانه: 15 خودرو`
-            ),
+        await ctx.telegram.sendPhoto(admin, buildingImageFileId, {
+            caption,
             parse_mode: 'MarkdownV2',
             reply_markup: adminKeyboard.reply_markup
         });
@@ -269,7 +233,7 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
     const user = await prisma.user.findUnique({ where: { userid: userId } });
     if (!user) return ctx.reply('❌ کاربر یافت نشد.');
 
-    const pending = await prisma.pendingProductionLine.findMany({ where: { ownerId: userId } });
+    const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
     if (!pending) return ctx.reply('❌ اطلاعات محصول یافت نشد.');
 
     if (['film', 'music', 'game'].includes(pending.type)) {
@@ -290,13 +254,15 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
 
         await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
             caption: escapeMarkdownV2(
-                `🎬 پروژه جدید تأیید شد\n\n` +
-                `> کشور: **${user.countryName}**\n` +
-                `> نام: **${pending.name}**\n` +
-                `> نوع: ${pending.type}`
+                `🏭 خط تولید جدید راه‌اندازی شد\n\n` +
+                `> کشور سازنده: **${user.countryName}**\n` +
+                `> محصول: **${pending.name}**\n\n` +
+                `بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()} ریال\n` +
+                `ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`
             ),
             parse_mode: 'MarkdownV2'
         });
+
 
         await ctx.reply('✅ پروژه تأیید شد و به کانال ارسال شد.');
     }
@@ -338,8 +304,8 @@ building.action(/admin_reject_building_(\d+)/, async (ctx) => {
         return ctx.answerCbQuery('⛔ فقط ادمین می‌تونه رد کنه.');
     }
 
+    const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
 
-    const pending = await prisma.pendingProductionLine.findMany({ where: { ownerId: userId } });
     if (!pending) {
         return ctx.answerCbQuery('❌ درخواست یافت نشد.');
     }
