@@ -3,9 +3,11 @@ import type { CustomContext } from '../middlewares/userAuth';
 import { prisma } from '../prisma';
 import { escapeMarkdownV2 } from '../utils/escape';
 import { changeCapital } from './economy';
+import config from '../config/config.json';
 
 const building = new Composer<CustomContext>();
 const BUILDING_TYPES = ['car', 'film', 'music', 'game'];
+const BAYANIE_CHANNEL_ID = config.channels.updates;
 
 building.action('building', async (ctx) => {
     const keyboard = Markup.inlineKeyboard([
@@ -19,6 +21,17 @@ building.action('building', async (ctx) => {
 building.action(/^build_(\w+)$/, async (ctx) => {
     const type = ctx.match[1];
     if (!BUILDING_TYPES.includes(type)) return ctx.answerCbQuery('❌ نوع نامعتبر است.');
+
+    const userId = BigInt(ctx.from.id);
+    const today = new Date().toISOString().split('T')[0];
+    const existing = await prisma.pendingProductionLine.findFirst({
+        where: {
+            ownerId: userId,
+            createdAt: { gte: new Date(`${today}T00:00:00.000Z`) }
+        }
+    });
+    if (existing) return ctx.reply('❌ شما امروز یک تولیدی ثبت کرده‌اید. فردا دوباره تلاش کنید.');
+
     ctx.session = { buildingType: type, buildingStep: 'awaiting_name' };
     await ctx.reply(`📌 نام ${type === 'car' ? 'محصول' : 'پروژه'} را وارد کن:`);
     ctx.answerCbQuery();
@@ -77,13 +90,20 @@ building.action('submit_building', async (ctx) => {
         return ctx.reply('❌ اطلاعات ناقص است.');
     }
 
-    const setupCost = buildingType === 'car'
-        ? 250_000_000
-        : Math.floor(55_000_000 + Math.random() * 695_000_000);
-    const profitPercent = buildingType === 'car' ? null : Math.floor(10 + Math.random() * 72);
+    let setupCost: number;
+    let profitPercent: number | null = null;
+
+    if (buildingType === 'car') {
+        setupCost = 250_000_000;
+    } else {
+        setupCost = Math.floor(55_000_000 + Math.random() * 695_000_000);
+        profitPercent = Math.floor(10 + Math.random() * 72);
+    }
 
     const result = await changeCapital(userId, 'subtract', setupCost);
     if (result !== 'ok') return ctx.reply('❌ خطا در کسر سرمایه.');
+
+    const imageUrl = await ctx.telegram.getFileLink(buildingImageFileId).then(link => link.href);
 
     await prisma.pendingProductionLine.create({
         data: {
@@ -91,7 +111,7 @@ building.action('submit_building', async (ctx) => {
             name: buildingName,
             type: buildingType,
             imageFileId: buildingImageFileId,
-            imageUrl: await ctx.telegram.getFileLink(buildingImageFileId).then(link => link.href),
+            imageUrl,
             description: buildingDescription,
             setupCost: BigInt(setupCost),
             dailyLimit: 15,
@@ -101,6 +121,15 @@ building.action('submit_building', async (ctx) => {
     });
 
     await ctx.reply('📤 درخواست شما برای بررسی ادمین ارسال شد.');
+
+    // ارسال پیام به کانال بیانیه
+    const caption = `📢 ${ctx.from.first_name} یک ${buildingType === 'car' ? 'خودرو' : 'پروژه'} جدید ثبت کرد!\n\n🧩 نام: ${buildingName}\n💰 هزینه: ${Math.floor(setupCost / 1_000_000)}M`;
+    try {
+        await ctx.telegram.sendPhoto(BAYANIE_CHANNEL_ID, buildingImageFileId, { caption });
+    } catch (err) {
+        console.warn('❌ ارسال به کانال بیانیه ناموفق بود:', err);
+    }
+
     ctx.session.buildingStep = undefined;
 });
 
