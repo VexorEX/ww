@@ -27,6 +27,8 @@ adminCommands.command('remuser', async (ctx) => {
     }
 
     const userId = BigInt(userIdStr);
+    const user = await prisma.user.findUnique({ where: { userid: userId } });
+    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
 
     try {
         // گرفتن کد کشور قبل از حذف
