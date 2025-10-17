@@ -86,16 +86,18 @@ model User {
 }
 
 model ProductionLine {
-  id         Int      @id @default(autoincrement())
-  ownerId    BigInt
-  country    String
-  name       String
-  type       String // مثل 'car', 'game', 'movie'
-  imageUrl   String
-  dailyLimit Int
-  setupCost  BigInt
-  createdAt  DateTime @default(now())
-  carName    String?
+  id            Int      @id @default(autoincrement())
+  ownerId       BigInt
+  country       String
+  name          String
+  type          String // مثل 'car', 'game', 'movie'
+  imageUrl      String
+  dailyLimit    Int
+  setupCost     BigInt
+  createdAt     DateTime @default(now())
+  carName       String?
+  unitPrice     Int? // فقط برای خودرو
+  profitPercent Int? // فقط برای پروژه‌های عمرانی
 }
 
 model PendingProductionLine {
@@ -104,6 +106,7 @@ model PendingProductionLine {
   type        String // مثلا "car"
   imageUrl    String
   imageFileId String
+  description String
   dailyLimit  Int
   setupCost   BigInt
   country     String

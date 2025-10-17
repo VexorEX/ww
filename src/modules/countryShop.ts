@@ -11,7 +11,8 @@ const shopCategories = [
     { name: '🌍 زمینی', callback: 'buy_ground' },
     { name: '🌊 دریایی', callback: 'buy_marine' },
     { name: '✈️ هوایی', callback: 'buy_aerial' },
-    { name: '🛡 دفاعی', callback: 'buy_defence' }
+    { name: '🛡 دفاعی', callback: 'buy_defence' },
+    { name: '🚀 موشکی', callback: 'buy_missile' }
 ];
 
 const shopActions = [
@@ -61,13 +62,33 @@ function checkResources(user: any, cost: Record<string, number>): string[] {
     }
     return lacks;
 }
-    
-function buildShopKeyboard(category: keyof typeof config.manage.shop.prices): Markup.Markup<any> {
+
+function checkCountryPermission(userCountry: string, item: string): boolean {
+    // اگر آیتم در لیست پیش‌فرض باشد، همه کشورها می‌توانند آن را بخرند
+    if (config.manage.shop.defaultItems.includes(item)) {
+        return true;
+    }
+
+    // اگر کشور کاربر در لیست مجوزها نباشد، نمی‌تواند چیزی بجز آیتم‌های پیش‌فرض بخرد
+    if (!config.manage.shop.countryPermissions[userCountry]) {
+        return false;
+    }
+
+    // بررسی اینکه آیا آیتم در لیست مجوزهای کشور کاربر هست یا نه
+    return config.manage.shop.countryPermissions[userCountry].includes(item);
+}
+
+function buildShopKeyboard(category: keyof typeof config.manage.shop.prices, userCountry?: string): Markup.Markup<any> {
     const prices = config.manage.shop.prices[category];
     const labels = more.armyLabels?.[category] || {};
     const rows: any[] = [];
 
     for (const [key, price] of Object.entries(prices)) {
+        // اگر کشور کاربر مشخص شده و آیتم در لیست مجوزهای آن کشور نیست، نمایش نده
+        if (userCountry && !checkCountryPermission(userCountry, key)) {
+            continue;
+        }
+
         const label = labels[key] || key;
         const priceFa = price
             .replace(/iron/g, 'آهن')
@@ -86,16 +107,30 @@ function buildShopKeyboard(category: keyof typeof config.manage.shop.prices): Ma
     return Markup.inlineKeyboard(rows);
 }
 
-shop.action(/^buy_(ground|marine|aerial|defence)$/, async (ctx) => {
+shop.action(/^buy_(ground|marine|aerial|defence|missile)$/, async (ctx) => {
     const category = ctx.match[1] as keyof typeof config.manage.shop.prices;
-    const keyboard = buildShopKeyboard(category);
+
+    // دریافت اطلاعات کاربر برای بررسی کشور
+    const user = await prisma.user.findUnique({ where: { userid: BigInt(ctx.from.id) } });
+    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+
+    const keyboard = buildShopKeyboard(category, user.country);
     await ctx.reply(`🛒 آیتم‌های دسته ${category} را انتخاب کن:`, keyboard);
     ctx.answerCbQuery();
 });
 
-shop.action(/^buy_confirm_(ground|marine|aerial|defence)_(\w+)$/, async (ctx) => {
+shop.action(/^buy_confirm_(ground|marine|aerial|defence|missile)_(\w+)$/, async (ctx) => {
     const category = ctx.match[1];
     const item = ctx.match[2];
+
+    // دریافت اطلاعات کاربر برای بررسی کشور
+    const user = await prisma.user.findUnique({ where: { userid: BigInt(ctx.from.id) } });
+    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+
+    // بررسی مجوز کشور برای خرید این آیتم
+    if (!checkCountryPermission(user.country, item)) {
+        return ctx.reply(`❌ کشور شما (${user.country}) مجوز خرید "${item}" را ندارد.`);
+    }
 
     ctx.session ??= {};
     ctx.session.buyStep = 'awaiting_quantity';
@@ -114,13 +149,23 @@ shop.on('text', async (ctx, next) => {
     if (isNaN(qty) || qty <= 0) return ctx.reply('❌ تعداد معتبر نیست.');
 
     const { buyCategory, buyItem } = ctx.session;
+
+    // دریافت اطلاعات کاربر برای بررسی کشور
+    const user = await prisma.user.findUnique({ where: { userid: BigInt(ctx.from.id) } });
+    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+
+    // بررسی مجدد مجوز کشور برای اطمینان
+    if (!checkCountryPermission(user.country, buyItem)) {
+        delete ctx.session.buyStep;
+        delete ctx.session.buyCategory;
+        delete ctx.session.buyItem;
+        return ctx.reply(`❌ کشور شما (${user.country}) مجوز خرید "${buyItem}" را ندارد.`);
+    }
+
     const priceStr = config.manage.shop.prices[buyCategory]?.[buyItem];
     if (!priceStr) return ctx.reply('❌ آیتم یافت نشد.');
 
     const cost = parsePrice(priceStr, qty);
-    const user = await prisma.user.findUnique({ where: { userid: BigInt(ctx.from.id) } });
-    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
-
     const lacks = checkResources(user, cost);
     if (lacks.length > 0) {
         return ctx.reply(`⛔ منابع کافی نیست:\n${lacks.map(r => `• ${r}`).join('\n')}`);
