@@ -56,7 +56,6 @@ export function getCountriesByRank(rank: number): (Country & { country: string }
     return results;
 }
 
-
 // Util ۲: فیلتر بر اساس region (exact match)
 export function getCountriesByRegion(region: 'asia' | 'europe' | 'africa' | 'america' | 'australia'): Country[] {
     const data = loadCountries();

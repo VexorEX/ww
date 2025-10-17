@@ -18,7 +18,6 @@ editAsset.on('text', async (ctx, next) => {
         return next();
     }
     const valueStr = ctx.message.text;
-    console.log(valueStr);
     // مرحله دریافت شناسه کاربر
     if (ctx.session.editStep === 'awaiting_user_id') {
         if (!/^\d+$/.test(valueStr)) return ctx.reply('❌ شناسه معتبر نیست.');
@@ -92,8 +91,6 @@ editAsset.on('text', async (ctx, next) => {
         return;
     }
 
-    console.log('🔥 text received:', ctx.message.text);
-    await ctx.reply('متن دریافت شد.');
 });
 
 //
