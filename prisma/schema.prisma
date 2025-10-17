@@ -111,6 +111,8 @@ model PendingProductionLine {
   setupCost     BigInt
   country       String
   profitPercent Int?
+  createdAt DateTime @default(now())
+
 
   @@map("PendingProductionLine")
 }
