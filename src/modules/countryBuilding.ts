@@ -108,7 +108,6 @@ building.on('photo', async (ctx, next) => {
     const imageUrl = await ctx.telegram.getFileLink(photo.file_id);
     ctx.session.carImage = imageUrl.href;
 
-    ctx.session.buildingStep = 'awaiting_build_description';
     await ctx.reply('📝 توضیحی درباره محصولت بنویس (مثلاً ویژگی‌ها یا هدف تولید):');
 
     ctx.session.carImageFileId = photo.file_id;
