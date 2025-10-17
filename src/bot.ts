@@ -30,6 +30,7 @@ bot.catch(async (err: unknown, ctx) => {
 
     try {
         await ctx.reply('❌ مشکلی پیش آمده. تیم فنی مطلع شد.');
+        await bot.telegram.deleteWebhook()
     } catch (_) {}
 
     try {
