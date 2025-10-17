@@ -116,7 +116,7 @@ building.on('photo', async (ctx, next) => {
 
     ctx.session.carImageFileId = photo.file_id;
 
-    ctx.session.buildingStep = 'awaiting_admin_review';
+    ctx.session.buildingStep = 'awaiting_build_description';
 });
 building.on('text', async (ctx, next) => {
     ctx.session ??= {};
