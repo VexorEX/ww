@@ -14,8 +14,11 @@ const cancelBtn = Markup.inlineKeyboard([
 
 editAsset.on('text', async (ctx, next) => {
     ctx.session ??= {};
-    const valueStr = ctx.message.text?.trim();
-
+    if (!ctx.session || !ctx.session.editStep) {
+        return next();
+    }
+    const valueStr = ctx.message.text;
+    console.log(valueStr);
     // مرحله دریافت شناسه کاربر
     if (ctx.session.editStep === 'awaiting_user_id') {
         if (!/^\d+$/.test(valueStr)) return ctx.reply('❌ شناسه معتبر نیست.');
@@ -91,7 +94,6 @@ editAsset.on('text', async (ctx, next) => {
 
     console.log('🔥 text received:', ctx.message.text);
     await ctx.reply('متن دریافت شد.');
-    return next();
 });
 
 //

@@ -41,34 +41,34 @@ function getReligionLabel(key: string): string {
 function buildCountryInlineKeyboard(user: any): Markup.Markup<any> {
     return Markup.inlineKeyboard([
         [
-            Markup.button.callback(`${user.countryName}`, 'NA'),
-            Markup.button.callback(`${more.governments[user.government] || user.government}`, 'set_gov'),
-            Markup.button.callback(`${getReligionLabel(user.religion)}`, 'set_religion')
+            Markup.button.callback(`${user.countryName}`, 'noop'),
+            Markup.button.callback(`${more.governments[user.government] || user.government}`, 'noop'),
+            Markup.button.callback(`${getReligionLabel(user.religion)}`, 'noop')
         ],
         [
-            Markup.button.callback(getContinentEmoji(user.country), 'NA'),
-            Markup.button.callback(`🎖 ${getRankLabel(user.rank)}`, 'NA')
+            Markup.button.callback(getContinentEmoji(user.country), 'noop'),
+            Markup.button.callback(`🎖 ${getRankLabel(user.rank)}`, 'noop')
         ],
-        [Markup.button.callback('═══════════════', 'NA')],
+        [Markup.button.callback('═══════════════', 'noop')],
         [
-            Markup.button.callback('👥 جمعیت', 'NA'),
-            Markup.button.callback('💰 درآمد روزانه', 'NA'),
-            Markup.button.callback('🏦 سرمایه', 'NA')
-        ],
-        [
-            Markup.button.callback(`👥 ${formatNumber(user.crowd)}`, 'NA'),
-            Markup.button.callback(`💰 ${formatNumber(user.dailyProfit)}`, 'NA'),
-            Markup.button.callback(`🏦 ${formatNumber(user.capital)}`, 'NA')
+            Markup.button.callback('👥 جمعیت', 'noop'),
+            Markup.button.callback('💰 درآمد روزانه', 'noop'),
+            Markup.button.callback('🏦 سرمایه', 'noop')
         ],
         [
-            Markup.button.callback('🛡 امنیت', 'NA'),
-            Markup.button.callback('😊 رضایت', 'NA')
+            Markup.button.callback(`👥 ${formatNumber(user.crowd)}`, 'noop'),
+            Markup.button.callback(`💰 ${formatNumber(user.dailyProfit)}`, 'noop'),
+            Markup.button.callback(`🏦 ${formatNumber(user.capital)}`, 'noop')
         ],
         [
-            Markup.button.callback(`🛡 ${user.security}`, 'NA'),
-            Markup.button.callback(`😊 ${user.satisfaction}`, 'NA')
+            Markup.button.callback('🛡 امنیت', 'noop'),
+            Markup.button.callback('😊 رضایت', 'noop')
         ],
-        [Markup.button.callback('═══════════════', 'NA')],
+        [
+            Markup.button.callback(`🛡 ${user.security}`, 'noop'),
+            Markup.button.callback(`😊 ${user.satisfaction}`, 'noop')
+        ],
+        [Markup.button.callback('═══════════════', 'noop')],
         [
             Markup.button.callback('🪨 منابع', 'get_resources'),
             Markup.button.callback('⚔️ نظامی', 'get_armies')
@@ -187,7 +187,7 @@ showUser.action('res_mines', async (ctx) => {
 });
 
 function buildRow(label: string, value: string | number) {
-    return [Markup.button.callback(label, 'NA'), Markup.button.callback(`${value}`, 'NA')];
+    return [Markup.button.callback(label, 'noop'), Markup.button.callback(`${value}`, 'noop')];
 }
 
 showUser.action('get_armies', async (ctx) => {
