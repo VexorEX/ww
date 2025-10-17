@@ -3924,18 +3924,23 @@ export namespace Prisma {
   }
 
   export type PendingProductionLineAvgAggregateOutputType = {
+    id: number | null
     ownerId: number | null
     dailyLimit: number | null
     setupCost: number | null
+    profitPercent: number | null
   }
 
   export type PendingProductionLineSumAggregateOutputType = {
+    id: number | null
     ownerId: bigint | null
     dailyLimit: number | null
     setupCost: bigint | null
+    profitPercent: number | null
   }
 
   export type PendingProductionLineMinAggregateOutputType = {
+    id: number | null
     ownerId: bigint | null
     name: string | null
     type: string | null
@@ -3945,9 +3950,12 @@ export namespace Prisma {
     dailyLimit: number | null
     setupCost: bigint | null
     country: string | null
+    profitPercent: number | null
+    createdAt: Date | null
   }
 
   export type PendingProductionLineMaxAggregateOutputType = {
+    id: number | null
     ownerId: bigint | null
     name: string | null
     type: string | null
@@ -3957,9 +3965,12 @@ export namespace Prisma {
     dailyLimit: number | null
     setupCost: bigint | null
     country: string | null
+    profitPercent: number | null
+    createdAt: Date | null
   }
 
   export type PendingProductionLineCountAggregateOutputType = {
+    id: number
     ownerId: number
     name: number
     type: number
@@ -3969,23 +3980,30 @@ export namespace Prisma {
     dailyLimit: number
     setupCost: number
     country: number
+    profitPercent: number
+    createdAt: number
     _all: number
   }
 
 
   export type PendingProductionLineAvgAggregateInputType = {
+    id?: true
     ownerId?: true
     dailyLimit?: true
     setupCost?: true
+    profitPercent?: true
   }
 
   export type PendingProductionLineSumAggregateInputType = {
+    id?: true
     ownerId?: true
     dailyLimit?: true
     setupCost?: true
+    profitPercent?: true
   }
 
   export type PendingProductionLineMinAggregateInputType = {
+    id?: true
     ownerId?: true
     name?: true
     type?: true
@@ -3995,9 +4013,12 @@ export namespace Prisma {
     dailyLimit?: true
     setupCost?: true
     country?: true
+    profitPercent?: true
+    createdAt?: true
   }
 
   export type PendingProductionLineMaxAggregateInputType = {
+    id?: true
     ownerId?: true
     name?: true
     type?: true
@@ -4007,9 +4028,12 @@ export namespace Prisma {
     dailyLimit?: true
     setupCost?: true
     country?: true
+    profitPercent?: true
+    createdAt?: true
   }
 
   export type PendingProductionLineCountAggregateInputType = {
+    id?: true
     ownerId?: true
     name?: true
     type?: true
@@ -4019,6 +4043,8 @@ export namespace Prisma {
     dailyLimit?: true
     setupCost?: true
     country?: true
+    profitPercent?: true
+    createdAt?: true
     _all?: true
   }
 
@@ -4109,6 +4135,7 @@ export namespace Prisma {
   }
 
   export type PendingProductionLineGroupByOutputType = {
+    id: number
     ownerId: bigint
     name: string
     type: string
@@ -4118,6 +4145,8 @@ export namespace Prisma {
     dailyLimit: number
     setupCost: bigint
     country: string
+    profitPercent: number | null
+    createdAt: Date
     _count: PendingProductionLineCountAggregateOutputType | null
     _avg: PendingProductionLineAvgAggregateOutputType | null
     _sum: PendingProductionLineSumAggregateOutputType | null
@@ -4140,6 +4169,7 @@ export namespace Prisma {
 
 
   export type PendingProductionLineSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
     ownerId?: boolean
     name?: boolean
     type?: boolean
@@ -4149,9 +4179,12 @@ export namespace Prisma {
     dailyLimit?: boolean
     setupCost?: boolean
     country?: boolean
+    profitPercent?: boolean
+    createdAt?: boolean
   }, ExtArgs["result"]["pendingProductionLine"]>
 
   export type PendingProductionLineSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
     ownerId?: boolean
     name?: boolean
     type?: boolean
@@ -4161,9 +4194,12 @@ export namespace Prisma {
     dailyLimit?: boolean
     setupCost?: boolean
     country?: boolean
+    profitPercent?: boolean
+    createdAt?: boolean
   }, ExtArgs["result"]["pendingProductionLine"]>
 
   export type PendingProductionLineSelectScalar = {
+    id?: boolean
     ownerId?: boolean
     name?: boolean
     type?: boolean
@@ -4173,6 +4209,8 @@ export namespace Prisma {
     dailyLimit?: boolean
     setupCost?: boolean
     country?: boolean
+    profitPercent?: boolean
+    createdAt?: boolean
   }
 
 
@@ -4180,6 +4218,7 @@ export namespace Prisma {
     name: "PendingProductionLine"
     objects: {}
     scalars: $Extensions.GetPayloadResult<{
+      id: number
       ownerId: bigint
       name: string
       type: string
@@ -4189,6 +4228,8 @@ export namespace Prisma {
       dailyLimit: number
       setupCost: bigint
       country: string
+      profitPercent: number | null
+      createdAt: Date
     }, ExtArgs["result"]["pendingProductionLine"]>
     composites: {}
   }
@@ -4272,8 +4313,8 @@ export namespace Prisma {
      * // Get first 10 PendingProductionLines
      * const pendingProductionLines = await prisma.pendingProductionLine.findMany({ take: 10 })
      * 
-     * // Only select the `ownerId`
-     * const pendingProductionLineWithOwnerIdOnly = await prisma.pendingProductionLine.findMany({ select: { ownerId: true } })
+     * // Only select the `id`
+     * const pendingProductionLineWithIdOnly = await prisma.pendingProductionLine.findMany({ select: { id: true } })
      * 
      */
     findMany<T extends PendingProductionLineFindManyArgs>(args?: SelectSubset<T, PendingProductionLineFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PendingProductionLinePayload<ExtArgs>, T, "findMany">>
@@ -4317,9 +4358,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Create many PendingProductionLines and only return the `ownerId`
-     * const pendingProductionLineWithOwnerIdOnly = await prisma.pendingProductionLine.createManyAndReturn({ 
-     *   select: { ownerId: true },
+     * // Create many PendingProductionLines and only return the `id`
+     * const pendingProductionLineWithIdOnly = await prisma.pendingProductionLine.createManyAndReturn({ 
+     *   select: { id: true },
      *   data: [
      *     // ... provide data here
      *   ]
@@ -4582,6 +4623,7 @@ export namespace Prisma {
    * Fields of the PendingProductionLine model
    */ 
   interface PendingProductionLineFieldRefs {
+    readonly id: FieldRef<"PendingProductionLine", 'Int'>
     readonly ownerId: FieldRef<"PendingProductionLine", 'BigInt'>
     readonly name: FieldRef<"PendingProductionLine", 'String'>
     readonly type: FieldRef<"PendingProductionLine", 'String'>
@@ -4591,6 +4633,8 @@ export namespace Prisma {
     readonly dailyLimit: FieldRef<"PendingProductionLine", 'Int'>
     readonly setupCost: FieldRef<"PendingProductionLine", 'BigInt'>
     readonly country: FieldRef<"PendingProductionLine", 'String'>
+    readonly profitPercent: FieldRef<"PendingProductionLine", 'Int'>
+    readonly createdAt: FieldRef<"PendingProductionLine", 'DateTime'>
   }
     
 
@@ -6812,6 +6856,7 @@ export namespace Prisma {
 
 
   export const PendingProductionLineScalarFieldEnum: {
+    id: 'id',
     ownerId: 'ownerId',
     name: 'name',
     type: 'type',
@@ -6820,7 +6865,9 @@ export namespace Prisma {
     description: 'description',
     dailyLimit: 'dailyLimit',
     setupCost: 'setupCost',
-    country: 'country'
+    country: 'country',
+    profitPercent: 'profitPercent',
+    createdAt: 'createdAt'
   };
 
   export type PendingProductionLineScalarFieldEnum = (typeof PendingProductionLineScalarFieldEnum)[keyof typeof PendingProductionLineScalarFieldEnum]
@@ -7305,6 +7352,7 @@ export namespace Prisma {
     AND?: PendingProductionLineWhereInput | PendingProductionLineWhereInput[]
     OR?: PendingProductionLineWhereInput[]
     NOT?: PendingProductionLineWhereInput | PendingProductionLineWhereInput[]
+    id?: IntFilter<"PendingProductionLine"> | number
     ownerId?: BigIntFilter<"PendingProductionLine"> | bigint | number
     name?: StringFilter<"PendingProductionLine"> | string
     type?: StringFilter<"PendingProductionLine"> | string
@@ -7314,9 +7362,12 @@ export namespace Prisma {
     dailyLimit?: IntFilter<"PendingProductionLine"> | number
     setupCost?: BigIntFilter<"PendingProductionLine"> | bigint | number
     country?: StringFilter<"PendingProductionLine"> | string
+    profitPercent?: IntNullableFilter<"PendingProductionLine"> | number | null
+    createdAt?: DateTimeFilter<"PendingProductionLine"> | Date | string
   }
 
   export type PendingProductionLineOrderByWithRelationInput = {
+    id?: SortOrder
     ownerId?: SortOrder
     name?: SortOrder
     type?: SortOrder
@@ -7326,13 +7377,16 @@ export namespace Prisma {
     dailyLimit?: SortOrder
     setupCost?: SortOrder
     country?: SortOrder
+    profitPercent?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
   }
 
   export type PendingProductionLineWhereUniqueInput = Prisma.AtLeast<{
-    ownerId?: bigint | number
+    id?: number
     AND?: PendingProductionLineWhereInput | PendingProductionLineWhereInput[]
     OR?: PendingProductionLineWhereInput[]
     NOT?: PendingProductionLineWhereInput | PendingProductionLineWhereInput[]
+    ownerId?: BigIntFilter<"PendingProductionLine"> | bigint | number
     name?: StringFilter<"PendingProductionLine"> | string
     type?: StringFilter<"PendingProductionLine"> | string
     imageUrl?: StringFilter<"PendingProductionLine"> | string
@@ -7341,9 +7395,12 @@ export namespace Prisma {
     dailyLimit?: IntFilter<"PendingProductionLine"> | number
     setupCost?: BigIntFilter<"PendingProductionLine"> | bigint | number
     country?: StringFilter<"PendingProductionLine"> | string
-  }, "ownerId">
+    profitPercent?: IntNullableFilter<"PendingProductionLine"> | number | null
+    createdAt?: DateTimeFilter<"PendingProductionLine"> | Date | string
+  }, "id">
 
   export type PendingProductionLineOrderByWithAggregationInput = {
+    id?: SortOrder
     ownerId?: SortOrder
     name?: SortOrder
     type?: SortOrder
@@ -7353,6 +7410,8 @@ export namespace Prisma {
     dailyLimit?: SortOrder
     setupCost?: SortOrder
     country?: SortOrder
+    profitPercent?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
     _count?: PendingProductionLineCountOrderByAggregateInput
     _avg?: PendingProductionLineAvgOrderByAggregateInput
     _max?: PendingProductionLineMaxOrderByAggregateInput
@@ -7364,6 +7423,7 @@ export namespace Prisma {
     AND?: PendingProductionLineScalarWhereWithAggregatesInput | PendingProductionLineScalarWhereWithAggregatesInput[]
     OR?: PendingProductionLineScalarWhereWithAggregatesInput[]
     NOT?: PendingProductionLineScalarWhereWithAggregatesInput | PendingProductionLineScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"PendingProductionLine"> | number
     ownerId?: BigIntWithAggregatesFilter<"PendingProductionLine"> | bigint | number
     name?: StringWithAggregatesFilter<"PendingProductionLine"> | string
     type?: StringWithAggregatesFilter<"PendingProductionLine"> | string
@@ -7373,6 +7433,8 @@ export namespace Prisma {
     dailyLimit?: IntWithAggregatesFilter<"PendingProductionLine"> | number
     setupCost?: BigIntWithAggregatesFilter<"PendingProductionLine"> | bigint | number
     country?: StringWithAggregatesFilter<"PendingProductionLine"> | string
+    profitPercent?: IntNullableWithAggregatesFilter<"PendingProductionLine"> | number | null
+    createdAt?: DateTimeWithAggregatesFilter<"PendingProductionLine"> | Date | string
   }
 
   export type CarWhereInput = {
@@ -8006,9 +8068,12 @@ export namespace Prisma {
     dailyLimit: number
     setupCost: bigint | number
     country: string
+    profitPercent?: number | null
+    createdAt?: Date | string
   }
 
   export type PendingProductionLineUncheckedCreateInput = {
+    id?: number
     ownerId: bigint | number
     name: string
     type: string
@@ -8018,6 +8083,8 @@ export namespace Prisma {
     dailyLimit: number
     setupCost: bigint | number
     country: string
+    profitPercent?: number | null
+    createdAt?: Date | string
   }
 
   export type PendingProductionLineUpdateInput = {
@@ -8030,9 +8097,12 @@ export namespace Prisma {
     dailyLimit?: IntFieldUpdateOperationsInput | number
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     country?: StringFieldUpdateOperationsInput | string
+    profitPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PendingProductionLineUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
     ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
@@ -8042,9 +8112,12 @@ export namespace Prisma {
     dailyLimit?: IntFieldUpdateOperationsInput | number
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     country?: StringFieldUpdateOperationsInput | string
+    profitPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PendingProductionLineCreateManyInput = {
+    id?: number
     ownerId: bigint | number
     name: string
     type: string
@@ -8054,6 +8127,8 @@ export namespace Prisma {
     dailyLimit: number
     setupCost: bigint | number
     country: string
+    profitPercent?: number | null
+    createdAt?: Date | string
   }
 
   export type PendingProductionLineUpdateManyMutationInput = {
@@ -8066,9 +8141,12 @@ export namespace Prisma {
     dailyLimit?: IntFieldUpdateOperationsInput | number
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     country?: StringFieldUpdateOperationsInput | string
+    profitPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PendingProductionLineUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
     ownerId?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
@@ -8078,6 +8156,8 @@ export namespace Prisma {
     dailyLimit?: IntFieldUpdateOperationsInput | number
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     country?: StringFieldUpdateOperationsInput | string
+    profitPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CarCreateInput = {
@@ -8712,6 +8792,7 @@ export namespace Prisma {
   }
 
   export type PendingProductionLineCountOrderByAggregateInput = {
+    id?: SortOrder
     ownerId?: SortOrder
     name?: SortOrder
     type?: SortOrder
@@ -8721,15 +8802,20 @@ export namespace Prisma {
     dailyLimit?: SortOrder
     setupCost?: SortOrder
     country?: SortOrder
+    profitPercent?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type PendingProductionLineAvgOrderByAggregateInput = {
+    id?: SortOrder
     ownerId?: SortOrder
     dailyLimit?: SortOrder
     setupCost?: SortOrder
+    profitPercent?: SortOrder
   }
 
   export type PendingProductionLineMaxOrderByAggregateInput = {
+    id?: SortOrder
     ownerId?: SortOrder
     name?: SortOrder
     type?: SortOrder
@@ -8739,9 +8825,12 @@ export namespace Prisma {
     dailyLimit?: SortOrder
     setupCost?: SortOrder
     country?: SortOrder
+    profitPercent?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type PendingProductionLineMinOrderByAggregateInput = {
+    id?: SortOrder
     ownerId?: SortOrder
     name?: SortOrder
     type?: SortOrder
@@ -8751,12 +8840,16 @@ export namespace Prisma {
     dailyLimit?: SortOrder
     setupCost?: SortOrder
     country?: SortOrder
+    profitPercent?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type PendingProductionLineSumOrderByAggregateInput = {
+    id?: SortOrder
     ownerId?: SortOrder
     dailyLimit?: SortOrder
     setupCost?: SortOrder
+    profitPercent?: SortOrder
   }
 
   export type CarCountOrderByAggregateInput = {

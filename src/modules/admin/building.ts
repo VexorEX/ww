@@ -9,7 +9,7 @@ const admins: number[] = config.manage.buildings.admins;
 
 admin.action(/^admin_approve_building_(\d+)$/, async (ctx) => {
     const userId = BigInt(ctx.match[1]);
-    const pending = await prisma.pendingProductionLine.findUnique({ where: { ownerId: userId } });
+    const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
     if (!pending) return ctx.reply('❌ درخواست یافت نشد.');
 
     await prisma.productionLine.create({
@@ -27,7 +27,7 @@ admin.action(/^admin_approve_building_(\d+)$/, async (ctx) => {
         }
     });
 
-    await prisma.pendingProductionLine.delete({ where: { ownerId: userId } });
+    await prisma.pendingProductionLine.deleteMany({ where: { ownerId: userId } });
     await ctx.reply('✅ پروژه تأیید شد و ثبت گردید.');
 });
 
@@ -36,11 +36,11 @@ admin.action(/^admin_reject_building_(\d+)$/, async (ctx) => {
     const adminId = ctx.from.id;
     if (!admins.includes(adminId)) return ctx.answerCbQuery('⛔ فقط ادمین می‌تونه رد کنه.');
 
-    const pending = await prisma.pendingProductionLine.findUnique({ where: { ownerId: userId } });
+    const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
     if (!pending) return ctx.answerCbQuery('❌ درخواست یافت نشد.');
 
     await changeCapital(userId, 'add', Number(pending.setupCost));
-    await prisma.pendingProductionLine.delete({ where: { ownerId: userId } });
+    await prisma.pendingProductionLine.deleteMany({ where: { ownerId: userId } });
 
     await ctx.telegram.sendMessage(Number(userId), `❌ درخواست ساخت "${pending.name}" رد شد و مبلغ ${Number(pending.setupCost / BigInt(1_000_000)).toLocaleString()}M برگشت.`);
     await ctx.answerCbQuery('✅ درخواست رد شد.');

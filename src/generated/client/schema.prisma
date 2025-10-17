@@ -101,15 +101,18 @@ model ProductionLine {
 }
 
 model PendingProductionLine {
-  ownerId     BigInt @id
-  name        String
-  type        String // مثلا "car"
-  imageUrl    String
-  imageFileId String
-  description String
-  dailyLimit  Int
-  setupCost   BigInt
-  country     String
+  id            Int      @id @default(autoincrement()) // ← اضافه کن
+  ownerId       BigInt
+  name          String
+  type          String
+  imageUrl      String
+  imageFileId   String
+  description   String
+  dailyLimit    Int
+  setupCost     BigInt
+  country       String
+  profitPercent Int?
+  createdAt     DateTime @default(now()) // ← اضافه کن
 
   @@map("PendingProductionLine")
 }

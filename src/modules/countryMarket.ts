@@ -7,12 +7,13 @@ import { escapeMarkdownV2 } from '../utils/escape';
 const sell = new Composer<CustomContext>();
 
 // دستور /sell برای نمایش تولیدات قابل فروش
-sell.command('sell', async (ctx) => {
+sell.action('sell', async (ctx) => {
     const userId = BigInt(ctx.from.id);
     const productions = await prisma.productionLine.findMany({ where: { ownerId: userId } });
 
     if (productions.length === 0) {
-        return ctx.reply('❌ شما هیچ تولید فعالی برای فروش ندارید.');
+        await ctx.reply('❌ شما هیچ تولید فعالی برای فروش ندارید.');
+        return ctx.answerCbQuery();
     }
 
     for (const prod of productions) {
@@ -35,6 +36,8 @@ sell.command('sell', async (ctx) => {
             reply_markup: keyboard.reply_markup
         });
     }
+
+    ctx.answerCbQuery();
 });
 
 // هندل فروش با دکمه

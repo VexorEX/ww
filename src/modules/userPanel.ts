@@ -3,8 +3,8 @@ import { CustomContext } from "../middlewares/userAuth";
 import config from "../config/config.json";
 import management from './countryManagement'
 import shop from "./countryShop";
-import { escapeMarkdownV2 } from "../utils/escape";
 import building from "./countryBuilding";
+import market from "./countryMarket";
 import state from "./countryState";
 
 const userPanel = new Composer<CustomContext>();
@@ -24,7 +24,7 @@ const userMainKeyboard = config.manage.status
         ],
         [Markup.button.callback('─────────────', 'noop')],
         config.manage?.buildings?.status
-            ? [Markup.button.callback('🏗 ساخت و ساز', 'building')]
+            ? [Markup.button.callback('🏗 ساخت و ساز', 'building'),Markup.button.callback('🛒 فروش تولیدات', 'sell')]
             : [],
         [
             ...(config.manage?.stock?.status
@@ -49,6 +49,7 @@ userPanel.use(management);
 userPanel.use(shop);
 userPanel.use(state);  // state قبل از building
 userPanel.use(building);
+userPanel.use(market);
 
 userPanel.action('back_main', async (ctx) => {
     const name = ctx.from.first_name;
