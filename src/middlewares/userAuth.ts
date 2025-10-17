@@ -24,6 +24,9 @@ export interface SessionData {
     requestUserId?: bigint;
     pendingUserId?: bigint;
     pendingCountry?: any;
+    awaiting_user_id?: boolean;
+    awaiting_value?: boolean;
+    awaiting_value_all?: boolean;
     [key: string]: any;
 }
 

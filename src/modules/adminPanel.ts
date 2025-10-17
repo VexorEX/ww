@@ -27,10 +27,10 @@ adminPanel.command('panel', async (ctx) => {
     await ctx.reply('🎛 پنل مدیریت:', adminPanelKeyboard);
 });
 
+adminPanel.use(editAsset)
 adminPanel.use(showUser)
 adminPanel.use(toggleMenu)
 adminPanel.use(commands)
-adminPanel.use(editAsset)
 
 adminPanel.action('admin_dailyReward', async (ctx) => {
     const adminId = ctx.from.id;

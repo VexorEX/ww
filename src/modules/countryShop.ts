@@ -61,7 +61,7 @@ function checkResources(user: any, cost: Record<string, number>): string[] {
     }
     return lacks;
 }
-
+    
 function buildShopKeyboard(category: keyof typeof config.manage.shop.prices): Markup.Markup<any> {
     const prices = config.manage.shop.prices[category];
     const labels = more.armyLabels?.[category] || {};
