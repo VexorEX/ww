@@ -1,40 +1,3 @@
-هر تولیدی که میزنه قیمتش 250 میلیون
-
-روزانه 15 دستگاه تولید کنه
-قیمت هر دستگاه بین 10 تا ۱۸ میلیون متغیر توسط ربات هر 5 دقیقه تغییر کنه
-
-اسم+عکس خودرو دلخواه و توسط سازنده تعیین بشه
-
-بعدش یه پیام با عکسو اسم یه سری چیزایی برات می‌نویسم بره چنل بگه فلانی اینکارو کرد
-
-روزانه حداکثر 1 تولیدی
-
-پروژه های عمرانی :
-
-ساخت فیلم و موزیک و بازی
-
-اسم پروژه: توسط کاربر
-عکس پروژه: توسط کاربر
-هزینه ساخت و ساز: تعیین توسط کاربر بین 55 میلیون تا 750 میلیون
-مقدار سود دهی: بین 10% تا 82% توسط ربات
-نوع پروژه: توسط کاربر(فیلم،موزیک،...)
-هنگامی که ساخت پروژه تموم شد و اطلاعات کامل وارد کردن درخواست ساخت به من ارسال بشه و من تایید کنم یا رد چون ممکنه توش حرف بیخود یا فحش باشه
-
-
-
-تجارت: انتقال حداکثر ۳ آیتم از یک کشور به کشور دیگر با کسر 100 نفت
-
-هر تجارت دارای پیام خاص و ارسال به چنل
-
-در تجارت ممکنه محموله دچار بلای طبیعی بشه و بین 1% تا 12% از محموله کسر بشه ک توی متن تجارت ذکر میشه
-
-
-دارای 2 هندل عکس که یکیش واسه هوایی یکیش زمینی( نوع تجارت از طرف ربات انتخاب بشه یعنی شانسی )
-
-متن ها یکسانه فقط عکس ها فرق داره
-
-
-
 import { Composer, Markup } from 'telegraf';
 import type { CustomContext } from '../middlewares/userAuth';
 import { escapeMarkdownV2 } from '../utils/escape';
@@ -49,15 +12,15 @@ const building = new Composer<CustomContext>();
 building.action('building', async (ctx) => {
     const keyboard = Markup.inlineKeyboard([
         [Markup.button.callback('🚗 خودروسازی', 'build_car')],
-        [Markup.button.callback('🏙 شهرسازی ❌', 'NA')],
-        [Markup.button.callback('🎬 فیلم‌سازی ❌', 'NA')],
-        [Markup.button.callback('🎮 بازی‌سازی ❌', 'NA')],
+        [Markup.button.callback('🎬 فیلم‌سازی', 'build_film')],
+        [Markup.button.callback('🎵 موزیک‌سازی', 'build_music')],
+        [Markup.button.callback('🎮 بازی‌سازی', 'build_game')],
         [Markup.button.callback('🔙 بازگشت', 'back_main'), Markup.button.callback('❌ بستن', 'delete')]
     ]);
-
     await ctx.reply('🏗 نوع ساخت‌وساز را انتخاب کن:', keyboard);
     ctx.answerCbQuery();
 });
+
 
 // شروع فرآیند ساخت خودرو
 building.action('build_car', async (ctx) => {
@@ -66,7 +29,7 @@ building.action('build_car', async (ctx) => {
 
     const user = await prisma.user.findUnique({ where: { userid: userId } });
     if (!user) return ctx.reply('❌ کاربر یافت نشد.');
-    const pending = await prisma.pendingProductionLine.findUnique({ where: { ownerId: userId } });
+    const pending = await prisma.pendingProductionLine.findMany({ where: { ownerId: userId } });
 
     if (pending) {
         const oneHourAgo = Date.now() - 60 * 60 * 1000;
@@ -83,7 +46,7 @@ building.action('build_car', async (ctx) => {
                 await ctx.reply(`⌛ درخواست قبلی منقضی شد و مبلغ ${Number(pending.setupCost / BigInt(1_000_000)).toLocaleString()}M به حساب شما برگشت.`);
             }
 
-            await prisma.pendingProductionLine.delete({ where: { ownerId: userId } });
+            await prisma.pendingProductionLine.deleteMany({ where: { ownerId: userId } });
             ctx.session.buildingUsedToday = false;
             ctx.session.lastBuildDate = undefined;
             ctx.session.buildingRequestTime = undefined;
@@ -234,6 +197,49 @@ building.action('submit_building', async (ctx) => {
         }
     });
 
+
+    if (['film', 'music', 'game'].includes(buildingType)) {
+        const profitPercent = Math.floor(10 + Math.random() * 72);
+
+        await prisma.pendingProductionLine.create({
+            data: {
+                ownerId: userId,
+                name: buildingName,
+                type: buildingType,
+                imageFileId: buildingImageFileId,
+                imageUrl,
+                description: buildingDescription,
+                setupCost: BigInt(setupCost),
+                dailyLimit: 15,
+                country,
+                profitPercent
+            }
+        });
+
+        // ارسال به ادمین‌ها
+        for (const admin of admins) {
+            await ctx.telegram.sendPhoto(admin, buildingImageFileId, {
+                caption: escapeMarkdownV2(
+                    `📥 درخواست ساخت پروژه ${buildingType}\n\n` +
+                    `> کشور: **${country}**\n` +
+                    `> نام: **${buildingName}**\n` +
+                    `> توضیح: ${buildingDescription}\n` +
+                    `> بودجه: ${Math.floor(setupCost / 1_000_000)}M\n` +
+                    `> سوددهی: ${profitPercent}%`
+                ),
+                parse_mode: 'MarkdownV2',
+                reply_markup: Markup.inlineKeyboard([
+                    [Markup.button.callback('✅ تأیید ساخت', `admin_approve_building_${userId}`)],
+                    [Markup.button.callback('❌ رد درخواست', `admin_reject_building_${userId}`)]
+                ]).reply_markup
+            });
+        }
+
+        await ctx.reply('📤 درخواست شما برای بررسی ادمین ارسال شد.');
+        ctx.session.buildingStep = undefined;
+    }
+
+
     const adminKeyboard = Markup.inlineKeyboard([
         [Markup.button.callback('✅ تأیید ساخت', `admin_approve_building_${userId}`)],
         [Markup.button.callback('❌ رد درخواست', `admin_reject_building_${userId}`)]
@@ -263,8 +269,37 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
     const user = await prisma.user.findUnique({ where: { userid: userId } });
     if (!user) return ctx.reply('❌ کاربر یافت نشد.');
 
-    const pending = await prisma.pendingProductionLine.findUnique({ where: { ownerId: userId } });
+    const pending = await prisma.pendingProductionLine.findMany({ where: { ownerId: userId } });
     if (!pending) return ctx.reply('❌ اطلاعات محصول یافت نشد.');
+
+    if (['film', 'music', 'game'].includes(pending.type)) {
+        await prisma.productionLine.create({
+            data: {
+                ownerId: userId,
+                name: pending.name,
+                type: pending.type,
+                imageUrl: pending.imageUrl,
+                dailyLimit: pending.dailyLimit,
+                setupCost: pending.setupCost,
+                country: pending.country,
+                profitPercent: pending.profitPercent
+            }
+        });
+
+        await prisma.pendingProductionLine.delete({ where: { id: pending.id } });
+
+        await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
+            caption: escapeMarkdownV2(
+                `🎬 پروژه جدید تأیید شد\n\n` +
+                `> کشور: **${user.countryName}**\n` +
+                `> نام: **${pending.name}**\n` +
+                `> نوع: ${pending.type}`
+            ),
+            parse_mode: 'MarkdownV2'
+        });
+
+        await ctx.reply('✅ پروژه تأیید شد و به کانال ارسال شد.');
+    }
 
     const result = await createProductionLine({
         ownerId: userId,
@@ -279,7 +314,7 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
 
     if (result.error) return ctx.reply(result.error);
 
-    await prisma.pendingProductionLine.delete({ where: { ownerId: userId } });
+    await prisma.pendingProductionLine.deleteMany({ where: { ownerId: userId } });
 
     await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
         caption: escapeMarkdownV2(
@@ -304,7 +339,7 @@ building.action(/admin_reject_building_(\d+)/, async (ctx) => {
     }
 
 
-    const pending = await prisma.pendingProductionLine.findUnique({ where: { ownerId: userId } });
+    const pending = await prisma.pendingProductionLine.findMany({ where: { ownerId: userId } });
     if (!pending) {
         return ctx.answerCbQuery('❌ درخواست یافت نشد.');
     }
@@ -319,7 +354,7 @@ building.action(/admin_reject_building_(\d+)/, async (ctx) => {
     }
 
     // حذف درخواست
-    await prisma.pendingProductionLine.delete({ where: { ownerId: userId } });
+    await prisma.pendingProductionLine.deleteMany({ where: { ownerId: userId } });
 
     // اطلاع‌رسانی به کاربر
     try {
@@ -333,10 +368,161 @@ building.action(/admin_reject_building_(\d+)/, async (ctx) => {
     await ctx.answerCbQuery('✅ درخواست رد شد و پول برگشت.');
 });
 
+for (const type of ['film', 'music', 'game']) {
+    building.action(`build_${type}`, async (ctx) => {
+        ctx.session = {
+            buildingType: type,
+            buildingStep: 'awaiting_name'
+        };
+        await ctx.reply(`📌 نام پروژه ${type === 'film' ? 'فیلم' : type === 'music' ? 'موزیک' : 'بازی'} را وارد کن:`);
+        ctx.answerCbQuery();
+    });
+}
+
+
+
 export default building;
 
 
 
+in ham schema:
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-be tor kamel tozih dade shode ke build ha bayad chejori bashan
-gehmat rill ke desc hast yadet nare
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client" // optional: client رو در src بساز برای import آسان
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userid       BigInt @id
+  country      String
+  countryName  String // نام کشور + ایموجی
+  level        Int    @default(0)
+  rank         Int    @default(0)
+  government   String
+  religion     String @default("islam")
+  crowd        BigInt @default(15000000)
+  capital      BigInt @default(150000000)
+  dailyProfit  BigInt @default(100000000)
+  satisfaction Int    @default(80)
+  security     Int    @default(80)
+  lottery      Int    @default(0)
+
+  // منابع
+  oil         Int @default(0)
+  iron        Int @default(0)
+  gold        Int @default(0)
+  uranium     Int @default(0)
+  goldMine    Int @default(0)
+  uraniumMine Int @default(0)
+  ironMine    Int @default(0)
+  refinery    Int @default(0)
+
+  // ارتش پایه
+  soldier   Int @default(0)
+  tank      Int @default(0)
+  heavyTank Int @default(0)
+
+  // جنگنده‌ها
+  su57 Int @default(0)
+  f47  Int @default(0)
+  f35  Int @default(0)
+  j20  Int @default(0)
+  f16  Int @default(0)
+  f22  Int @default(0)
+  am50 Int @default(0)
+  b2   Int @default(0)
+  tu16 Int @default(0)
+
+  // پهپادها
+  espionageDrone Int @default(0)
+  suicideDrone   Int @default(0)
+  crossDrone     Int @default(0)
+  witnessDrone   Int @default(0)
+
+  // موشک‌ها
+  simpleRocket      Int @default(0)
+  crossRocket       Int @default(0)
+  dotTargetRocket   Int @default(0)
+  continentalRocket Int @default(0)
+  ballisticRocket   Int @default(0)
+  chemicalRocket    Int @default(0)
+  hyperSonicRocket  Int @default(0)
+  clusterRocket     Int @default(0)
+
+  // کشتی‌های دریایی
+  battleship       Int @default(0)
+  marineShip       Int @default(0)
+  breakerShip      Int @default(0)
+  nuclearSubmarine Int @default(0)
+
+  // دفاع
+  antiRocket Int @default(0)
+  ironDome   Int @default(0)
+  s400       Int @default(0)
+  taad       Int @default(0)
+  hq9        Int @default(0)
+  acash      Int @default(0)
+
+  @@map("users")
+}
+
+model ProductionLine {
+  id            Int      @id @default(autoincrement())
+  ownerId       BigInt
+  country       String
+  name          String
+  type          String // مثل 'car', 'game', 'movie'
+  imageUrl      String
+  dailyLimit    Int
+  setupCost     BigInt
+  createdAt     DateTime @default(now())
+  carName       String?
+  unitPrice     Int? // فقط برای خودرو
+  profitPercent Int? // فقط برای پروژه‌های عمرانی
+}
+
+model PendingProductionLine {
+  id            Int      @id @default(autoincrement()) // ← اضافه کن
+  ownerId       BigInt
+  name          String
+  type          String
+  imageUrl      String
+  imageFileId   String
+  description   String
+  dailyLimit    Int
+  setupCost     BigInt
+  country       String
+  profitPercent Int?
+  createdAt     DateTime @default(now()) // ← اضافه کن
+
+  @@map("PendingProductionLine")
+}
+
+model Car {
+  id        Int      @id @default(autoincrement())
+  ownerId   BigInt
+  name      String
+  imageUrl  String
+  price     Int
+  createdAt DateTime @default(now())
+}
+
+model PendingBuilding {
+  id        Int      @id @default(autoincrement())
+  userId    BigInt
+  carName   String
+  imageUrl  String
+  createdAt DateTime @default(now())
+}
+
+
+
+
+moshkel ine ke maghadir pening ro peida nmikone
