@@ -20,8 +20,8 @@ model User {
   government   String
   religion     String @default("islam")
   crowd        BigInt @default(15000000)
-  capital      BigInt @default(1500000000)
-  dailyProfit  BigInt @default(1000000000)
+  capital      BigInt @default(150000000)
+  dailyProfit  BigInt @default(100000000)
   satisfaction Int    @default(80)
   security     Int    @default(80)
   lottery      Int    @default(0)
@@ -86,27 +86,33 @@ model User {
 }
 
 model ProductionLine {
-  id         Int      @id @default(autoincrement())
-  ownerId    BigInt
-  country    String
-  name       String
-  type       String // مثل 'car', 'game', 'movie'
-  imageUrl   String
-  dailyLimit Int
-  setupCost  BigInt
-  createdAt  DateTime @default(now())
-  carName    String?
+  id            Int      @id @default(autoincrement())
+  ownerId       BigInt
+  country       String
+  name          String
+  type          String // مثل 'car', 'game', 'movie'
+  imageUrl      String
+  dailyLimit    Int
+  setupCost     BigInt
+  createdAt     DateTime @default(now())
+  carName       String?
+  unitPrice     Int? // فقط برای خودرو
+  profitPercent Int? // فقط برای پروژه‌های عمرانی
 }
 
 model PendingProductionLine {
-  ownerId     BigInt @id
-  name        String
-  type        String // مثلا "car"
-  imageUrl    String
-  imageFileId String
-  dailyLimit  Int
-  setupCost   BigInt
-  country     String
+  id            Int      @id @default(autoincrement()) // ← اضافه کن
+  ownerId       BigInt
+  name          String
+  type          String
+  imageUrl      String
+  imageFileId   String
+  description   String
+  dailyLimit    Int
+  setupCost     BigInt
+  country       String
+  profitPercent Int?
+  createdAt     DateTime @default(now()) // ← اضافه کن
 
   @@map("PendingProductionLine")
 }

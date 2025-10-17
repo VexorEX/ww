@@ -1,5 +1,5 @@
 {
-  "token": "7526067497:AAEmMFroeTJDBPUhCMtFtScMqJdLOd4a5Ks",
+  "token": "8093518474:AAF7CslVqKQOJcuWcEkwPMIrgE6npv4I-6g",
   "manage": {
     "status": true,
     "admins": [6749274447,7588477963],
@@ -28,8 +28,7 @@
       "status": true
     },
     "shop": {
-      "admins": [6749274447,
-        7588477963],
+      "admins": [6749274447, 7588477963],
       "status": true,
       "prices": {
         "ground": {
@@ -76,7 +75,41 @@
           "s400": "150(iron)",
           "s300": "100(iron)"
         }
-      }
+      },
+      "countryPermissions": {
+        "china": ["j20", "hq9", "hyperSonicRocket"],
+        "usa": ["b2", "taad", "f35"],
+        "uk": ["breakerShip", "chemicalRocket", "f47"],
+        "russia": ["su57", "tu16", "s400"],
+        "iran": ["hyperSonicRocket", "chemicalRocket", "hq9"],
+        "israel": ["ironDome", "chemicalRocket", "hyperSonicRocket"],
+        "south_korea": ["am50", "acash", "continentalRocket"],
+        "north_korea": ["chemicalRocket", "acash", "am50"],
+        "india": ["s300", "j20", "continentalRocket"],
+        "france": ["f47", "hyperSonicRocket", "s300"],
+        "canada": ["f47", "continentalRocket"],
+        "brazil": ["continentalRocket", "hyperSonicRocket"],
+        "pakistan": ["hq9", "hyperSonicRocket"],
+        "japan": ["breakerShip", "f22"],
+        "italy": ["f47", "hyperSonicRocket"],
+        "algeria": [],
+        "australia": ["f22", "chemicalRocket"],
+        "turkey": ["f47", "s300"],
+        "germany": ["f47", "taad"]
+      },
+      "defaultItems": [
+        "simpleRocket",
+        "antiRocket",
+        "cruiseRocket",
+        "battleship",
+        "soldier",
+        "tank",
+        "heavyTank",
+        "clusterRocket",
+        "dotTargetRocket",
+        "nuclearSubmarine",
+        "f16"
+      ]
     },
     "business": {
       "admins": [6749274447,
@@ -102,7 +135,7 @@
       "religion": {
         "admins": [
           6749274447,
-        7588477963
+          7588477963
         ],
         "status": true,
         "default": ""
@@ -110,21 +143,21 @@
       "governments": {
         "admins": [
           6749274447,
-        7588477963
+          7588477963
         ],
         "status": true,
         "default": ""
       },
       "dailyReward": {
         "admins": [6749274447,
-        7588477963],
+          7588477963],
         "default": 0
       }
     }
   },
   "channels": {
-    "state": "-1002587148503",
-    "updates": "-1002587148503"
+    "state": "-1002754782095",
+    "updates": "-1002754782095"
   },
   "images": {
     "gov": "https://img9.irna.ir/d/r2/2024/12/21/4/171573917.jpg?ts=1734769973771",

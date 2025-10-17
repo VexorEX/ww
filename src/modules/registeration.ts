@@ -67,7 +67,13 @@ userid: ${userId}
     // ]);
 
     for (const adminId of ADMIN_COUNTRY_IDS) {
-        await ctx.telegram.sendMessage(adminId, message, { parse_mode: 'Markdown', ...keyboard });
+        try {
+            await ctx.telegram.getChat(adminId);
+            await ctx.telegram.sendMessage(adminId, message, { parse_mode: 'Markdown', ...keyboard });
+        } catch (err) {
+            console.error(`❌ ارسال پیام به ادمین ${adminId} ناموفق بود:`, err);
+        }
+
     }
 }
 function handleRankAction(rank: number) {
