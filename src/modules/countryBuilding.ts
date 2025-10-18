@@ -106,7 +106,6 @@ building.on('text', async (ctx, next) => {
 // دریافت تصویر خودرو و نمایش پیش‌نمایش
 building.on('photo', async (ctx, next) => {
     ctx.session ??= {};
-    if (ctx.session.buildingStep !== 'awaiting_car_image') return next();
     if (!['awaiting_car_image', 'awaiting_image'].includes(ctx.session.buildingStep)) return next();
 
     const photo = ctx.message.photo?.at(-1);
@@ -114,11 +113,9 @@ building.on('photo', async (ctx, next) => {
 
     const imageUrl = await ctx.telegram.getFileLink(photo.file_id);
     ctx.session.carImage = imageUrl.href;
-
-    await ctx.reply('📝 توضیحی درباره محصولت بنویس (مثلاً ویژگی‌ها یا هدف تولید):');
-
     ctx.session.carImageFileId = photo.file_id;
 
+    await ctx.reply('📝 توضیحی درباره محصولت بنویس (مثلاً ویژگی‌ها یا هدف تولید):');
     ctx.session.buildingStep = 'awaiting_build_description';
 });
 building.on('text', async (ctx, next) => {
