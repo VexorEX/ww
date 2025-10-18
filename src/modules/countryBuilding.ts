@@ -170,7 +170,7 @@ building.action('submit_building', async (ctx) => {
         buildingImageFileId,
         buildingDescription
     } = ctx.session;
-    const buildingType = ctx.session.buildingType;
+
     const buildingName = buildingType === 'car'
         ? ctx.session.carName
         : ctx.session.buildingName;
