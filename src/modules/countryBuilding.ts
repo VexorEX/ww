@@ -91,11 +91,12 @@ building.on('text', async (ctx, next) => {
 
         if (ctx.session.buildingType === 'car') {
             ctx.session.carName = name;
+            ctx.session.buildingStep = 'awaiting_car_image';
         } else {
             ctx.session.buildingName = name;
+            ctx.session.buildingStep = 'awaiting_image';
         }
 
-        ctx.session.buildingStep = 'awaiting_car_image';
         await ctx.reply('🖼 حالا تصویر محصول را ارسال کن:');
     }
 
@@ -106,6 +107,7 @@ building.on('text', async (ctx, next) => {
 building.on('photo', async (ctx, next) => {
     ctx.session ??= {};
     if (ctx.session.buildingStep !== 'awaiting_car_image') return next();
+    if (!['awaiting_car_image', 'awaiting_image'].includes(ctx.session.buildingStep)) return next();
 
     const photo = ctx.message.photo?.at(-1);
     if (!photo) return ctx.reply('❌ تصویر معتبر ارسال نشده.');
@@ -168,9 +170,14 @@ building.action('submit_building', async (ctx) => {
         buildingImageFileId,
         buildingDescription
     } = ctx.session;
-    const buildingName = ctx.session.buildingType === 'car'
+    const buildingType = ctx.session.buildingType;
+    const buildingName = buildingType === 'car'
         ? ctx.session.carName
         : ctx.session.buildingName;
+
+    if (!buildingName || buildingName.length < 2) {
+        return ctx.reply('❌ نام محصول مشخص نیست یا معتبر نیست.');
+    }
 
     if (!buildingType || !buildingName || !buildingImageFileId || !buildingDescription || !country) {
         return ctx.reply('❌ اطلاعات ناقص است.');
