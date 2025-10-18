@@ -17,6 +17,7 @@ export interface SessionData {
     // Building-related session data
     buildingType?: string;
     buildingStep?: string;
+    buildingName?: string;
     carName?: string;
     carImage?: string;
     carImageFileId?: string;
