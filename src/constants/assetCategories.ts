@@ -1,4 +1,12 @@
-export const bigintFields = ['capital', 'dailyProfit', 'crowd'];
+export const bigintFields = [
+    'capital',
+    'dailyProfit',
+    'crowd',
+    'iron',
+    'gold',
+    'oil',
+    'uranium'
+];
 
 export const assetCategories: Record<string, string[]> = {
     economy: [

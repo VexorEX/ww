@@ -1,857 +1,365 @@
-in tamam module haii hast ke az on handler estefade kardan
-
 import { Composer, Markup } from 'telegraf';
-import type { CustomContext } from '../middlewares/userAuth';
-import config from '../config/config.json';
+import { CustomContext } from '../middlewares/userAuth';
+import { getCountryData } from '../utils/displayCountry';
+import {escapeMarkdownV2} from '../utils/escape';
+import countries from '../config/countries.json';
 import more from '../config/more.json';
+import config from '../config/config.json';
 import { prisma } from '../prisma';
-import { changeUserField } from './economy';
 
-const shop = new Composer<CustomContext>();
+const countryManagement = new Composer<CustomContext>();
 
-const shopCategories = [
-    { name: '🌍 زمینی', callback: 'buy_ground' },
-    { name: '🌊 دریایی', callback: 'buy_marine' },
-    { name: '✈️ هوایی', callback: 'buy_aerial' },
-    { name: '🛡 دفاعی', callback: 'buy_defence' }
-];
-
-const shopActions = [
-    { name: '🔙 بازگشت', callback: 'back_main' },
-    { name: '❌ بستن', callback: 'delete' }
-];
-
-function chunk<T>(arr: T[], size: number): T[][] {
-    const result: T[][] = [];
-    for (let i = 0; i < arr.length; i += size) {
-        result.push(arr.slice(i, i + size));
-    }
-    return result;
-}
-
-const keyboard = Markup.inlineKeyboard([
-    ...chunk(shopCategories, 2).map(pair =>
-        pair.map(c => Markup.button.callback(c.name, c.callback))
-    ),
-    shopActions.map(a => Markup.button.callback(a.name, a.callback))
-]);
-
-shop.action('shop', async (ctx) => {
-    await ctx.reply('🛒 دسته‌بندی فروشگاه را انتخاب کن:', keyboard);
-    ctx.answerCbQuery();
-});
-
-function parsePrice(priceStr: string, qty: number): Record<string, number> {
-    const parts = priceStr.split('+');
-    const result: Record<string, number> = {};
-    for (const part of parts) {
-        const match = part.match(/(\d+)\((\w+)\)/);
-        if (match) {
-            const amount = Number(match[1]) * qty;
-            const resource = match[2];
-            result[resource] = (result[resource] || 0) + amount;
+function getContinentEmoji(countryCode: string): string {
+    for (const [continent, list] of Object.entries(countries)) {
+        if (countryCode in list) {
+            switch (continent) {
+                case 'america': return '🌎 آمریکا';
+                case 'asia': return '🌏 آسیا';
+                case 'europe': return '🌍 اروپا';
+                case 'africa': return '🌍 آفریقا';
+                case 'australia': return '🌏 اقیانوسیه';
+                default: return '🌐 نامشخص';
+            }
         }
     }
-    return result;
+    return '🌐 نامشخص';
+}
+function formatNumber(input: string | number): string {
+    const num = typeof input === 'string' ? parseInt(input.replace(/,/g, ''), 10) : input;
+    if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(1) + 'B';
+    if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
+    if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+    return num.toString();
+}
+function getRankLabel(rank: number): string {
+    return more.ranks[`rank${rank}`] || `رتبه ${rank}`;
 }
 
-function checkResources(user: any, cost: Record<string, number>): string[] {
-    const lacks: string[] = [];
-    for (const [res, amount] of Object.entries(cost)) {
-        const current = BigInt(user[res] || 0);
-        if (current < BigInt(amount)) lacks.push(`${res}: نیاز به ${amount}`);
-    }
-    return lacks;
+function getReligionLabel(key: string): string {
+    return more.religion[key] || key;
 }
-
-function buildShopKeyboard(category: keyof typeof config.manage.shop.prices): Markup.Markup<any> {
-    const prices = config.manage.shop.prices[category];
-    const labels = more.armyLabels?.[category] || {};
-    const rows: any[] = [];
-
-    for (const [key, price] of Object.entries(prices)) {
-        const label = labels[key] || key;
-        const priceFa = price
-            .replace(/iron/g, 'آهن')
-            .replace(/oil/g, 'نفت')
-            .replace(/crowd/g, 'جمعیت')
-            .replace(/capital/g, 'سرمایه');
-
-        rows.push([
-            Markup.button.callback(label, 'noop'),
-            Markup.button.callback(priceFa, 'noop'),
-            Markup.button.callback('🛒 خرید', `buy_confirm_${category}_${key}`)
-        ]);
-    }
-
-    rows.push(shopActions.map(a => Markup.button.callback(a.name, a.callback)));
-    return Markup.inlineKeyboard(rows);
-}
-
-shop.action(/^buy_(ground|marine|aerial|defence)$/, async (ctx) => {
-    const category = ctx.match[1] as keyof typeof config.manage.shop.prices;
-    const keyboard = buildShopKeyboard(category);
-    await ctx.reply(`🛒 آیتم‌های دسته ${category} را انتخاب کن:`, keyboard);
-    ctx.answerCbQuery();
-});
-
-shop.action(/^buy_confirm_(ground|marine|aerial|defence)_(\w+)$/, async (ctx) => {
-    const category = ctx.match[1];
-    const item = ctx.match[2];
-
-    ctx.session ??= {};
-    ctx.session.buyStep = 'awaiting_quantity';
-    ctx.session.buyCategory = category;
-    ctx.session.buyItem = item;
-
-    await ctx.reply(`🔢 تعداد "${item}" موردنظر را وارد کن:`);
-    ctx.answerCbQuery();
-});
-
-shop.on('text', async (ctx, next) => {
-    ctx.session ??= {};
-    if (ctx.session.buyStep !== 'awaiting_quantity') return next();
-
-    const qty = Number(ctx.message.text.trim());
-    if (isNaN(qty) || qty <= 0) return ctx.reply('❌ تعداد معتبر نیست.');
-
-    const { buyCategory, buyItem } = ctx.session;
-    const priceStr = config.manage.shop.prices[buyCategory]?.[buyItem];
-    if (!priceStr) return ctx.reply('❌ آیتم یافت نشد.');
-
-    const cost = parsePrice(priceStr, qty);
-    const user = await prisma.user.findUnique({ where: { userid: BigInt(ctx.from.id) } });
-    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
-
-    const lacks = checkResources(user, cost);
-    if (lacks.length > 0) {
-        return ctx.reply(`⛔ منابع کافی نیست:\n${lacks.map(r => `• ${r}`).join('\n')}`);
-    }
-
-    for (const [res, amount] of Object.entries(cost)) {
-        const result = await changeUserField(BigInt(ctx.from.id), res as any, 'subtract', amount);
-        if (result !== 'ok') return ctx.reply(`❌ خطا در کم کردن ${res}`);
-    }
-    const addResult = await changeUserField(BigInt(ctx.from.id), buyItem as any, 'add', qty);
-    if (addResult !== 'ok') return ctx.reply(`❌ خطا در افزودن آیتم "${buyItem}" به موجودی.`);
-
-    const label = more.armyLabels?.[buyCategory]?.[buyItem] || buyItem;
-    await ctx.reply(
-        `✅ خرید ${qty} عدد "${label}" انجام شد.\n` +
-        `📉 منابع مصرف‌شده:\n` +
-        Object.entries(cost)
-            .map(([k, v]) => `• ${v} ${k === 'iron' ? 'آهن' : k === 'oil' ? 'نفت' : k === 'crowd' ? 'جمعیت' : k === 'capital' ? 'سرمایه' : k}`)
-            .join('\n')
-    );
-
-    delete ctx.session.buyStep;
-    delete ctx.session.buyCategory;
-    delete ctx.session.buyItem;
-});
-
-export default shop;
-
-
-import { Composer, Markup } from 'telegraf';
-import type { CustomContext } from '../middlewares/userAuth';
-import { escapeMarkdownV2 } from '../utils/escape';
-import config from '../config/config.json';
-import { changeCapital } from "./economy";
-
-const admins :number[] = config.manage.state.admins;
-const state = new Composer<CustomContext>();
-const isstateAdmin = (id: number) => admins.includes(id);
-
-
-state.action('state', async (ctx) => {
-    ctx.session ??= {};
-    ctx.session.awaitingstateImage = true;
-    await ctx.reply('🖼 لطفاً تصویر بیانیه را ارسال کنید.');
-    ctx.answerCbQuery();
-});
-
-state.on('photo', async (ctx, next) => {
-    if (!ctx.session?.awaitingstateImage) {
-        return next();
-    }
-
-    const photo = ctx.message.photo?.at(-1);
-    if (!photo) {
-        return ctx.reply('❌ تصویر معتبر دریافت نشد.');
-    }
-
-    ctx.session.stateImageFileId = photo.file_id;
-    ctx.session.awaitingstateImage = false;
-    ctx.session.awaitingstateText = true;
-
-    await ctx.reply('✍️ حالا متن بیانیه را بنویسید (حداقل ۱۰۰ کاراکتر).');
-});
-state.on('text', async (ctx, next) => {
-    if (!ctx.session?.awaitingstateText) return next();
-
-    const text = ctx.message.text.trim();
-    if (text.length < 100) {
-        return await ctx.reply('❌ متن بیانیه باید حداقل ۱۰۰ کاراکتر باشد.');
-    }
-
-    ctx.session.stateText = text;
-    ctx.session.awaitingstateText = false;
-
- // تبدیل به quote واقعی
-    const quotedText = escapeMarkdownV2(ctx.session.stateText
-        .split('\n')
-        .map(line => `> ${line}`)
-        .join('\n'));
-    const preview = `
-📣 *بیانیه رسمی*
-صادر شده از سوی دولت *${ctx.user?.countryName}* 📝
-
-━━━━━━━━━━━━━━━━━━━━━━━
-
-${quotedText}
-
-━━━━━━━━━━━━━━━━━━━━━━━
-
-از طرف: ${ctx.from.username ? `@${escapeMarkdownV2(ctx.from.username)}` : `ID: ${ctx.from.id}`}
-`;
-
-    const confirmKeyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('✅ تأیید و ارسال', 'confirm_state')],
-        [Markup.button.callback('❌ لغو', 'cancel_state')]
+function buildCountryInlineKeyboard(user: any): Markup.Markup<any> {
+    return Markup.inlineKeyboard([
+        [
+            Markup.button.callback(`${user.countryName}`, 'NA'),
+            Markup.button.callback(`${more.governments[user.government] || user.government}`, 'set_gov'),
+            Markup.button.callback(`${getReligionLabel(user.religion)}`, 'set_religion')
+        ],
+        [
+            Markup.button.callback(getContinentEmoji(user.country), 'NA'),
+            Markup.button.callback(`🎖 ${getRankLabel(user.rank)}`, 'NA')
+        ],
+        [Markup.button.callback('═══════════════', 'NA')],
+        [
+            Markup.button.callback('👥 جمعیت', 'NA'),
+            Markup.button.callback('💰 درآمد روزانه', 'NA'),
+            Markup.button.callback('🏦 سرمایه', 'NA')
+        ],
+        [
+            Markup.button.callback(`👥 ${formatNumber(user.crowd)}`, 'NA'),
+            Markup.button.callback(`💰 ${formatNumber(user.dailyProfit)}`, 'NA'),
+            Markup.button.callback(`🏦 ${formatNumber(user.capital)}`, 'NA')
+        ],
+        [
+            Markup.button.callback('🛡 امنیت', 'NA'),
+            Markup.button.callback('😊 رضایت', 'NA')
+        ],
+        [
+            Markup.button.callback(`🛡 ${user.security}`, 'NA'),
+            Markup.button.callback(`😊 ${user.satisfaction}`, 'NA')
+        ],
+        [Markup.button.callback('═══════════════', 'NA')],
+        [
+            Markup.button.callback('🪨 منابع', 'get_resources'),
+            Markup.button.callback('⚔️ نظامی', 'get_armies')
+        ],
+        [Markup.button.callback('🔙 بازگشت', 'back_main')]
     ]);
-    await ctx.replyWithPhoto(ctx.session.stateImageFileId, {
-        caption: preview,
-        parse_mode: 'MarkdownV2',
-        reply_markup: confirmKeyboard.reply_markup
-    });
+}
 
+function buildReligionUpdateMessage(countryName: string, oldRel: string, newRel: string): string {
+    return `${countryName} به طور رسمی دین رسمی خود را انتخاب کرد! 🕊
 
-});
-state.action('confirm_state', async (ctx) => {
-    const { stateImageFileId, stateText } = ctx.session ?? {};
+> دین قبلی: ${oldRel || 'نامشخص'}
+> دین جدید: ${newRel}
 
-    const senderId = ctx.from.id;
-    const stateActionsKeyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('🗑 حذف بیانیه', `delete_state_${senderId}`),
-            Markup.button.callback('💸 جریمه', `fine_state_${senderId}`)]
-    ]);
+شرح: کشور ${countryName} طی روزهای اخیر دین خود را به طور رسمی انتخاب و ثبت کرد 📝`;
+}
+function buildGovUpdateMessage(countryName: string, oldGov: string, newGov: string): string {
+    return `${countryName} به طور رسمی نوع حکومت خود را انتخاب کرد! 👤
 
+> حکومت قبلی: ${oldGov || 'نامشخص'}
+> حکومت جدید: ${newGov}
 
-    if (!stateImageFileId || !stateText || !ctx.user?.countryName) {
-        return ctx.answerCbQuery('❌ اطلاعات ناقص است!');
-    }
+شرح: کشور ${countryName} طی روزهای اخیر نوع حکومت خود را به طور رسمی انتخاب و ثبت کرد این کار ممکن است واکنش‌های مردمی مثبت یا منفی به دنبال داشته باشد 🏛`;
+}
 
-    const quotedText = escapeMarkdownV2(ctx.session.stateText
-  .split('\n')
-  .map(line => `> ${line}`)
-  .join('\n'));
+async function sendUpdateToChannel(type: 'religion' | 'gov', message: string, ctx: CustomContext) {
+    const imageUrl = config.images[type]; // باید لینک مستقیم باشه
+    const caption = escapeMarkdownV2(message);
 
-    const finalText = `
-📣 *بیانیه رسمی*
-صادر شده از سوی دولت *${ctx.user?.countryName}* 📝
-
-━━━━━━━━━━━━━━━━━━━━━━━
-
-${quotedText}
-
-━━━━━━━━━━━━━━━━━━━━━━━
-
-از طرف: ${ctx.from.username ? `@${escapeMarkdownV2(ctx.from.username)}` : `ID: ${ctx.from.id}`}
-`;
-
-    try {
-        const sent = await ctx.telegram.sendPhoto(config.channels.state, stateImageFileId, {
-            caption: finalText,
-            reply_markup: stateActionsKeyboard.reply_markup,
+    if (imageUrl?.startsWith('http')) {
+        await ctx.telegram.sendPhoto(config.channels.updates, imageUrl, {
+            caption,
             parse_mode: 'MarkdownV2'
         });
-        ctx.session.laststateMessageId = sent.message_id;
-
-        await ctx.reply('✅ بیانیه شما با موفقیت ارسال شد.');
-    } catch (err) {
-        console.error('خطا در ارسال بیانیه:', err);
-        await ctx.reply('❌ خطا در ارسال بیانیه. لطفاً دوباره تلاش کنید.');
-        return ctx.answerCbQuery('❌ خطا در ارسال بیانیه');
-    }
-
-    // پاک کردن session
-    ctx.session.stateImageFileId = undefined;
-    ctx.session.stateText = undefined;
-    ctx.session.awaitingstateImage = false;
-    ctx.session.awaitingstateText = false;
-    ctx.answerCbQuery();
-});
-state.action('cancel_state', async (ctx) => {
-    // پاک کردن کامل session
-    ctx.session.stateImageFileId = undefined;
-    ctx.session.stateText = undefined;
-    ctx.session.awaitingstateImage = false;
-    ctx.session.awaitingstateText = false;
-    await ctx.reply('❌ ارسال بیانیه لغو شد.');
-    ctx.answerCbQuery();
-});
-state.action(/fine_state_(\d+)/, async (ctx) => {
-    const senderId = BigInt(ctx.match[1]);
-    const adminId = ctx.from.id;
-
-    if (!isstateAdmin(adminId)) {
-        return ctx.answerCbQuery('⛔ فقط ادمین بیانیه می‌تونه جریمه کنه.');
-    }
-
-    const fineAmount = Math.round(300 + Math.random() * 200); // بین 300 تا 500
-
-    const result = await changeCapital(senderId, 'subtract', fineAmount * 1_000_000); // تبدیل به میلیون
-
-    if (result === 'not_found') {
-        return ctx.answerCbQuery('❌ کاربر یافت نشد.');
-    }
-
-    if (result === 'invalid' || result === 'error') {
-        return ctx.answerCbQuery('❌ خطا در اعمال جریمه.');
-    }
-
-    try {
-        await ctx.telegram.sendMessage(Number(senderId), `💸 شما توسط ادمین بیانیه جریمه شدید به مبلغ ${fineAmount}M. از سرمایه شما کسر شد.`);
-    } catch (err) {
-        console.warn('ارسال پیام جریمه به PV کاربر ممکن نبود:', err);
-    }
-    await ctx.answerCbQuery(`✅ جریمه ${fineAmount}M اعمال شد.`);
-});
-state.action(/delete_state_(\d+)/, async (ctx) => {
-    const senderId = Number(ctx.match[1]);
-    const requesterId = ctx.from.id;
-    const messageId = ctx.callbackQuery.message?.message_id;
-
-    if (!messageId) {
-        return ctx.answerCbQuery('❌ پیام قابل شناسایی نیست.');
-    }
-
-    if (requesterId !== senderId && !isstateAdmin(requesterId)) {
-        return ctx.answerCbQuery('⛔ فقط ارسال‌کننده یا ادمین می‌تونه حذف کنه.');
-    }
-
-    try {
-        await ctx.telegram.deleteMessage(config.channels.state, messageId);
-    } catch (err) {
-        console.error('خطا در حذف پیام:', err);
-        return ctx.answerCbQuery('❌ حذف پیام ممکن نبود.');
-    }
-
-    const msg = requesterId === senderId
-        ? '✅ بیانیه توسط خودتان حذف شد.'
-        : '✅ بیانیه توسط ادمین حذف شد.';
-
-    await ctx.answerCbQuery(msg);
-    // اطلاع‌رسانی به فرستنده در PV
-    const notifyText = requesterId === senderId
-        ? '📢 بیانیه‌ای که ارسال کرده بودی توسط خودت حذف شد.'
-        : '📢 بیانیه‌ای که ارسال کرده بودی توسط ادمین حذف شد.';
-
-    try {
-        await ctx.telegram.sendMessage(senderId, notifyText);
-    } catch (err) {
-        console.warn('ارسال پیام به PV کاربر ممکن نبود:', err);
-    }
-});
-
-
-export default state;
-
-
-import { Composer, Markup } from 'telegraf';
-import type { CustomContext } from '../middlewares/userAuth';
-import { escapeMarkdownV2 } from '../utils/escape';
-import { prisma } from '../prisma';
-import config from '../config/config.json';
-import { createProductionLine } from "./helper/Building";
-import { changeCapital } from "./economy";
-const admins: number[] = config.manage.buildings.admins;
-const building = new Composer<CustomContext>();
-
-// منوی اصلی ساخت‌وساز
-building.action('building', async (ctx) => {
-    const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('🚗 خودروسازی', 'build_car')],
-        [Markup.button.callback('🏙 شهرسازی ❌', 'NA')],
-        [Markup.button.callback('🎬 فیلم‌سازی ❌', 'NA')],
-        [Markup.button.callback('🎮 بازی‌سازی ❌', 'NA')],
-        [Markup.button.callback('🔙 بازگشت', 'back_main'), Markup.button.callback('❌ بستن', 'delete')]
-    ]);
-
-    await ctx.reply('🏗 نوع ساخت‌وساز را انتخاب کن:', keyboard);
-    ctx.answerCbQuery();
-});
-
-// شروع فرآیند ساخت خودرو
-building.action('build_car', async (ctx) => {
-    const userId = BigInt(ctx.from.id);
-    const setupCost = 250_000_000;
-
-    const user = await prisma.user.findUnique({ where: { userid: userId } });
-    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
-    const pending = await prisma.pendingProductionLine.findUnique({ where: { ownerId: userId } });
-
-    if (pending) {
-        const oneHourAgo = Date.now() - 60 * 60 * 1000;
-        const requestTime = ctx.session.buildingRequestTime ?? 0;
-
-        if (requestTime < oneHourAgo) {
-            // برگرداندن سرمایه
-            const refund = await changeCapital(userId, 'add', Number(pending.setupCost));
-            if (refund === 'not_found') {
-                await ctx.reply('❌ کاربر یافت نشد برای بازگشت سرمایه.');
-            } else if (refund === 'invalid' || refund === 'error') {
-                await ctx.reply('❌ خطا در بازگشت سرمایه.');
-            } else {
-                await ctx.reply(`⌛ درخواست قبلی منقضی شد و مبلغ ${Number(pending.setupCost / BigInt(1_000_000)).toLocaleString()}M به حساب شما برگشت.`);
-            }
-
-            await prisma.pendingProductionLine.delete({ where: { ownerId: userId } });
-            ctx.session.buildingUsedToday = false;
-            ctx.session.lastBuildDate = undefined;
-            ctx.session.buildingRequestTime = undefined;
-            return;
-        } else {
-            return ctx.reply('⛔ هنوز درخواست قبلی در حال بررسیه. لطفاً صبر کن یا بعداً دوباره تلاش کن.');
-        }
-    }
-
-
-    // بررسی محدودیت ساخت‌وساز روزانه
-    ctx.session ??= {};
-    if (ctx.session.buildingUsedToday) {
-        return ctx.reply('⛔ شما امروز قبلاً ساخت‌وساز انجام داده‌اید. لطفاً فردا دوباره تلاش کنید.');
-    }
-    const today = new Date().toDateString();
-    ctx.session ??= {};
-
-    if (ctx.session.lastBuildDate === today) {
-        return ctx.reply('⛔ شما امروز قبلاً ساخت‌وساز انجام داده‌اید. لطفاً فردا دوباره تلاش کنید.');
-    }
-
-    if (user.capital < setupCost) {
-        return ctx.reply(`❌ بودجه کافی ندارید!\n💰 بودجه مورد نیاز: ${(setupCost / 1_000_000).toLocaleString()}M\n💳 بودجه فعلی شما: ${Number(user.capital / BigInt(1_000_000)).toLocaleString()}M`);
-    }
-
-    ctx.session ??= {};
-    ctx.session.buildingType = 'car';
-    ctx.session.buildingStep = 'awaiting_car_name';
-    ctx.session.setupCost = setupCost;
-    await ctx.reply('🚗 نام محصول خود را وارد کن:');
-    ctx.answerCbQuery();
-});
-// دریافت نام خودرو
-building.on('text', async (ctx, next) => {
-    ctx.session ??= {};
-    if (ctx.session.buildingStep === 'awaiting_car_name') {
-        const name = ctx.message.text?.trim();
-        if (!name || name.length < 2) {
-            return ctx.reply('❌ نام محصول معتبر نیست. لطفاً دوباره وارد کن.');
-        }
-
-        ctx.session.carName = name;
-        ctx.session.buildingStep = 'awaiting_car_image';
-        await ctx.reply('🖼 حالا تصویر محصول را ارسال کن:');
     } else {
-        return next();
-    }
-
-});
-// دریافت تصویر خودرو و نمایش پیش‌نمایش
-building.on('photo', async (ctx, next) => {
-    ctx.session ??= {};
-    if (ctx.session.buildingStep !== 'awaiting_car_image') return next();
-
-    const photo = ctx.message.photo?.at(-1);
-    if (!photo) return ctx.reply('❌ تصویر معتبر ارسال نشده.');
-
-    const imageUrl = await ctx.telegram.getFileLink(photo.file_id);
-    ctx.session.carImage = imageUrl.href;
-
-    ctx.session.buildingStep = 'awaiting_build_description';
-    await ctx.reply('📝 توضیحی درباره محصولت بنویس (مثلاً ویژگی‌ها یا هدف تولید):');
-
-    ctx.session.carImageFileId = photo.file_id;
-
-    ctx.session.buildingStep = 'awaiting_admin_review';
-});
-building.on('text', async (ctx, next) => {
-    ctx.session ??= {};
-    if (ctx.session.buildingStep === 'awaiting_build_description') {
-        const description = ctx.message.text?.trim();
-        if (!description || description.length < 5) {
-            return ctx.reply('❌ توضیح خیلی کوتاهه. لطفاً بیشتر توضیح بده.');
-        }
-
-        ctx.session.buildingDescription = description;
-        ctx.session.buildingStep = 'awaiting_admin_review';
-
-        const preview = escapeMarkdownV2(
-            `🏭 پیش‌نمایش خط تولید خودرو\n\n` +
-            `> کشور سازنده: **${ctx.user?.countryName}**\n` +
-            `> محصول: **${ctx.session.carName}**\n` +
-            `> توضیح: ${ctx.session.buildingDescription}\n\n` +
-            `بودجه راه‌اندازی: 250M\nظرفیت تولید روزانه: 15 خودرو\n\n` +
-            `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`
-        );
-
-        const confirmKeyboard = Markup.inlineKeyboard([
-            [Markup.button.callback('✅ ارسال برای تأیید ادمین', 'submit_building')],
-            [Markup.button.callback('🔙 بازگشت', 'building')]
-        ]);
-
-        await ctx.replyWithPhoto(ctx.session.carImageFileId, {
-            caption: preview,
-            parse_mode: 'MarkdownV2',
-            reply_markup: confirmKeyboard.reply_markup
-        });
-    } else {
-        return next();
-    }
-});
-
-// ارسال درخواست به ادمین
-building.action('submit_building', async (ctx) => {
-    ctx.session ??= {};
-    ctx.session.buildingUsedToday = true;
-    ctx.session.lastBuildDate = new Date().toDateString();
-    ctx.session.buildingRequestTime = Date.now();
-
-    const { carName, carImage, carImageFileId, setupCost } = ctx.session;
-    const countryName = ctx.user?.countryName;
-    const userId = BigInt(ctx.from.id);
-
-    if (!carName || !carImage || !carImageFileId || !countryName || !setupCost) {
-        return ctx.reply('❌ اطلاعات ناقص است.');
-    }
-
-    // کسر پول با استفاده از changeCapital
-    const result = await changeCapital(userId, 'subtract', setupCost);
-    if (result === 'not_found') {
-        return ctx.reply('❌ کاربر یافت نشد.');
-    }
-    if (result === 'invalid' || result === 'error') {
-        return ctx.reply('❌ خطا در کسر پول.');
-    }
-
-    await prisma.pendingProductionLine.upsert({
-        where: { ownerId: userId },
-        update: {
-            name: carName,
-            type: 'car',
-            imageUrl: carImage,
-            imageFileId: carImageFileId,
-            dailyLimit: 15,
-            setupCost: BigInt(setupCost),
-            country: countryName
-        },
-        create: {
-            ownerId: userId,
-            name: carName,
-            type: 'car',
-            imageUrl: carImage,
-            imageFileId: carImageFileId,
-            dailyLimit: 15,
-            setupCost: BigInt(setupCost),
-            country: countryName
-        }
-    });
-
-    const adminKeyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('✅ تأیید ساخت', `admin_approve_building_${userId}`)],
-        [Markup.button.callback('❌ رد درخواست', `admin_reject_building_${userId}`)]
-    ]);
-
-    for (const admin of admins) {
-        await ctx.telegram.sendPhoto(admin, carImageFileId, {
-            caption: escapeMarkdownV2(
-                `📥 درخواست ساخت خط تولید خودرو\n\n` +
-                `> کشور: **${countryName}**\n` +
-                `> محصول: **${carName}**\n` +
-                `> توضیح: ${ctx.session.buildingDescription}\n\n` +
-                `بودجه: 250M\nظرفیت تولید روزانه: 15 خودرو`
-            ),
-            parse_mode: 'MarkdownV2',
-            reply_markup: adminKeyboard.reply_markup
+        await ctx.telegram.sendMessage(config.channels.updates, caption, {
+            parse_mode: 'MarkdownV2'
         });
     }
-
-    await ctx.reply('📤 درخواست شما برای بررسی ادمین ارسال شد.');
-    ctx.session.buildingStep = undefined;
+}
+countryManagement.action('management', async (ctx) => {
+    const country = ctx.user?.country;
+    if (!country) return ctx.reply('❌ کشور شما مشخص نیست.');
+    const result = await getCountryData(country);
+    if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+    const keyboard = buildCountryInlineKeyboard(result.user);
+    await ctx.reply(`🎯 مدیریت کشور ${result.user.countryName}`, keyboard);
 });
-// تأیید نهایی توسط ادمین
-building.action(/admin_approve_building_(\d+)/, async (ctx) => {
-    const userId = BigInt(ctx.match[1]);
 
-    const user = await prisma.user.findUnique({ where: { userid: userId } });
-    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+countryManagement.action('set_gov', async (ctx) => {
+    if (!config.manage.management.governments.status) {
+        await ctx.answerCbQuery('⛔ تغییر حکومت در حال حاضر غیرفعال است.');
+        return;
+    }
 
-    const pending = await prisma.pendingProductionLine.findUnique({ where: { ownerId: userId } });
-    if (!pending) return ctx.reply('❌ اطلاعات محصول یافت نشد.');
+    const keyboard = Markup.inlineKeyboard(
+        Object.entries(more.governments).map(([key, label]) => [
+            Markup.button.callback(label, `change_gov_${key}`)
+        ])
+    );
+    await ctx.editMessageText('👑 نوع حکومت مورد نظر را انتخاب کن:', keyboard);
+    ctx.answerCbQuery();
+});
+countryManagement.action(/^change_gov_(\w+)$/, async (ctx) => {
+    const newGov = ctx.match[1];
+    const user = await prisma.user.findUnique({ where: { userid: BigInt(ctx.from.id) } });
+    const oldGov = user?.government || 'نامشخص';
+    const countryName = user?.countryName || 'کشور شما';
 
-    const result = await createProductionLine({
-        ownerId: userId,
-        country: pending.country,
-        name: pending.name,
-        type: pending.type,
-        imageUrl: pending.imageUrl,
-        dailyLimit: pending.dailyLimit,
-        setupCost: pending.setupCost,
-        carName: pending.name
+    await prisma.user.update({
+        where: { userid: BigInt(ctx.from.id) },
+        data: { government: newGov }
     });
 
-    if (result.error) return ctx.reply(result.error);
+    await ctx.editMessageText(`✅ حکومت شما به ${more.governments[newGov]} تغییر یافت.`);
+    ctx.answerCbQuery();
 
-    await prisma.pendingProductionLine.delete({ where: { ownerId: userId } });
+    const message = buildGovUpdateMessage(countryName, more.governments[oldGov] || oldGov, more.governments[newGov]);
+    try {
+        await sendUpdateToChannel('gov', message, ctx);
+    } catch (err) {
+        console.error('❌ خطا در ارسال پیام به کانال:', err);
+    }
+});
 
-    await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
-        caption: escapeMarkdownV2(
-            `🏭 خط تولید جدید راه‌اندازی شد\n\n` +
-            `> کشور سازنده: **${user.countryName}**\n` +
-            `> محصول: **${pending.name}**\n\n` +
-            `بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()} ریال\n` +
-            `ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`
-        ),
-        parse_mode: 'MarkdownV2'
+countryManagement.action('set_religion', async (ctx) => {
+    if (!config.manage.management.religion.status) {
+        await ctx.answerCbQuery('⛔ تغییر دین در حال حاضر غیرفعال است.');
+        return;
+    }
+
+    const keyboard = Markup.inlineKeyboard(
+        Object.entries(more.religion).map(([key, label]) => [
+            Markup.button.callback(label, `change_religion_${key}`)
+        ])
+    );
+    await ctx.editMessageText('🕌 دین مورد نظر را انتخاب کن:', keyboard);
+    ctx.answerCbQuery();
+});
+countryManagement.action(/^change_religion_(\w+)$/, async (ctx) => {
+    const newRel = ctx.match[1];
+    const user = await prisma.user.findUnique({ where: { userid: BigInt(ctx.from.id) } });
+    const oldRel = user?.religion || 'نامشخص';
+    const countryName = user?.countryName || 'کشور شما';
+
+    await prisma.user.update({
+        where: { userid: BigInt(ctx.from.id) },
+        data: { religion: newRel }
     });
 
-    await ctx.reply('✅ خط تولید ثبت شد و به کانال ارسال شد.');
-});
-// رد درخواست توسط ادمین
-building.action(/admin_reject_building_(\d+)/, async (ctx) => {
-    const userId = BigInt(ctx.match[1]);
-    const adminId = ctx.from.id;
+    await ctx.editMessageText(`✅ دین شما به ${more.religion[newRel]} تغییر یافت.`);
+    ctx.answerCbQuery();
 
-    if (!admins.includes(adminId)) {
-        return ctx.answerCbQuery('⛔ فقط ادمین می‌تونه رد کنه.');
-    }
-
-
-    const pending = await prisma.pendingProductionLine.findUnique({ where: { ownerId: userId } });
-    if (!pending) {
-        return ctx.answerCbQuery('❌ درخواست یافت نشد.');
-    }
-
-    // برگرداندن پول
-    const result = await changeCapital(userId, 'add', Number(pending.setupCost));
-    if (result === 'not_found') {
-        return ctx.answerCbQuery('❌ کاربر یافت نشد.');
-    }
-    if (result === 'invalid' || result === 'error') {
-        return ctx.answerCbQuery('❌ خطا در برگرداندن پول.');
-    }
-
-    // حذف درخواست
-    await prisma.pendingProductionLine.delete({ where: { ownerId: userId } });
-
-    // اطلاع‌رسانی به کاربر
+    const message = buildReligionUpdateMessage(countryName, more.religion[oldRel] || oldRel, more.religion[newRel]);
     try {
-        await ctx.telegram.sendMessage(Number(userId),
-            `❌ درخواست ساخت خط تولید شما رد شد.\n💰 مبلغ ${Number(pending.setupCost / BigInt(1_000_000)).toLocaleString()}M به حساب شما برگشت.`
-        );
+        await sendUpdateToChannel('religion', message, ctx);
     } catch (err) {
-        console.warn('ارسال پیام به PV کاربر ممکن نبود:', err);
+        console.error('❌ خطا در ارسال پیام به کانال:', err);
     }
-
-    await ctx.answerCbQuery('✅ درخواست رد شد و پول برگشت.');
 });
 
-export default building;
-
-
-import { Composer, Markup } from 'telegraf';
-import type { CustomContext } from '../../middlewares/userAuth';
-import { prisma } from '../../prisma';
-import { assetCategories , bigintFields } from '../../constants/assetCategories';
-import { calculateNewValue } from "../helper/calculate";
-import {changeFieldForAllUsers, changeUserField ,Operation } from "../economy";
-
-const editAsset = new Composer<CustomContext>();
-
-const cancelBtn = Markup.inlineKeyboard([
-    [Markup.button.callback('❌ لغو', 'cancel_edit')]
-])
-
-
-editAsset.on('text', async (ctx, next) => {
-    ctx.session ??= {};
-    if (!ctx.session || !ctx.session.editStep) {
-        return next();
-    }
-    const valueStr = ctx.message.text;
-    console.log(valueStr);
-    // مرحله دریافت شناسه کاربر
-    if (ctx.session.editStep === 'awaiting_user_id') {
-        if (!/^\d+$/.test(valueStr)) return ctx.reply('❌ شناسه معتبر نیست.');
-        ctx.session.editUserId = BigInt(valueStr);
-        ctx.session.editStep = 'awaiting_category';
-
-        const keyboard = Markup.inlineKeyboard([
-            ...Object.entries(assetCategories).map(([key]) => [
-                Markup.button.callback(`📦 ${key}`, `edit_cat_${key}`)
-            ]),
-            [Markup.button.callback('❌ لغو', 'cancel_edit')]
-        ]);
-
-        await ctx.reply('🔧 دسته دارایی را انتخاب کن:', keyboard);
-        return;
-    }
-
-    // مرحله دریافت مقدار برای یک کاربر
-    if (ctx.session.editStep === 'awaiting_value') {
-        const valueStr = ctx.message.text?.trim();
-        const value = Number(valueStr?.replace(/[+-]/, ''));
-        if (isNaN(value)) return ctx.reply('❌ مقدار عددی معتبر نیست.');
-
-        const { editUserId, editItem } = ctx.session;
-        if (!editUserId || !editItem) return ctx.reply('❌ اطلاعات ناقص است.');
-
-        const operation: Operation =
-            valueStr.startsWith('+') ? 'add'
-                : valueStr.startsWith('-') ? 'subtract'
-                    : 'set';
-
-        const result = await changeUserField(editUserId, editItem, operation, value);
-
-        if (result === 'ok') {
-            await ctx.reply(`✅ مقدار جدید ${editItem} برای کاربر ${editUserId} اعمال شد.`);
-        } else if (result === 'not_found') {
-            await ctx.reply('❌ کاربر یافت نشد.');
-        } else if (result === 'invalid') {
-            await ctx.reply('❌ عملیات نامعتبر بود.');
-        } else {
-            await ctx.reply('❌ خطا در ویرایش. لطفاً دوباره تلاش کن.');
-        }
-
-        ctx.session.editStep = undefined;
-        return;
-    }
-
-    // مرحله دریافت مقدار برای همه کاربران
-    if (ctx.session.editStep === 'awaiting_value_all') {
-        const valueStr = ctx.message.text?.trim();
-        const value = Number(valueStr?.replace(/[+-]/, ''));
-        if (isNaN(value)) return ctx.reply('❌ مقدار عددی معتبر نیست.');
-
-        const { editItem } = ctx.session;
-        const operation: Operation =
-            valueStr.startsWith('+') ? 'add'
-                : valueStr.startsWith('-') ? 'subtract'
-                    : 'set';
-
-        const result = await changeFieldForAllUsers(editItem, operation, value);
-
-        if (result === 'ok') {
-            await ctx.reply(`✅ مقدار جدید ${editItem} برای همه کاربران اعمال شد.`);
-        } else if (result === 'invalid') {
-            await ctx.reply('❌ عملیات نامعتبر بود.');
-        } else {
-            await ctx.reply('❌ خطا در ویرایش گروهی. لطفاً دوباره تلاش کن.');
-        }
-
-        ctx.session.editStep = undefined;
-        return;
-    }
-
-    console.log('🔥 text received:', ctx.message.text);
-    await ctx.reply('متن دریافت شد.');
-});
-
-//
-// ✅ ویرایش دارایی با /editasset
-//
-editAsset.action('admin_editAsset', async (ctx) => {
-    ctx.session ??= {};
-    ctx.session.editStep = 'awaiting_user_id';
-
-    await ctx.reply('📌 لطفاً شناسه کاربر را وارد کن:\nمثال: 7588477963');
+const armyCategories = [
+    { name: '🌍 نیروهای زمینی', callback: 'army_ground' },
+    { name: '🛡 سامانه‌های دفاعی', callback: 'army_defence' },
+    { name: '🌊 نیروهای دریایی', callback: 'army_marine' },
+    { name: '✈️ نیروهای هوایی', callback: 'army_aerial' },
+];
+const armyActions = [
+    { name: '🔙 بازگشت', callback: 'back_main' },
+    { name: '❌ بستن', callback: 'delete' },
+];
+const keyboardArm = Markup.inlineKeyboard([
+    [Markup.button.callback(armyCategories[0].name, armyCategories[0].callback),
+        Markup.button.callback(armyCategories[1].name, armyCategories[1].callback)],
+    [Markup.button.callback(armyCategories[2].name, armyCategories[2].callback),
+        Markup.button.callback(armyCategories[3].name, armyCategories[3].callback)],
+    armyActions.map(a => Markup.button.callback(a.name, a.callback))
+]);
+countryManagement.action('get_armies', async (ctx) => {
+    await ctx.reply('⚔️ دسته‌بندی نیروهای نظامی را انتخاب کن:', keyboardArm);
     ctx.answerCbQuery();
 });
-editAsset.action(/^edit_cat_(\w+)$/, async (ctx) => {
-    ctx.session ??= {};
-    const category = ctx.match[1];
-    const items = assetCategories[category];
-    if (!items) return ctx.answerCbQuery('❌ دسته نامعتبر است.');
 
-    ctx.session.editCategory = category;
+const resourceCategories = [
+    { name: '📦 منابع پایه', callback: 'res_base' },
+    { name: '🏗 تجهیزات استخراج', callback: 'res_mines' },
+];
+const resourceActions = [
+    { name: '🔙 بازگشت', callback: 'back_main' },
+    { name: '❌ بستن', callback: 'delete' },
+];
+const keyboardRes = Markup.inlineKeyboard([
+    [Markup.button.callback(resourceCategories[0].name, resourceCategories[0].callback),
+        Markup.button.callback(resourceCategories[1].name, resourceCategories[1].callback)],
+    resourceActions.map(a => Markup.button.callback(a.name, a.callback))
+]);
+countryManagement.action('get_resources', async (ctx) => {
+    await ctx.reply('📊 دسته‌بندی منابع کشور را انتخاب کن:', keyboardRes);
+    ctx.answerCbQuery();
+});
+countryManagement.action('res_base', async (ctx) => {
+    const country = ctx.user?.country;
+    const result = await getCountryData(country);
+    if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+    const u = result.user;
 
     const keyboard = Markup.inlineKeyboard([
-        ...items.map((item) => [Markup.button.callback(item, `edit_item_${item}`)]),
-        [Markup.button.callback('❌ لغو', 'cancel_edit')]
+        buildRow('🔩 آهن', u.iron),
+        buildRow('💰 طلا', u.gold),
+        buildRow('☢ اورانیوم', u.uranium),
+        buildRow('🛢 نفت', u.oil),
+        [Markup.button.callback('🔙 بازگشت', 'get_resources')]
     ]);
 
-
-    try {
-        await ctx.editMessageText('🔍 موردی که می‌خواهی ویرایش کنی را انتخاب کن:', keyboard);
-    } catch (err) {
-        console.error('❌ خطا در editMessageText:', err);
-        await ctx.reply('❌ خطا در ویرایش پیام. لطفاً دوباره تلاش کن.');
-    }
-
+    await ctx.reply('📦 منابع پایه کشور شما:', keyboard);
     ctx.answerCbQuery();
 });
-editAsset.action(/^edit_item_(\w+)$/, async (ctx) => {
-    ctx.session ??= {};
-    ctx.session.editItem = ctx.match[1];
-    ctx.session.editStep = 'awaiting_value';
-    await ctx.reply('✏️ مقدار جدید را وارد کن:\n+25 برای افزایش، -25 برای کاهش، 25 برای مقدار مستقیم', cancelBtn);
-    ctx.answerCbQuery();
-});
-
-
-editAsset.action('admin_editAssetAll', async (ctx) => {
-    ctx.session ??= {};
-    ctx.session.editStep = 'awaiting_category_all';
+countryManagement.action('res_mines', async (ctx) => {
+    const country = ctx.user?.country;
+    const result = await getCountryData(country);
+    if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+    const u = result.user;
 
     const keyboard = Markup.inlineKeyboard([
-        ...Object.entries(assetCategories).map(([key]) => [
-            Markup.button.callback(`📦 ${key}`, `edit_all_cat_${key}`)
-        ]),
-        [Markup.button.callback('❌ لغو', 'cancel_edit')]
+        buildRow('⛏ معدن آهن', u.ironMine),
+        buildRow('🏆 معدن طلا', u.goldMine),
+        buildRow('⚛ معدن اورانیوم', u.uraniumMine),
+        buildRow('🏭 پالایشگاه نفت', u.refinery),
+        [Markup.button.callback('🔙 بازگشت', 'get_resources')]
     ]);
 
-
-    await ctx.reply('📊 دسته دارایی را برای ویرایش گروهی انتخاب کن:', keyboard);
+    await ctx.reply('🏗 تجهیزات استخراج کشور شما:', keyboard);
     ctx.answerCbQuery();
 });
-editAsset.action(/^edit_all_cat_(\w+)$/, async (ctx) => {
-    ctx.session ??= {};
-    const category = ctx.match[1];
-    const items = assetCategories[category];
-    if (!items) return ctx.answerCbQuery('❌ دسته نامعتبر است.');
 
-    ctx.session.editCategory = category;
+function buildRow(label: string, value: string | number) {
+    return [Markup.button.callback(label, 'NA'), Markup.button.callback(`${value}`, 'NA')];
+}
+
+countryManagement.action('get_armies', async (ctx) => {
+    const keyboard = Markup.inlineKeyboard([
+        [Markup.button.callback('🌍 زمینی', 'army_ground')],
+        [Markup.button.callback('🌊 دریایی', 'army_marine')],
+        [Markup.button.callback('✈️ هوایی', 'army_aerial')],
+        [Markup.button.callback('🛡 دفاعی', 'army_defence')],
+        [Markup.button.callback('🔙 بازگشت', 'back_main')]
+    ]);
+    await ctx.reply('⚔️ دسته‌بندی نیروهای نظامی را انتخاب کن:', keyboard);
+    ctx.answerCbQuery();
+});
+countryManagement.action('army_ground', async (ctx) => {
+    const country = ctx.user?.country;
+    const result = await getCountryData(country);
+    if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+    const u = result.user;
 
     const keyboard = Markup.inlineKeyboard([
-        ...items.map((item) => [Markup.button.callback(item, `edit_all_item_${item}`)]),
-        [Markup.button.callback('❌ لغو', 'cancel_edit')]
+        buildRow('👨‍✈️ پیاده‌نظام', u.soldier),
+        buildRow('🛡 تانک سبک', u.tank),
+        buildRow('🧱 تانک سنگین', u.heavyTank),
+        [Markup.button.callback('🔙 بازگشت', 'get_armies')]
     ]);
-
-
-    try {
-        await ctx.editMessageText('🔍 موردی که می‌خواهی برای همه ویرایش کنی را انتخاب کن:', keyboard);
-    } catch (err) {
-        console.error('❌ خطا در editMessageText:', err);
-        await ctx.reply('❌ خطا در ویرایش پیام. لطفاً دوباره تلاش کن.');
-    }
-
+    await ctx.reply('🌍 نیروهای زمینی کشور شما:', keyboard);
     ctx.answerCbQuery();
 });
-editAsset.action(/^edit_all_item_(\w+)$/, async (ctx) => {
-    ctx.session ??= {};
-    ctx.session.editItem = ctx.match[1];
-    ctx.session.editStep = 'awaiting_value_all';
+countryManagement.action('army_marine', async (ctx) => {
+    const country = ctx.user?.country;
+    const result = await getCountryData(country);
+    if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+    const u = result.user;
 
-    await ctx.reply('✏️ مقدار جدید را وارد کن:\n+25 برای افزایش، -25 برای کاهش، 25 برای مقدار مستقیم',cancelBtn);
+    const keyboard = Markup.inlineKeyboard([
+        buildRow('🚢 نبردناو', u.battleship),
+        buildRow('🛳 کشتی دریایی', u.marineShip),
+        buildRow('⚓️ شکننده دریایی', u.breakerShip),
+        buildRow('☢ زیردریایی هسته‌ای', u.nuclearSubmarine),
+        [Markup.button.callback('🔙 بازگشت', 'get_armies')]
+    ]);
+    await ctx.reply('🌊 نیروهای دریایی کشور شما:', keyboard);
+    ctx.answerCbQuery();
+});
+countryManagement.action('army_aerial', async (ctx) => {
+    const country = ctx.user?.country;
+    const result = await getCountryData(country);
+    if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+    const u = result.user;
+
+    const keyboard = Markup.inlineKeyboard([
+        buildRow('✈️ F-16', u.f16),
+        buildRow('✈️ F-22', u.f22),
+        buildRow('✈️ F-35', u.f35),
+        buildRow('✈️ J-20', u.j20),
+        buildRow('✈️ SU-57', u.su57),
+        buildRow('✈️ B-2', u.b2),
+        buildRow('🛩 پهپاد جاسوسی', u.espionageDrone),
+        buildRow('🛩 پهپاد انتحاری', u.suicideDrone),
+        buildRow('🛩 پهپاد عبوری', u.crossDrone),
+        buildRow('🛩 پهپاد شاهد', u.witnessDrone),
+        buildRow('🚀 موشک ساده', u.simpleRocket),
+        buildRow('🚀 موشک نقطه‌زن', u.dotTargetRocket),
+        buildRow('🚀 موشک قاره‌پیما', u.continentalRocket),
+        buildRow('🚀 موشک بالستیک', u.ballisticRocket),
+        buildRow('🚀 موشک شیمیایی', u.chemicalRocket),
+        buildRow('🚀 موشک هایپرسونیک', u.hyperSonicRocket),
+        buildRow('🚀 موشک خوشه‌ای', u.clusterRocket),
+        [Markup.button.callback('🔙 بازگشت', 'get_armies')]
+    ]);
+    await ctx.reply('✈️ نیروهای هوایی کشور شما:', keyboard);
+    ctx.answerCbQuery();
+});
+countryManagement.action('army_defence', async (ctx) => {
+    const country = ctx.user?.country;
+    const result = await getCountryData(country);
+    if (result.error || !result.user) return ctx.reply(result.error || '❌ اطلاعات کشور یافت نشد.');
+    const u = result.user;
+
+    const keyboard = Markup.inlineKeyboard([
+        buildRow('🛡 ضد موشک', u.antiRocket),
+        buildRow('🛡 گنبد آهنین', u.ironDome),
+        buildRow('🛡 S-400', u.s400),
+        buildRow('🛡 TAAD', u.taad),
+        buildRow('🛡 HQ-9', u.hq9),
+        buildRow('🛡 آکاش', u.acash),
+        [Markup.button.callback('🔙 بازگشت', 'get_armies')]
+    ]);
+    await ctx.reply('🛡 سامانه‌های دفاعی کشور شما:', keyboard);
     ctx.answerCbQuery();
 });
 
-editAsset.action('cancel_edit', async (ctx) => {
-    ctx.session.editStep = undefined;
-    await ctx.editMessageText('❌ عملیات ویرایش لغو شد.',{});
-    ctx.answerCbQuery();
-});
+export default countryManagement;
 
 
-export default editAsset;
 
+4 ta object ro mikham add bedi : crossRocket , am50 , f47 , tu16

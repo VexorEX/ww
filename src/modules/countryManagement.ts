@@ -319,6 +319,9 @@ countryManagement.action('army_aerial', async (ctx) => {
     const keyboard = Markup.inlineKeyboard([
         buildRow('✈️ F-16', u.f16),
         buildRow('✈️ F-22', u.f22),
+        buildRow('✈️ F-47', u.f47),
+        buildRow('✈️ AM-50', u.am50),
+        buildRow('✈️ TU-16', u.tu16),
         buildRow('✈️ F-35', u.f35),
         buildRow('✈️ J-20', u.j20),
         buildRow('✈️ SU-57', u.su57),
@@ -329,6 +332,7 @@ countryManagement.action('army_aerial', async (ctx) => {
         buildRow('🛩 پهپاد شاهد', u.witnessDrone),
         buildRow('🚀 موشک ساده', u.simpleRocket),
         buildRow('🚀 موشک نقطه‌زن', u.dotTargetRocket),
+        buildRow('🚀 موشک عبوری', u.crossRocket),
         buildRow('🚀 موشک قاره‌پیما', u.continentalRocket),
         buildRow('🚀 موشک بالستیک', u.ballisticRocket),
         buildRow('🚀 موشک شیمیایی', u.chemicalRocket),
