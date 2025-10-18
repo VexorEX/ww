@@ -96,9 +96,11 @@ building.on('text', async (ctx, next) => {
         if (ctx.session.buildingType === 'car') {
             ctx.session.carName = name;
             ctx.session.buildingStep = 'awaiting_car_image';
+            console.log(ctx.session.carName);
         } else {
             ctx.session.buildingName = name;
             ctx.session.buildingStep = 'awaiting_image';
+            console.log(ctx.session.buildingName);
         }
 
         await ctx.reply('🖼 حالا تصویر محصول را ارسال کن:');
