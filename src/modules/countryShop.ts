@@ -148,6 +148,7 @@ shop.on('text', async (ctx, next) => {
     const qty = Number(ctx.message.text.trim());
     if (isNaN(qty) || qty <= 0) {
         await ctx.reply('❌ تعداد معتبر نیست.');
+        delete ctx.session.buyStep;
         return next();
     }
 
