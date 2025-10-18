@@ -48,8 +48,8 @@ export async function handleUserStart(ctx: CustomContext) {
 userPanel.use(management);
 userPanel.use(shop);
 userPanel.use(state);  // state قبل از building
-userPanel.use(building);
-userPanel.use(market);
+// userPanel.use(building);
+// userPanel.use(market);
 
 userPanel.action('back_main', async (ctx) => {
     const name = ctx.from.first_name;
