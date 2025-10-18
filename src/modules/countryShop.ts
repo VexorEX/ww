@@ -137,7 +137,13 @@ shop.action(/^buy_confirm_(ground|marine|aerial|defence|missile)_(\w+)$/, async 
     ctx.session.buyCategory = category;
     ctx.session.buyItem = item;
 
-    await ctx.reply(`🔢 تعداد "${item}" موردنظر را وارد کن:`);
+    await ctx.reply(
+        `🔢 تعداد "${item}" موردنظر را وارد کن:`,
+        Markup.inlineKeyboard([
+            [Markup.button.callback('❌ لغو خرید', 'cancel_purchase')]
+        ])
+    );
+
     ctx.answerCbQuery();
 });
 
@@ -194,6 +200,14 @@ shop.on('text', async (ctx, next) => {
     delete ctx.session.buyStep;
     delete ctx.session.buyCategory;
     delete ctx.session.buyItem;
+});
+shop.action('cancel_purchase', async (ctx) => {
+    delete ctx.session.buyStep;
+    delete ctx.session.buyCategory;
+    delete ctx.session.buyItem;
+
+    await ctx.editMessageText('❌ خرید لغو شد.');
+    ctx.answerCbQuery();
 });
 
 export default shop;
