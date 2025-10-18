@@ -146,7 +146,10 @@ shop.on('text', async (ctx, next) => {
     if (ctx.session.buyStep !== 'awaiting_quantity') return next();
 
     const qty = Number(ctx.message.text.trim());
-    if (isNaN(qty) || qty <= 0) return ctx.reply('❌ تعداد معتبر نیست.');
+    if (isNaN(qty) || qty <= 0) {
+        await ctx.reply('❌ تعداد معتبر نیست.');
+        return next();
+    }
 
     const { buyCategory, buyItem } = ctx.session;
 
