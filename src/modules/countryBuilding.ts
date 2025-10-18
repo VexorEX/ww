@@ -8,6 +8,10 @@ import { changeCapital } from "./economy";
 const admins: number[] = config.manage.buildings.admins;
 const building = new Composer<CustomContext>();
 
+function getProductName(session: CustomContext['session']): string | undefined {
+    return session.buildingType === 'car' ? session.carName : session.buildingName;
+}
+
 // منوی اصلی ساخت‌وساز
 building.action('building', async (ctx) => {
     const keyboard = Markup.inlineKeyboard([
@@ -168,9 +172,7 @@ building.action('submit_building', async (ctx) => {
         buildingDescription
     } = ctx.session;
 
-    const buildingName = buildingType === 'car'
-        ? ctx.session.carName
-        : ctx.session.buildingName;
+    const buildingName = getProductName(ctx.session);
 
     if (!buildingName || buildingName.length < 2) {
         return ctx.reply('❌ نام محصول مشخص نیست یا معتبر نیست.');
