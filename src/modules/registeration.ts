@@ -109,7 +109,7 @@ registration.command('start', async (ctx) => {
         await ctx.reply(`🎮 خوش آمدی ${ctx.from.first_name}! کشور شما: ${ctx.user.countryName}`);
         return;
     }
-    if (!ctx.session) ctx.session = {};
+    ctx.session = {};
 
     if (ctx.session.hasVolunteered) {
         await ctx.reply('✅ شما قبلاً داوطلب شده‌اید و منتظر اختصاص کشور هستید.');

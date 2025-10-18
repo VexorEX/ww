@@ -1,6 +1,7 @@
 import { Composer } from 'telegraf';
 import { prisma } from '../prisma';
 import type { CustomContext } from '../middlewares/userAuth';
+import { bigintFields } from "../constants/assetCategories";
 
 const economy = new Composer<CustomContext>();
 
@@ -79,8 +80,6 @@ export async function changeCapital(
         return 'error';
     }
 }
-
-const bigintFields = ['capital', 'dailyProfit', 'crowd', 'iron', 'gold', 'oil', 'uranium']; // قابل گسترش
 
 export async function changeUserField(
     userid: bigint,
