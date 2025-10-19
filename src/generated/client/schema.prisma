@@ -14,7 +14,7 @@ datasource db {
 model User {
   userid       BigInt @id
   country      String
-  countryName  String // نام کشور + ایموجی
+  countryName  String
   level        Int    @default(0)
   rank         Int    @default(0)
   government   String
@@ -27,60 +27,60 @@ model User {
   lottery      Int    @default(0)
 
   // منابع
-  oil         Int @default(0)
-  iron        Int @default(0)
-  gold        Int @default(0)
-  uranium     Int @default(0)
-  goldMine    Int @default(0)
-  uraniumMine Int @default(0)
-  ironMine    Int @default(0)
-  refinery    Int @default(0)
+  oil         BigInt @default(0)
+  iron        BigInt @default(0)
+  gold        BigInt @default(0)
+  uranium     BigInt @default(0)
+  goldMine    BigInt @default(0)
+  uraniumMine BigInt @default(0)
+  ironMine    BigInt @default(0)
+  refinery    BigInt @default(0)
 
   // ارتش پایه
-  soldier   Int @default(0)
-  tank      Int @default(0)
-  heavyTank Int @default(0)
+  soldier   BigInt @default(0)
+  tank      BigInt @default(0)
+  heavyTank BigInt @default(0)
 
   // جنگنده‌ها
-  su57 Int @default(0)
-  f47  Int @default(0)
-  f35  Int @default(0)
-  j20  Int @default(0)
-  f16  Int @default(0)
-  f22  Int @default(0)
-  am50 Int @default(0)
-  b2   Int @default(0)
-  tu16 Int @default(0)
+  su57 BigInt @default(0)
+  f47  BigInt @default(0)
+  f35  BigInt @default(0)
+  j20  BigInt @default(0)
+  f16  BigInt @default(0)
+  f22  BigInt @default(0)
+  am50 BigInt @default(0)
+  b2   BigInt @default(0)
+  tu16 BigInt @default(0)
 
   // پهپادها
-  espionageDrone Int @default(0)
-  suicideDrone   Int @default(0)
-  crossDrone     Int @default(0)
-  witnessDrone   Int @default(0)
+  espionageDrone BigInt @default(0)
+  suicideDrone   BigInt @default(0)
+  crossDrone     BigInt @default(0)
+  witnessDrone   BigInt @default(0)
 
   // موشک‌ها
-  simpleRocket      Int @default(0)
-  crossRocket       Int @default(0)
-  dotTargetRocket   Int @default(0)
-  continentalRocket Int @default(0)
-  ballisticRocket   Int @default(0)
-  chemicalRocket    Int @default(0)
-  hyperSonicRocket  Int @default(0)
-  clusterRocket     Int @default(0)
+  simpleRocket      BigInt @default(0)
+  crossRocket       BigInt @default(0)
+  dotTargetRocket   BigInt @default(0)
+  continentalRocket BigInt @default(0)
+  ballisticRocket   BigInt @default(0)
+  chemicalRocket    BigInt @default(0)
+  hyperSonicRocket  BigInt @default(0)
+  clusterRocket     BigInt @default(0)
 
   // کشتی‌های دریایی
-  battleship       Int @default(0)
-  marineShip       Int @default(0)
-  breakerShip      Int @default(0)
-  nuclearSubmarine Int @default(0)
+  battleship       BigInt @default(0)
+  marineShip       BigInt @default(0)
+  breakerShip      BigInt @default(0)
+  nuclearSubmarine BigInt @default(0)
 
   // دفاع
-  antiRocket Int @default(0)
-  ironDome   Int @default(0)
-  s400       Int @default(0)
-  taad       Int @default(0)
-  hq9        Int @default(0)
-  acash      Int @default(0)
+  antiRocket BigInt @default(0)
+  ironDome   BigInt @default(0)
+  s400       BigInt @default(0)
+  taad       BigInt @default(0)
+  hq9        BigInt @default(0)
+  acash      BigInt @default(0)
 
   @@map("users")
 }
@@ -92,8 +92,8 @@ model ProductionLine {
   name          String
   type          String // مثل 'car', 'game', 'movie'
   imageUrl      String
-  imageFileId   String
-  dailyLimit    Int
+  imageFileId   String   @default("")
+  dailyLimit    Int      @default(3)
   dailyOutput   Int      @default(15)
   setupCost     BigInt
   createdAt     DateTime @default(now())
@@ -103,13 +103,13 @@ model ProductionLine {
 }
 
 model PendingProductionLine {
-  id            Int      @id @default(autoincrement()) // ← اضافه کن
+  id            Int      @id @default(autoincrement())
   ownerId       BigInt
   name          String
   type          String
   imageUrl      String
-  imageFileId   String
-  description   String
+  imageFileId   String   @default("")
+  description   String   @default("")
   dailyLimit    Int
   setupCost     BigInt
   country       String
