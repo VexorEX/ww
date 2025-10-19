@@ -1,7 +1,7 @@
-import { Composer } from 'telegraf';
 import { prisma } from '../prisma';
-import type { CustomContext } from '../middlewares/userAuth';
 import { bigintFields } from '../constants/assetCategories';
+import {Composer} from "telegraf";
+import type {CustomContext} from "../middlewares/userAuth";
 
 const economy = new Composer<CustomContext>();
 
@@ -69,32 +69,6 @@ function applyOperation<T extends number | bigint>(
     }
 }
 
-export async function changeCapital(
-    userid: bigint,
-    operation: Operation,
-    value: number
-): Promise<'ok' | 'not_found' | 'invalid' | 'error'> {
-    try {
-        const user = await prisma.user.findUnique({ where: { userid } });
-        if (!user) return 'not_found';
-
-        const result = applyOperation(user.capital, operation, value, true);
-        if (result === 'invalid') return 'invalid';
-
-        const final = result < BigInt(0) ? BigInt(0) : result;
-
-        await prisma.user.update({
-            where: { userid },
-            data: { capital: final }
-        });
-
-        return 'ok';
-    } catch (err) {
-        console.error(`❌ changeCapital error for user ${userid}:`, err);
-        return 'error';
-    }
-}
-
 export async function changeUserField(
     userid: bigint,
     field: string,
@@ -121,7 +95,9 @@ export async function changeUserField(
 
         await prisma.user.update({
             where: { userid },
-            data: { [field]: isBigInt ? BigInt(final) : Number(final) }
+            data: {
+                [field]: final
+            }
         });
 
         return 'ok';
@@ -156,7 +132,9 @@ export async function changeFieldForAllUsers(
 
             await prisma.user.update({
                 where: { userid: user.userid },
-                data: { [field]: isBigInt ? BigInt(final) : Number(final) }
+                data: {
+                    [field]: final
+                }
             });
         }
 
@@ -165,6 +143,14 @@ export async function changeFieldForAllUsers(
         console.error(`❌ changeFieldForAllUsers error on "${field}":`, err);
         return 'error';
     }
+}
+
+export async function changeCapital(
+    userid: bigint,
+    operation: Operation,
+    value: number
+): Promise<'ok' | 'not_found' | 'invalid' | 'error'> {
+    return changeUserField(userid, 'capital', operation, value);
 }
 
 export default economy;
