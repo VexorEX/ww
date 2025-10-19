@@ -1,7 +1,7 @@
 import { Composer } from 'telegraf';
 import { prisma } from '../prisma';
 import type { CustomContext } from '../middlewares/userAuth';
-import { bigintFields } from "../constants/assetCategories";
+import { bigintFields } from '../constants/assetCategories';
 
 const economy = new Composer<CustomContext>();
 
@@ -18,87 +18,18 @@ export type Operation =
     | 'sqrt'
     | 'set';
 
-export async function changeCapital(
-    userid: bigint,
+function applyOperation<T extends number | bigint>(
+    current: T,
     operation: Operation,
-    value: number
-): Promise<'ok' | 'not_found' | 'invalid' | 'error'> {
+    value: number,
+    isBigInt: boolean
+): T | 'invalid' {
     try {
-        const user = await prisma.user.findUnique({ where: { userid } });
-        if (!user) return 'not_found';
-
-        let result = user.capital;
-
-        switch (operation) {
-            case 'add':
-                result += BigInt(value);
-                break;
-            case 'subtract':
-                result -= BigInt(value);
-                break;
-            case 'multiply':
-                result *= BigInt(value);
-                break;
-            case 'divide':
-                if (value === 0) return 'invalid';
-                result /= BigInt(value);
-                break;
-            case 'mod':
-                result %= BigInt(value);
-                break;
-            case 'power':
-                result = BigInt(Math.pow(Number(result), value));
-                break;
-            case 'floor':
-                result = BigInt(Math.floor(Number(result)));
-                break;
-            case 'ceil':
-                result = BigInt(Math.ceil(Number(result)));
-                break;
-            case 'round':
-                result = BigInt(Math.round(Number(result)));
-                break;
-            case 'sqrt':
-                result = BigInt(Math.floor(Math.sqrt(Number(result))));
-                break;
-            case 'set':
-                result = BigInt(value);
-                break;
-            default:
-                return 'invalid';
-        }
-
-
-        await prisma.user.update({
-            where: { userid },
-            data: { capital: BigInt(result) }
-        });
-
-        return 'ok';
-    } catch (err) {
-        console.error('❌ changeCapital error:', err);
-        return 'error';
-    }
-}
-
-export async function changeUserField(
-    userid: bigint,
-    field: any,
-    operation: Operation,
-    value: number
-): Promise<'ok' | 'not_found' | 'invalid' | 'error'> {
-    try {
-        const user = await prisma.user.findUnique({ where: { userid } });
-        if (!user) return 'not_found';
-
-        const isBigInt = bigintFields.includes(field);
-        let current: number | bigint = user[field] ?? (isBigInt ? BigInt(0) : 0);
-
-        let result: number | bigint;
+        let result: unknown;
 
         if (isBigInt) {
-            const val = BigInt(value);
             const cur = BigInt(current);
+            const val = BigInt(value);
             switch (operation) {
                 case 'add': result = cur + val; break;
                 case 'subtract': result = cur - val; break;
@@ -113,7 +44,6 @@ export async function changeUserField(
                 case 'set': result = val; break;
                 default: return 'invalid';
             }
-            if (result < BigInt(0)) result = BigInt(0);
         } else {
             const cur = Number(current);
             switch (operation) {
@@ -130,17 +60,73 @@ export async function changeUserField(
                 case 'set': result = value; break;
                 default: return 'invalid';
             }
-            if (result < 0) result = 0;
         }
+
+        return result as T;
+    } catch (err) {
+        console.error('❌ applyOperation error:', err);
+        return 'invalid';
+    }
+}
+
+export async function changeCapital(
+    userid: bigint,
+    operation: Operation,
+    value: number
+): Promise<'ok' | 'not_found' | 'invalid' | 'error'> {
+    try {
+        const user = await prisma.user.findUnique({ where: { userid } });
+        if (!user) return 'not_found';
+
+        const result = applyOperation(user.capital, operation, value, true);
+        if (result === 'invalid') return 'invalid';
+
+        const final = result < BigInt(0) ? BigInt(0) : result;
 
         await prisma.user.update({
             where: { userid },
-            data: { [field]: isBigInt ? BigInt(result) : Number(result) }
+            data: { capital: final }
         });
 
         return 'ok';
     } catch (err) {
-        console.error(`❌ changeUserField error on ${field}:`, err);
+        console.error(`❌ changeCapital error for user ${userid}:`, err);
+        return 'error';
+    }
+}
+
+export async function changeUserField(
+    userid: bigint,
+    field: string,
+    operation: Operation,
+    value: number
+): Promise<'ok' | 'not_found' | 'invalid' | 'error'> {
+    try {
+        const user = await prisma.user.findUnique({ where: { userid } });
+        if (!user) return 'not_found';
+
+        if (!(field in user)) {
+            console.warn(`❌ فیلد "${field}" در مدل User وجود ندارد.`);
+            return 'invalid';
+        }
+
+        const isBigInt = bigintFields.includes(field);
+        const current = user[field] ?? (isBigInt ? BigInt(0) : 0);
+        const result = applyOperation(current, operation, value, isBigInt);
+        if (result === 'invalid') return 'invalid';
+
+        const final = isBigInt
+            ? result < BigInt(0) ? BigInt(0) : result
+            : result < 0 ? 0 : result;
+
+        await prisma.user.update({
+            where: { userid },
+            data: { [field]: isBigInt ? BigInt(final) : Number(final) }
+        });
+
+        return 'ok';
+    } catch (err) {
+        console.error(`❌ changeUserField error on "${field}" for user ${userid}:`, err);
         return 'error';
     }
 }
@@ -155,58 +141,30 @@ export async function changeFieldForAllUsers(
         const isBigInt = bigintFields.includes(field);
 
         for (const user of users) {
-            let current: number | bigint = user[field] ?? (isBigInt ? BigInt(0) : 0);
-            let result: number | bigint;
-
-            if (isBigInt) {
-                const val = BigInt(value);
-                const cur = BigInt(current);
-                switch (operation) {
-                    case 'add': result = cur + val; break;
-                    case 'subtract': result = cur - val; break;
-                    case 'multiply': result = cur * val; break;
-                    case 'divide': if (value === 0) return 'invalid'; result = cur / val; break;
-                    case 'mod': result = cur % val; break;
-                    case 'power': result = BigInt(Math.pow(Number(cur), value)); break;
-                    case 'floor': result = BigInt(Math.floor(Number(cur))); break;
-                    case 'ceil': result = BigInt(Math.ceil(Number(cur))); break;
-                    case 'round': result = BigInt(Math.round(Number(cur))); break;
-                    case 'sqrt': result = BigInt(Math.floor(Math.sqrt(Number(cur)))); break;
-                    case 'set': result = val; break;
-                    default: return 'invalid';
-                }
-                if (result < BigInt(0)) result = BigInt(0);
-            } else {
-                const cur = Number(current);
-                switch (operation) {
-                    case 'add': result = cur + value; break;
-                    case 'subtract': result = cur - value; break;
-                    case 'multiply': result = cur * value; break;
-                    case 'divide': if (value === 0) return 'invalid'; result = cur / value; break;
-                    case 'mod': result = cur % value; break;
-                    case 'power': result = Math.pow(cur, value); break;
-                    case 'floor': result = Math.floor(cur); break;
-                    case 'ceil': result = Math.ceil(cur); break;
-                    case 'round': result = Math.round(cur); break;
-                    case 'sqrt': result = Math.floor(Math.sqrt(cur)); break;
-                    case 'set': result = value; break;
-                    default: return 'invalid';
-                }
-                if (result < 0) result = 0;
+            if (!(field in user)) {
+                console.warn(`❌ فیلد "${field}" در مدل User وجود ندارد.`);
+                return 'invalid';
             }
+
+            const current = user[field] ?? (isBigInt ? BigInt(0) : 0);
+            const result = applyOperation(current, operation, value, isBigInt);
+            if (result === 'invalid') return 'invalid';
+
+            const final = isBigInt
+                ? result < BigInt(0) ? BigInt(0) : result
+                : result < 0 ? 0 : result;
 
             await prisma.user.update({
                 where: { userid: user.userid },
-                data: { [field]: isBigInt ? BigInt(result) : Number(result) }
+                data: { [field]: isBigInt ? BigInt(final) : Number(final) }
             });
         }
 
         return 'ok';
     } catch (err) {
-        console.error(`❌ changeFieldForAllUsers error on ${field}:`, err);
+        console.error(`❌ changeFieldForAllUsers error on "${field}":`, err);
         return 'error';
     }
 }
-
 
 export default economy;

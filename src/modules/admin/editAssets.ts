@@ -59,6 +59,7 @@ editAsset.on('text', async (ctx, next) => {
             await ctx.reply('❌ عملیات نامعتبر بود.');
         } else {
             await ctx.reply('❌ خطا در ویرایش. لطفاً دوباره تلاش کن.');
+
         }
 
         ctx.session.editStep = undefined;
