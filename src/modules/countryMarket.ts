@@ -43,13 +43,21 @@ sell.action('sell', async (ctx) => {
             [Markup.button.callback(`📤 فروش به ${Math.floor(price / 1_000_000)}M`, `sell_${prod.id}`)]
         ]);
 
-        if (prod.imageUrl) {
-            await ctx.replyWithPhoto(prod.imageUrl, {
-                caption,
-                parse_mode: 'MarkdownV2',
-                reply_markup: keyboard.reply_markup
-            });
-        } else {
+        try {
+            if (prod.imageFileId) {
+                await ctx.replyWithPhoto(prod.imageFileId, {
+                    caption,
+                    parse_mode: 'MarkdownV2',
+                    reply_markup: keyboard.reply_markup
+                });
+            } else {
+                await ctx.reply(caption, {
+                    parse_mode: 'MarkdownV2',
+                    reply_markup: keyboard.reply_markup
+                });
+            }
+        } catch (err) {
+            console.error('خطا در ارسال عکس:', err);
             await ctx.reply(caption, {
                 parse_mode: 'MarkdownV2',
                 reply_markup: keyboard.reply_markup
@@ -57,7 +65,7 @@ sell.action('sell', async (ctx) => {
         }
     }
 
-    ctx.answerCbQuery();
+    await ctx.answerCbQuery();
 });
 
 // هندل فروش با دکمه

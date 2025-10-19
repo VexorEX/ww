@@ -202,6 +202,7 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
             name: pending.name,
             type: pending.type,
             imageUrl: pending.imageUrl,
+            imageFileId: ctx.session.buildingImageFileId,
             dailyLimit: pending.dailyLimit,
             setupCost: pending.setupCost,
             country: pending.country,
