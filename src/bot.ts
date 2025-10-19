@@ -13,7 +13,7 @@ const bot = new Telegraf<CustomContext>(config.token);
 bot.use(session()); // برای ctx.state و session
 bot.use(userAuth); // uncomment: برای ctx.user
 bot.use(economy.middleware());
-bot.use(military.middleware());
+// bot.use(military.middleware());
 bot.use(countryFilter); // Composer نه middleware
 bot.use(registration); // برای /start و action ها - Composer نه middleware
 bot.use(adminPanel);
