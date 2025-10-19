@@ -80,16 +80,12 @@ products.action(/^show_(\d+)$/, async (ctx) => {
 
     const keyboard = Markup.inlineKeyboard([
         [
-            Markup.button.callback(`💰 واحد: ${Math.floor(unitPrice / 1_000_000)}M`, 'noop'),
-            Markup.button.callback(`💰 کل: ${Math.floor(totalPrice / 1_000_000)}M`, 'noop')
-        ],
-        [
             Markup.button.callback(`🔄 عمر: ${line.dailyLimit} روز`, 'noop'),
             Markup.button.callback(`🚗 خروجی: ${line.dailyOutput}`, 'noop')
         ],
         [
             Markup.button.callback(`💵 ارزش واحد: ${Math.floor(unitPrice / 1_000_000)}M`, 'noop'),
-            Markup.button.callback(`💵 ارزش کل: ${Math.floor(unitPrice * line.dailyLimit / 1_000_000)}M`, 'noop')
+            Markup.button.callback(`💵 ارزش کل: ${Math.floor(totalPrice / 1_000_000)}M`, 'noop')
         ],
         [
             Markup.button.callback('🧾 فروش محصول', 'noop')
