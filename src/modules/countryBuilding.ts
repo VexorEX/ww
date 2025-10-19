@@ -25,16 +25,23 @@ building.action('building', async (ctx) => {
 // شروع ساخت پروژه
 for (const type of ['car', 'film', 'music', 'game']) {
     building.action(`build_${type}`, async (ctx) => {
-        const setupCost = type === 'car' ? 250_000_000 : Math.floor(55_000_000 + Math.random() * 695_000_000);
         ctx.session = {
-            buildingType: type,
-            buildingStep: 'awaiting_name',
-            setupCost
+            buildingType: type
         };
-        await ctx.reply(`📌 نام پروژه ${type === 'car' ? 'خودرو' : type === 'film' ? 'فیلم' : type === 'music' ? 'موزیک' : 'بازی'} را وارد کن:`);
+
+        if (type === 'car') {
+            ctx.session.setupCost = 250_000_000;
+            ctx.session.buildingStep = 'awaiting_name';
+            await ctx.reply('📌 نام پروژه خودرو را وارد کن:');
+        } else {
+            ctx.session.buildingStep = 'awaiting_setup_cost';
+            await ctx.reply('💰 سرمایه اولیه پروژه را وارد کن (بین 55 تا 750 میلیون):');
+        }
+
         ctx.answerCbQuery();
     });
 }
+
 
 // دریافت نام پروژه
 building.on('text', async (ctx, next) => {
@@ -257,16 +264,6 @@ building.action(/admin_reject_building_(\d+)/, async (ctx) => {
 
     await ctx.answerCbQuery('✅ درخواست رد شد و پول برگشت.');
 });
-
-for (const type of ['film', 'music', 'game']) {
-    building.action(`build_${type}`, async (ctx) => {
-        ctx.session = {
-            buildingType: type,
-            buildingStep: 'awaiting_setup_cost'
-        };
-        await ctx.reply('💰 سرمایه اولیه پروژه را وارد کن (بین 55 تا 750 میلیون):');
-    });
-}
 
 
 
