@@ -1263,48 +1263,48 @@ export namespace Prisma {
     satisfaction: number | null
     security: number | null
     lottery: number | null
-    oil: number | null
-    iron: number | null
-    gold: number | null
-    uranium: number | null
-    goldMine: number | null
-    uraniumMine: number | null
-    ironMine: number | null
-    refinery: number | null
-    soldier: number | null
-    tank: number | null
-    heavyTank: number | null
-    su57: number | null
-    f47: number | null
-    f35: number | null
-    j20: number | null
-    f16: number | null
-    f22: number | null
-    am50: number | null
-    b2: number | null
-    tu16: number | null
-    espionageDrone: number | null
-    suicideDrone: number | null
-    crossDrone: number | null
-    witnessDrone: number | null
-    simpleRocket: number | null
-    crossRocket: number | null
-    dotTargetRocket: number | null
-    continentalRocket: number | null
-    ballisticRocket: number | null
-    chemicalRocket: number | null
-    hyperSonicRocket: number | null
-    clusterRocket: number | null
-    battleship: number | null
-    marineShip: number | null
-    breakerShip: number | null
-    nuclearSubmarine: number | null
-    antiRocket: number | null
-    ironDome: number | null
-    s400: number | null
-    taad: number | null
-    hq9: number | null
-    acash: number | null
+    oil: bigint | null
+    iron: bigint | null
+    gold: bigint | null
+    uranium: bigint | null
+    goldMine: bigint | null
+    uraniumMine: bigint | null
+    ironMine: bigint | null
+    refinery: bigint | null
+    soldier: bigint | null
+    tank: bigint | null
+    heavyTank: bigint | null
+    su57: bigint | null
+    f47: bigint | null
+    f35: bigint | null
+    j20: bigint | null
+    f16: bigint | null
+    f22: bigint | null
+    am50: bigint | null
+    b2: bigint | null
+    tu16: bigint | null
+    espionageDrone: bigint | null
+    suicideDrone: bigint | null
+    crossDrone: bigint | null
+    witnessDrone: bigint | null
+    simpleRocket: bigint | null
+    crossRocket: bigint | null
+    dotTargetRocket: bigint | null
+    continentalRocket: bigint | null
+    ballisticRocket: bigint | null
+    chemicalRocket: bigint | null
+    hyperSonicRocket: bigint | null
+    clusterRocket: bigint | null
+    battleship: bigint | null
+    marineShip: bigint | null
+    breakerShip: bigint | null
+    nuclearSubmarine: bigint | null
+    antiRocket: bigint | null
+    ironDome: bigint | null
+    s400: bigint | null
+    taad: bigint | null
+    hq9: bigint | null
+    acash: bigint | null
   }
 
   export type UserMinAggregateOutputType = {
@@ -1321,48 +1321,48 @@ export namespace Prisma {
     satisfaction: number | null
     security: number | null
     lottery: number | null
-    oil: number | null
-    iron: number | null
-    gold: number | null
-    uranium: number | null
-    goldMine: number | null
-    uraniumMine: number | null
-    ironMine: number | null
-    refinery: number | null
-    soldier: number | null
-    tank: number | null
-    heavyTank: number | null
-    su57: number | null
-    f47: number | null
-    f35: number | null
-    j20: number | null
-    f16: number | null
-    f22: number | null
-    am50: number | null
-    b2: number | null
-    tu16: number | null
-    espionageDrone: number | null
-    suicideDrone: number | null
-    crossDrone: number | null
-    witnessDrone: number | null
-    simpleRocket: number | null
-    crossRocket: number | null
-    dotTargetRocket: number | null
-    continentalRocket: number | null
-    ballisticRocket: number | null
-    chemicalRocket: number | null
-    hyperSonicRocket: number | null
-    clusterRocket: number | null
-    battleship: number | null
-    marineShip: number | null
-    breakerShip: number | null
-    nuclearSubmarine: number | null
-    antiRocket: number | null
-    ironDome: number | null
-    s400: number | null
-    taad: number | null
-    hq9: number | null
-    acash: number | null
+    oil: bigint | null
+    iron: bigint | null
+    gold: bigint | null
+    uranium: bigint | null
+    goldMine: bigint | null
+    uraniumMine: bigint | null
+    ironMine: bigint | null
+    refinery: bigint | null
+    soldier: bigint | null
+    tank: bigint | null
+    heavyTank: bigint | null
+    su57: bigint | null
+    f47: bigint | null
+    f35: bigint | null
+    j20: bigint | null
+    f16: bigint | null
+    f22: bigint | null
+    am50: bigint | null
+    b2: bigint | null
+    tu16: bigint | null
+    espionageDrone: bigint | null
+    suicideDrone: bigint | null
+    crossDrone: bigint | null
+    witnessDrone: bigint | null
+    simpleRocket: bigint | null
+    crossRocket: bigint | null
+    dotTargetRocket: bigint | null
+    continentalRocket: bigint | null
+    ballisticRocket: bigint | null
+    chemicalRocket: bigint | null
+    hyperSonicRocket: bigint | null
+    clusterRocket: bigint | null
+    battleship: bigint | null
+    marineShip: bigint | null
+    breakerShip: bigint | null
+    nuclearSubmarine: bigint | null
+    antiRocket: bigint | null
+    ironDome: bigint | null
+    s400: bigint | null
+    taad: bigint | null
+    hq9: bigint | null
+    acash: bigint | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -1379,48 +1379,48 @@ export namespace Prisma {
     satisfaction: number | null
     security: number | null
     lottery: number | null
-    oil: number | null
-    iron: number | null
-    gold: number | null
-    uranium: number | null
-    goldMine: number | null
-    uraniumMine: number | null
-    ironMine: number | null
-    refinery: number | null
-    soldier: number | null
-    tank: number | null
-    heavyTank: number | null
-    su57: number | null
-    f47: number | null
-    f35: number | null
-    j20: number | null
-    f16: number | null
-    f22: number | null
-    am50: number | null
-    b2: number | null
-    tu16: number | null
-    espionageDrone: number | null
-    suicideDrone: number | null
-    crossDrone: number | null
-    witnessDrone: number | null
-    simpleRocket: number | null
-    crossRocket: number | null
-    dotTargetRocket: number | null
-    continentalRocket: number | null
-    ballisticRocket: number | null
-    chemicalRocket: number | null
-    hyperSonicRocket: number | null
-    clusterRocket: number | null
-    battleship: number | null
-    marineShip: number | null
-    breakerShip: number | null
-    nuclearSubmarine: number | null
-    antiRocket: number | null
-    ironDome: number | null
-    s400: number | null
-    taad: number | null
-    hq9: number | null
-    acash: number | null
+    oil: bigint | null
+    iron: bigint | null
+    gold: bigint | null
+    uranium: bigint | null
+    goldMine: bigint | null
+    uraniumMine: bigint | null
+    ironMine: bigint | null
+    refinery: bigint | null
+    soldier: bigint | null
+    tank: bigint | null
+    heavyTank: bigint | null
+    su57: bigint | null
+    f47: bigint | null
+    f35: bigint | null
+    j20: bigint | null
+    f16: bigint | null
+    f22: bigint | null
+    am50: bigint | null
+    b2: bigint | null
+    tu16: bigint | null
+    espionageDrone: bigint | null
+    suicideDrone: bigint | null
+    crossDrone: bigint | null
+    witnessDrone: bigint | null
+    simpleRocket: bigint | null
+    crossRocket: bigint | null
+    dotTargetRocket: bigint | null
+    continentalRocket: bigint | null
+    ballisticRocket: bigint | null
+    chemicalRocket: bigint | null
+    hyperSonicRocket: bigint | null
+    clusterRocket: bigint | null
+    battleship: bigint | null
+    marineShip: bigint | null
+    breakerShip: bigint | null
+    nuclearSubmarine: bigint | null
+    antiRocket: bigint | null
+    ironDome: bigint | null
+    s400: bigint | null
+    taad: bigint | null
+    hq9: bigint | null
+    acash: bigint | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -1866,48 +1866,48 @@ export namespace Prisma {
     satisfaction: number
     security: number
     lottery: number
-    oil: number
-    iron: number
-    gold: number
-    uranium: number
-    goldMine: number
-    uraniumMine: number
-    ironMine: number
-    refinery: number
-    soldier: number
-    tank: number
-    heavyTank: number
-    su57: number
-    f47: number
-    f35: number
-    j20: number
-    f16: number
-    f22: number
-    am50: number
-    b2: number
-    tu16: number
-    espionageDrone: number
-    suicideDrone: number
-    crossDrone: number
-    witnessDrone: number
-    simpleRocket: number
-    crossRocket: number
-    dotTargetRocket: number
-    continentalRocket: number
-    ballisticRocket: number
-    chemicalRocket: number
-    hyperSonicRocket: number
-    clusterRocket: number
-    battleship: number
-    marineShip: number
-    breakerShip: number
-    nuclearSubmarine: number
-    antiRocket: number
-    ironDome: number
-    s400: number
-    taad: number
-    hq9: number
-    acash: number
+    oil: bigint
+    iron: bigint
+    gold: bigint
+    uranium: bigint
+    goldMine: bigint
+    uraniumMine: bigint
+    ironMine: bigint
+    refinery: bigint
+    soldier: bigint
+    tank: bigint
+    heavyTank: bigint
+    su57: bigint
+    f47: bigint
+    f35: bigint
+    j20: bigint
+    f16: bigint
+    f22: bigint
+    am50: bigint
+    b2: bigint
+    tu16: bigint
+    espionageDrone: bigint
+    suicideDrone: bigint
+    crossDrone: bigint
+    witnessDrone: bigint
+    simpleRocket: bigint
+    crossRocket: bigint
+    dotTargetRocket: bigint
+    continentalRocket: bigint
+    ballisticRocket: bigint
+    chemicalRocket: bigint
+    hyperSonicRocket: bigint
+    clusterRocket: bigint
+    battleship: bigint
+    marineShip: bigint
+    breakerShip: bigint
+    nuclearSubmarine: bigint
+    antiRocket: bigint
+    ironDome: bigint
+    s400: bigint
+    taad: bigint
+    hq9: bigint
+    acash: bigint
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -2121,48 +2121,48 @@ export namespace Prisma {
       satisfaction: number
       security: number
       lottery: number
-      oil: number
-      iron: number
-      gold: number
-      uranium: number
-      goldMine: number
-      uraniumMine: number
-      ironMine: number
-      refinery: number
-      soldier: number
-      tank: number
-      heavyTank: number
-      su57: number
-      f47: number
-      f35: number
-      j20: number
-      f16: number
-      f22: number
-      am50: number
-      b2: number
-      tu16: number
-      espionageDrone: number
-      suicideDrone: number
-      crossDrone: number
-      witnessDrone: number
-      simpleRocket: number
-      crossRocket: number
-      dotTargetRocket: number
-      continentalRocket: number
-      ballisticRocket: number
-      chemicalRocket: number
-      hyperSonicRocket: number
-      clusterRocket: number
-      battleship: number
-      marineShip: number
-      breakerShip: number
-      nuclearSubmarine: number
-      antiRocket: number
-      ironDome: number
-      s400: number
-      taad: number
-      hq9: number
-      acash: number
+      oil: bigint
+      iron: bigint
+      gold: bigint
+      uranium: bigint
+      goldMine: bigint
+      uraniumMine: bigint
+      ironMine: bigint
+      refinery: bigint
+      soldier: bigint
+      tank: bigint
+      heavyTank: bigint
+      su57: bigint
+      f47: bigint
+      f35: bigint
+      j20: bigint
+      f16: bigint
+      f22: bigint
+      am50: bigint
+      b2: bigint
+      tu16: bigint
+      espionageDrone: bigint
+      suicideDrone: bigint
+      crossDrone: bigint
+      witnessDrone: bigint
+      simpleRocket: bigint
+      crossRocket: bigint
+      dotTargetRocket: bigint
+      continentalRocket: bigint
+      ballisticRocket: bigint
+      chemicalRocket: bigint
+      hyperSonicRocket: bigint
+      clusterRocket: bigint
+      battleship: bigint
+      marineShip: bigint
+      breakerShip: bigint
+      nuclearSubmarine: bigint
+      antiRocket: bigint
+      ironDome: bigint
+      s400: bigint
+      taad: bigint
+      hq9: bigint
+      acash: bigint
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -2569,48 +2569,48 @@ export namespace Prisma {
     readonly satisfaction: FieldRef<"User", 'Int'>
     readonly security: FieldRef<"User", 'Int'>
     readonly lottery: FieldRef<"User", 'Int'>
-    readonly oil: FieldRef<"User", 'Int'>
-    readonly iron: FieldRef<"User", 'Int'>
-    readonly gold: FieldRef<"User", 'Int'>
-    readonly uranium: FieldRef<"User", 'Int'>
-    readonly goldMine: FieldRef<"User", 'Int'>
-    readonly uraniumMine: FieldRef<"User", 'Int'>
-    readonly ironMine: FieldRef<"User", 'Int'>
-    readonly refinery: FieldRef<"User", 'Int'>
-    readonly soldier: FieldRef<"User", 'Int'>
-    readonly tank: FieldRef<"User", 'Int'>
-    readonly heavyTank: FieldRef<"User", 'Int'>
-    readonly su57: FieldRef<"User", 'Int'>
-    readonly f47: FieldRef<"User", 'Int'>
-    readonly f35: FieldRef<"User", 'Int'>
-    readonly j20: FieldRef<"User", 'Int'>
-    readonly f16: FieldRef<"User", 'Int'>
-    readonly f22: FieldRef<"User", 'Int'>
-    readonly am50: FieldRef<"User", 'Int'>
-    readonly b2: FieldRef<"User", 'Int'>
-    readonly tu16: FieldRef<"User", 'Int'>
-    readonly espionageDrone: FieldRef<"User", 'Int'>
-    readonly suicideDrone: FieldRef<"User", 'Int'>
-    readonly crossDrone: FieldRef<"User", 'Int'>
-    readonly witnessDrone: FieldRef<"User", 'Int'>
-    readonly simpleRocket: FieldRef<"User", 'Int'>
-    readonly crossRocket: FieldRef<"User", 'Int'>
-    readonly dotTargetRocket: FieldRef<"User", 'Int'>
-    readonly continentalRocket: FieldRef<"User", 'Int'>
-    readonly ballisticRocket: FieldRef<"User", 'Int'>
-    readonly chemicalRocket: FieldRef<"User", 'Int'>
-    readonly hyperSonicRocket: FieldRef<"User", 'Int'>
-    readonly clusterRocket: FieldRef<"User", 'Int'>
-    readonly battleship: FieldRef<"User", 'Int'>
-    readonly marineShip: FieldRef<"User", 'Int'>
-    readonly breakerShip: FieldRef<"User", 'Int'>
-    readonly nuclearSubmarine: FieldRef<"User", 'Int'>
-    readonly antiRocket: FieldRef<"User", 'Int'>
-    readonly ironDome: FieldRef<"User", 'Int'>
-    readonly s400: FieldRef<"User", 'Int'>
-    readonly taad: FieldRef<"User", 'Int'>
-    readonly hq9: FieldRef<"User", 'Int'>
-    readonly acash: FieldRef<"User", 'Int'>
+    readonly oil: FieldRef<"User", 'BigInt'>
+    readonly iron: FieldRef<"User", 'BigInt'>
+    readonly gold: FieldRef<"User", 'BigInt'>
+    readonly uranium: FieldRef<"User", 'BigInt'>
+    readonly goldMine: FieldRef<"User", 'BigInt'>
+    readonly uraniumMine: FieldRef<"User", 'BigInt'>
+    readonly ironMine: FieldRef<"User", 'BigInt'>
+    readonly refinery: FieldRef<"User", 'BigInt'>
+    readonly soldier: FieldRef<"User", 'BigInt'>
+    readonly tank: FieldRef<"User", 'BigInt'>
+    readonly heavyTank: FieldRef<"User", 'BigInt'>
+    readonly su57: FieldRef<"User", 'BigInt'>
+    readonly f47: FieldRef<"User", 'BigInt'>
+    readonly f35: FieldRef<"User", 'BigInt'>
+    readonly j20: FieldRef<"User", 'BigInt'>
+    readonly f16: FieldRef<"User", 'BigInt'>
+    readonly f22: FieldRef<"User", 'BigInt'>
+    readonly am50: FieldRef<"User", 'BigInt'>
+    readonly b2: FieldRef<"User", 'BigInt'>
+    readonly tu16: FieldRef<"User", 'BigInt'>
+    readonly espionageDrone: FieldRef<"User", 'BigInt'>
+    readonly suicideDrone: FieldRef<"User", 'BigInt'>
+    readonly crossDrone: FieldRef<"User", 'BigInt'>
+    readonly witnessDrone: FieldRef<"User", 'BigInt'>
+    readonly simpleRocket: FieldRef<"User", 'BigInt'>
+    readonly crossRocket: FieldRef<"User", 'BigInt'>
+    readonly dotTargetRocket: FieldRef<"User", 'BigInt'>
+    readonly continentalRocket: FieldRef<"User", 'BigInt'>
+    readonly ballisticRocket: FieldRef<"User", 'BigInt'>
+    readonly chemicalRocket: FieldRef<"User", 'BigInt'>
+    readonly hyperSonicRocket: FieldRef<"User", 'BigInt'>
+    readonly clusterRocket: FieldRef<"User", 'BigInt'>
+    readonly battleship: FieldRef<"User", 'BigInt'>
+    readonly marineShip: FieldRef<"User", 'BigInt'>
+    readonly breakerShip: FieldRef<"User", 'BigInt'>
+    readonly nuclearSubmarine: FieldRef<"User", 'BigInt'>
+    readonly antiRocket: FieldRef<"User", 'BigInt'>
+    readonly ironDome: FieldRef<"User", 'BigInt'>
+    readonly s400: FieldRef<"User", 'BigInt'>
+    readonly taad: FieldRef<"User", 'BigInt'>
+    readonly hq9: FieldRef<"User", 'BigInt'>
+    readonly acash: FieldRef<"User", 'BigInt'>
   }
     
 
@@ -7002,48 +7002,48 @@ export namespace Prisma {
     satisfaction?: IntFilter<"User"> | number
     security?: IntFilter<"User"> | number
     lottery?: IntFilter<"User"> | number
-    oil?: IntFilter<"User"> | number
-    iron?: IntFilter<"User"> | number
-    gold?: IntFilter<"User"> | number
-    uranium?: IntFilter<"User"> | number
-    goldMine?: IntFilter<"User"> | number
-    uraniumMine?: IntFilter<"User"> | number
-    ironMine?: IntFilter<"User"> | number
-    refinery?: IntFilter<"User"> | number
-    soldier?: IntFilter<"User"> | number
-    tank?: IntFilter<"User"> | number
-    heavyTank?: IntFilter<"User"> | number
-    su57?: IntFilter<"User"> | number
-    f47?: IntFilter<"User"> | number
-    f35?: IntFilter<"User"> | number
-    j20?: IntFilter<"User"> | number
-    f16?: IntFilter<"User"> | number
-    f22?: IntFilter<"User"> | number
-    am50?: IntFilter<"User"> | number
-    b2?: IntFilter<"User"> | number
-    tu16?: IntFilter<"User"> | number
-    espionageDrone?: IntFilter<"User"> | number
-    suicideDrone?: IntFilter<"User"> | number
-    crossDrone?: IntFilter<"User"> | number
-    witnessDrone?: IntFilter<"User"> | number
-    simpleRocket?: IntFilter<"User"> | number
-    crossRocket?: IntFilter<"User"> | number
-    dotTargetRocket?: IntFilter<"User"> | number
-    continentalRocket?: IntFilter<"User"> | number
-    ballisticRocket?: IntFilter<"User"> | number
-    chemicalRocket?: IntFilter<"User"> | number
-    hyperSonicRocket?: IntFilter<"User"> | number
-    clusterRocket?: IntFilter<"User"> | number
-    battleship?: IntFilter<"User"> | number
-    marineShip?: IntFilter<"User"> | number
-    breakerShip?: IntFilter<"User"> | number
-    nuclearSubmarine?: IntFilter<"User"> | number
-    antiRocket?: IntFilter<"User"> | number
-    ironDome?: IntFilter<"User"> | number
-    s400?: IntFilter<"User"> | number
-    taad?: IntFilter<"User"> | number
-    hq9?: IntFilter<"User"> | number
-    acash?: IntFilter<"User"> | number
+    oil?: BigIntFilter<"User"> | bigint | number
+    iron?: BigIntFilter<"User"> | bigint | number
+    gold?: BigIntFilter<"User"> | bigint | number
+    uranium?: BigIntFilter<"User"> | bigint | number
+    goldMine?: BigIntFilter<"User"> | bigint | number
+    uraniumMine?: BigIntFilter<"User"> | bigint | number
+    ironMine?: BigIntFilter<"User"> | bigint | number
+    refinery?: BigIntFilter<"User"> | bigint | number
+    soldier?: BigIntFilter<"User"> | bigint | number
+    tank?: BigIntFilter<"User"> | bigint | number
+    heavyTank?: BigIntFilter<"User"> | bigint | number
+    su57?: BigIntFilter<"User"> | bigint | number
+    f47?: BigIntFilter<"User"> | bigint | number
+    f35?: BigIntFilter<"User"> | bigint | number
+    j20?: BigIntFilter<"User"> | bigint | number
+    f16?: BigIntFilter<"User"> | bigint | number
+    f22?: BigIntFilter<"User"> | bigint | number
+    am50?: BigIntFilter<"User"> | bigint | number
+    b2?: BigIntFilter<"User"> | bigint | number
+    tu16?: BigIntFilter<"User"> | bigint | number
+    espionageDrone?: BigIntFilter<"User"> | bigint | number
+    suicideDrone?: BigIntFilter<"User"> | bigint | number
+    crossDrone?: BigIntFilter<"User"> | bigint | number
+    witnessDrone?: BigIntFilter<"User"> | bigint | number
+    simpleRocket?: BigIntFilter<"User"> | bigint | number
+    crossRocket?: BigIntFilter<"User"> | bigint | number
+    dotTargetRocket?: BigIntFilter<"User"> | bigint | number
+    continentalRocket?: BigIntFilter<"User"> | bigint | number
+    ballisticRocket?: BigIntFilter<"User"> | bigint | number
+    chemicalRocket?: BigIntFilter<"User"> | bigint | number
+    hyperSonicRocket?: BigIntFilter<"User"> | bigint | number
+    clusterRocket?: BigIntFilter<"User"> | bigint | number
+    battleship?: BigIntFilter<"User"> | bigint | number
+    marineShip?: BigIntFilter<"User"> | bigint | number
+    breakerShip?: BigIntFilter<"User"> | bigint | number
+    nuclearSubmarine?: BigIntFilter<"User"> | bigint | number
+    antiRocket?: BigIntFilter<"User"> | bigint | number
+    ironDome?: BigIntFilter<"User"> | bigint | number
+    s400?: BigIntFilter<"User"> | bigint | number
+    taad?: BigIntFilter<"User"> | bigint | number
+    hq9?: BigIntFilter<"User"> | bigint | number
+    acash?: BigIntFilter<"User"> | bigint | number
   }
 
   export type UserOrderByWithRelationInput = {
@@ -7121,48 +7121,48 @@ export namespace Prisma {
     satisfaction?: IntFilter<"User"> | number
     security?: IntFilter<"User"> | number
     lottery?: IntFilter<"User"> | number
-    oil?: IntFilter<"User"> | number
-    iron?: IntFilter<"User"> | number
-    gold?: IntFilter<"User"> | number
-    uranium?: IntFilter<"User"> | number
-    goldMine?: IntFilter<"User"> | number
-    uraniumMine?: IntFilter<"User"> | number
-    ironMine?: IntFilter<"User"> | number
-    refinery?: IntFilter<"User"> | number
-    soldier?: IntFilter<"User"> | number
-    tank?: IntFilter<"User"> | number
-    heavyTank?: IntFilter<"User"> | number
-    su57?: IntFilter<"User"> | number
-    f47?: IntFilter<"User"> | number
-    f35?: IntFilter<"User"> | number
-    j20?: IntFilter<"User"> | number
-    f16?: IntFilter<"User"> | number
-    f22?: IntFilter<"User"> | number
-    am50?: IntFilter<"User"> | number
-    b2?: IntFilter<"User"> | number
-    tu16?: IntFilter<"User"> | number
-    espionageDrone?: IntFilter<"User"> | number
-    suicideDrone?: IntFilter<"User"> | number
-    crossDrone?: IntFilter<"User"> | number
-    witnessDrone?: IntFilter<"User"> | number
-    simpleRocket?: IntFilter<"User"> | number
-    crossRocket?: IntFilter<"User"> | number
-    dotTargetRocket?: IntFilter<"User"> | number
-    continentalRocket?: IntFilter<"User"> | number
-    ballisticRocket?: IntFilter<"User"> | number
-    chemicalRocket?: IntFilter<"User"> | number
-    hyperSonicRocket?: IntFilter<"User"> | number
-    clusterRocket?: IntFilter<"User"> | number
-    battleship?: IntFilter<"User"> | number
-    marineShip?: IntFilter<"User"> | number
-    breakerShip?: IntFilter<"User"> | number
-    nuclearSubmarine?: IntFilter<"User"> | number
-    antiRocket?: IntFilter<"User"> | number
-    ironDome?: IntFilter<"User"> | number
-    s400?: IntFilter<"User"> | number
-    taad?: IntFilter<"User"> | number
-    hq9?: IntFilter<"User"> | number
-    acash?: IntFilter<"User"> | number
+    oil?: BigIntFilter<"User"> | bigint | number
+    iron?: BigIntFilter<"User"> | bigint | number
+    gold?: BigIntFilter<"User"> | bigint | number
+    uranium?: BigIntFilter<"User"> | bigint | number
+    goldMine?: BigIntFilter<"User"> | bigint | number
+    uraniumMine?: BigIntFilter<"User"> | bigint | number
+    ironMine?: BigIntFilter<"User"> | bigint | number
+    refinery?: BigIntFilter<"User"> | bigint | number
+    soldier?: BigIntFilter<"User"> | bigint | number
+    tank?: BigIntFilter<"User"> | bigint | number
+    heavyTank?: BigIntFilter<"User"> | bigint | number
+    su57?: BigIntFilter<"User"> | bigint | number
+    f47?: BigIntFilter<"User"> | bigint | number
+    f35?: BigIntFilter<"User"> | bigint | number
+    j20?: BigIntFilter<"User"> | bigint | number
+    f16?: BigIntFilter<"User"> | bigint | number
+    f22?: BigIntFilter<"User"> | bigint | number
+    am50?: BigIntFilter<"User"> | bigint | number
+    b2?: BigIntFilter<"User"> | bigint | number
+    tu16?: BigIntFilter<"User"> | bigint | number
+    espionageDrone?: BigIntFilter<"User"> | bigint | number
+    suicideDrone?: BigIntFilter<"User"> | bigint | number
+    crossDrone?: BigIntFilter<"User"> | bigint | number
+    witnessDrone?: BigIntFilter<"User"> | bigint | number
+    simpleRocket?: BigIntFilter<"User"> | bigint | number
+    crossRocket?: BigIntFilter<"User"> | bigint | number
+    dotTargetRocket?: BigIntFilter<"User"> | bigint | number
+    continentalRocket?: BigIntFilter<"User"> | bigint | number
+    ballisticRocket?: BigIntFilter<"User"> | bigint | number
+    chemicalRocket?: BigIntFilter<"User"> | bigint | number
+    hyperSonicRocket?: BigIntFilter<"User"> | bigint | number
+    clusterRocket?: BigIntFilter<"User"> | bigint | number
+    battleship?: BigIntFilter<"User"> | bigint | number
+    marineShip?: BigIntFilter<"User"> | bigint | number
+    breakerShip?: BigIntFilter<"User"> | bigint | number
+    nuclearSubmarine?: BigIntFilter<"User"> | bigint | number
+    antiRocket?: BigIntFilter<"User"> | bigint | number
+    ironDome?: BigIntFilter<"User"> | bigint | number
+    s400?: BigIntFilter<"User"> | bigint | number
+    taad?: BigIntFilter<"User"> | bigint | number
+    hq9?: BigIntFilter<"User"> | bigint | number
+    acash?: BigIntFilter<"User"> | bigint | number
   }, "userid">
 
   export type UserOrderByWithAggregationInput = {
@@ -7245,48 +7245,48 @@ export namespace Prisma {
     satisfaction?: IntWithAggregatesFilter<"User"> | number
     security?: IntWithAggregatesFilter<"User"> | number
     lottery?: IntWithAggregatesFilter<"User"> | number
-    oil?: IntWithAggregatesFilter<"User"> | number
-    iron?: IntWithAggregatesFilter<"User"> | number
-    gold?: IntWithAggregatesFilter<"User"> | number
-    uranium?: IntWithAggregatesFilter<"User"> | number
-    goldMine?: IntWithAggregatesFilter<"User"> | number
-    uraniumMine?: IntWithAggregatesFilter<"User"> | number
-    ironMine?: IntWithAggregatesFilter<"User"> | number
-    refinery?: IntWithAggregatesFilter<"User"> | number
-    soldier?: IntWithAggregatesFilter<"User"> | number
-    tank?: IntWithAggregatesFilter<"User"> | number
-    heavyTank?: IntWithAggregatesFilter<"User"> | number
-    su57?: IntWithAggregatesFilter<"User"> | number
-    f47?: IntWithAggregatesFilter<"User"> | number
-    f35?: IntWithAggregatesFilter<"User"> | number
-    j20?: IntWithAggregatesFilter<"User"> | number
-    f16?: IntWithAggregatesFilter<"User"> | number
-    f22?: IntWithAggregatesFilter<"User"> | number
-    am50?: IntWithAggregatesFilter<"User"> | number
-    b2?: IntWithAggregatesFilter<"User"> | number
-    tu16?: IntWithAggregatesFilter<"User"> | number
-    espionageDrone?: IntWithAggregatesFilter<"User"> | number
-    suicideDrone?: IntWithAggregatesFilter<"User"> | number
-    crossDrone?: IntWithAggregatesFilter<"User"> | number
-    witnessDrone?: IntWithAggregatesFilter<"User"> | number
-    simpleRocket?: IntWithAggregatesFilter<"User"> | number
-    crossRocket?: IntWithAggregatesFilter<"User"> | number
-    dotTargetRocket?: IntWithAggregatesFilter<"User"> | number
-    continentalRocket?: IntWithAggregatesFilter<"User"> | number
-    ballisticRocket?: IntWithAggregatesFilter<"User"> | number
-    chemicalRocket?: IntWithAggregatesFilter<"User"> | number
-    hyperSonicRocket?: IntWithAggregatesFilter<"User"> | number
-    clusterRocket?: IntWithAggregatesFilter<"User"> | number
-    battleship?: IntWithAggregatesFilter<"User"> | number
-    marineShip?: IntWithAggregatesFilter<"User"> | number
-    breakerShip?: IntWithAggregatesFilter<"User"> | number
-    nuclearSubmarine?: IntWithAggregatesFilter<"User"> | number
-    antiRocket?: IntWithAggregatesFilter<"User"> | number
-    ironDome?: IntWithAggregatesFilter<"User"> | number
-    s400?: IntWithAggregatesFilter<"User"> | number
-    taad?: IntWithAggregatesFilter<"User"> | number
-    hq9?: IntWithAggregatesFilter<"User"> | number
-    acash?: IntWithAggregatesFilter<"User"> | number
+    oil?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    iron?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    gold?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    uranium?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    goldMine?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    uraniumMine?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    ironMine?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    refinery?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    soldier?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    tank?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    heavyTank?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    su57?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    f47?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    f35?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    j20?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    f16?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    f22?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    am50?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    b2?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    tu16?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    espionageDrone?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    suicideDrone?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    crossDrone?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    witnessDrone?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    simpleRocket?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    crossRocket?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    dotTargetRocket?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    continentalRocket?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    ballisticRocket?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    chemicalRocket?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    hyperSonicRocket?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    clusterRocket?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    battleship?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    marineShip?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    breakerShip?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    nuclearSubmarine?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    antiRocket?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    ironDome?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    s400?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    taad?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    hq9?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    acash?: BigIntWithAggregatesFilter<"User"> | bigint | number
   }
 
   export type ProductionLineWhereInput = {
@@ -7604,48 +7604,48 @@ export namespace Prisma {
     satisfaction?: number
     security?: number
     lottery?: number
-    oil?: number
-    iron?: number
-    gold?: number
-    uranium?: number
-    goldMine?: number
-    uraniumMine?: number
-    ironMine?: number
-    refinery?: number
-    soldier?: number
-    tank?: number
-    heavyTank?: number
-    su57?: number
-    f47?: number
-    f35?: number
-    j20?: number
-    f16?: number
-    f22?: number
-    am50?: number
-    b2?: number
-    tu16?: number
-    espionageDrone?: number
-    suicideDrone?: number
-    crossDrone?: number
-    witnessDrone?: number
-    simpleRocket?: number
-    crossRocket?: number
-    dotTargetRocket?: number
-    continentalRocket?: number
-    ballisticRocket?: number
-    chemicalRocket?: number
-    hyperSonicRocket?: number
-    clusterRocket?: number
-    battleship?: number
-    marineShip?: number
-    breakerShip?: number
-    nuclearSubmarine?: number
-    antiRocket?: number
-    ironDome?: number
-    s400?: number
-    taad?: number
-    hq9?: number
-    acash?: number
+    oil?: bigint | number
+    iron?: bigint | number
+    gold?: bigint | number
+    uranium?: bigint | number
+    goldMine?: bigint | number
+    uraniumMine?: bigint | number
+    ironMine?: bigint | number
+    refinery?: bigint | number
+    soldier?: bigint | number
+    tank?: bigint | number
+    heavyTank?: bigint | number
+    su57?: bigint | number
+    f47?: bigint | number
+    f35?: bigint | number
+    j20?: bigint | number
+    f16?: bigint | number
+    f22?: bigint | number
+    am50?: bigint | number
+    b2?: bigint | number
+    tu16?: bigint | number
+    espionageDrone?: bigint | number
+    suicideDrone?: bigint | number
+    crossDrone?: bigint | number
+    witnessDrone?: bigint | number
+    simpleRocket?: bigint | number
+    crossRocket?: bigint | number
+    dotTargetRocket?: bigint | number
+    continentalRocket?: bigint | number
+    ballisticRocket?: bigint | number
+    chemicalRocket?: bigint | number
+    hyperSonicRocket?: bigint | number
+    clusterRocket?: bigint | number
+    battleship?: bigint | number
+    marineShip?: bigint | number
+    breakerShip?: bigint | number
+    nuclearSubmarine?: bigint | number
+    antiRocket?: bigint | number
+    ironDome?: bigint | number
+    s400?: bigint | number
+    taad?: bigint | number
+    hq9?: bigint | number
+    acash?: bigint | number
   }
 
   export type UserUncheckedCreateInput = {
@@ -7662,48 +7662,48 @@ export namespace Prisma {
     satisfaction?: number
     security?: number
     lottery?: number
-    oil?: number
-    iron?: number
-    gold?: number
-    uranium?: number
-    goldMine?: number
-    uraniumMine?: number
-    ironMine?: number
-    refinery?: number
-    soldier?: number
-    tank?: number
-    heavyTank?: number
-    su57?: number
-    f47?: number
-    f35?: number
-    j20?: number
-    f16?: number
-    f22?: number
-    am50?: number
-    b2?: number
-    tu16?: number
-    espionageDrone?: number
-    suicideDrone?: number
-    crossDrone?: number
-    witnessDrone?: number
-    simpleRocket?: number
-    crossRocket?: number
-    dotTargetRocket?: number
-    continentalRocket?: number
-    ballisticRocket?: number
-    chemicalRocket?: number
-    hyperSonicRocket?: number
-    clusterRocket?: number
-    battleship?: number
-    marineShip?: number
-    breakerShip?: number
-    nuclearSubmarine?: number
-    antiRocket?: number
-    ironDome?: number
-    s400?: number
-    taad?: number
-    hq9?: number
-    acash?: number
+    oil?: bigint | number
+    iron?: bigint | number
+    gold?: bigint | number
+    uranium?: bigint | number
+    goldMine?: bigint | number
+    uraniumMine?: bigint | number
+    ironMine?: bigint | number
+    refinery?: bigint | number
+    soldier?: bigint | number
+    tank?: bigint | number
+    heavyTank?: bigint | number
+    su57?: bigint | number
+    f47?: bigint | number
+    f35?: bigint | number
+    j20?: bigint | number
+    f16?: bigint | number
+    f22?: bigint | number
+    am50?: bigint | number
+    b2?: bigint | number
+    tu16?: bigint | number
+    espionageDrone?: bigint | number
+    suicideDrone?: bigint | number
+    crossDrone?: bigint | number
+    witnessDrone?: bigint | number
+    simpleRocket?: bigint | number
+    crossRocket?: bigint | number
+    dotTargetRocket?: bigint | number
+    continentalRocket?: bigint | number
+    ballisticRocket?: bigint | number
+    chemicalRocket?: bigint | number
+    hyperSonicRocket?: bigint | number
+    clusterRocket?: bigint | number
+    battleship?: bigint | number
+    marineShip?: bigint | number
+    breakerShip?: bigint | number
+    nuclearSubmarine?: bigint | number
+    antiRocket?: bigint | number
+    ironDome?: bigint | number
+    s400?: bigint | number
+    taad?: bigint | number
+    hq9?: bigint | number
+    acash?: bigint | number
   }
 
   export type UserUpdateInput = {
@@ -7720,48 +7720,48 @@ export namespace Prisma {
     satisfaction?: IntFieldUpdateOperationsInput | number
     security?: IntFieldUpdateOperationsInput | number
     lottery?: IntFieldUpdateOperationsInput | number
-    oil?: IntFieldUpdateOperationsInput | number
-    iron?: IntFieldUpdateOperationsInput | number
-    gold?: IntFieldUpdateOperationsInput | number
-    uranium?: IntFieldUpdateOperationsInput | number
-    goldMine?: IntFieldUpdateOperationsInput | number
-    uraniumMine?: IntFieldUpdateOperationsInput | number
-    ironMine?: IntFieldUpdateOperationsInput | number
-    refinery?: IntFieldUpdateOperationsInput | number
-    soldier?: IntFieldUpdateOperationsInput | number
-    tank?: IntFieldUpdateOperationsInput | number
-    heavyTank?: IntFieldUpdateOperationsInput | number
-    su57?: IntFieldUpdateOperationsInput | number
-    f47?: IntFieldUpdateOperationsInput | number
-    f35?: IntFieldUpdateOperationsInput | number
-    j20?: IntFieldUpdateOperationsInput | number
-    f16?: IntFieldUpdateOperationsInput | number
-    f22?: IntFieldUpdateOperationsInput | number
-    am50?: IntFieldUpdateOperationsInput | number
-    b2?: IntFieldUpdateOperationsInput | number
-    tu16?: IntFieldUpdateOperationsInput | number
-    espionageDrone?: IntFieldUpdateOperationsInput | number
-    suicideDrone?: IntFieldUpdateOperationsInput | number
-    crossDrone?: IntFieldUpdateOperationsInput | number
-    witnessDrone?: IntFieldUpdateOperationsInput | number
-    simpleRocket?: IntFieldUpdateOperationsInput | number
-    crossRocket?: IntFieldUpdateOperationsInput | number
-    dotTargetRocket?: IntFieldUpdateOperationsInput | number
-    continentalRocket?: IntFieldUpdateOperationsInput | number
-    ballisticRocket?: IntFieldUpdateOperationsInput | number
-    chemicalRocket?: IntFieldUpdateOperationsInput | number
-    hyperSonicRocket?: IntFieldUpdateOperationsInput | number
-    clusterRocket?: IntFieldUpdateOperationsInput | number
-    battleship?: IntFieldUpdateOperationsInput | number
-    marineShip?: IntFieldUpdateOperationsInput | number
-    breakerShip?: IntFieldUpdateOperationsInput | number
-    nuclearSubmarine?: IntFieldUpdateOperationsInput | number
-    antiRocket?: IntFieldUpdateOperationsInput | number
-    ironDome?: IntFieldUpdateOperationsInput | number
-    s400?: IntFieldUpdateOperationsInput | number
-    taad?: IntFieldUpdateOperationsInput | number
-    hq9?: IntFieldUpdateOperationsInput | number
-    acash?: IntFieldUpdateOperationsInput | number
+    oil?: BigIntFieldUpdateOperationsInput | bigint | number
+    iron?: BigIntFieldUpdateOperationsInput | bigint | number
+    gold?: BigIntFieldUpdateOperationsInput | bigint | number
+    uranium?: BigIntFieldUpdateOperationsInput | bigint | number
+    goldMine?: BigIntFieldUpdateOperationsInput | bigint | number
+    uraniumMine?: BigIntFieldUpdateOperationsInput | bigint | number
+    ironMine?: BigIntFieldUpdateOperationsInput | bigint | number
+    refinery?: BigIntFieldUpdateOperationsInput | bigint | number
+    soldier?: BigIntFieldUpdateOperationsInput | bigint | number
+    tank?: BigIntFieldUpdateOperationsInput | bigint | number
+    heavyTank?: BigIntFieldUpdateOperationsInput | bigint | number
+    su57?: BigIntFieldUpdateOperationsInput | bigint | number
+    f47?: BigIntFieldUpdateOperationsInput | bigint | number
+    f35?: BigIntFieldUpdateOperationsInput | bigint | number
+    j20?: BigIntFieldUpdateOperationsInput | bigint | number
+    f16?: BigIntFieldUpdateOperationsInput | bigint | number
+    f22?: BigIntFieldUpdateOperationsInput | bigint | number
+    am50?: BigIntFieldUpdateOperationsInput | bigint | number
+    b2?: BigIntFieldUpdateOperationsInput | bigint | number
+    tu16?: BigIntFieldUpdateOperationsInput | bigint | number
+    espionageDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    suicideDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    crossDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    witnessDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    simpleRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    crossRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    dotTargetRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    continentalRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    ballisticRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    chemicalRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    hyperSonicRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    clusterRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    battleship?: BigIntFieldUpdateOperationsInput | bigint | number
+    marineShip?: BigIntFieldUpdateOperationsInput | bigint | number
+    breakerShip?: BigIntFieldUpdateOperationsInput | bigint | number
+    nuclearSubmarine?: BigIntFieldUpdateOperationsInput | bigint | number
+    antiRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    ironDome?: BigIntFieldUpdateOperationsInput | bigint | number
+    s400?: BigIntFieldUpdateOperationsInput | bigint | number
+    taad?: BigIntFieldUpdateOperationsInput | bigint | number
+    hq9?: BigIntFieldUpdateOperationsInput | bigint | number
+    acash?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type UserUncheckedUpdateInput = {
@@ -7778,48 +7778,48 @@ export namespace Prisma {
     satisfaction?: IntFieldUpdateOperationsInput | number
     security?: IntFieldUpdateOperationsInput | number
     lottery?: IntFieldUpdateOperationsInput | number
-    oil?: IntFieldUpdateOperationsInput | number
-    iron?: IntFieldUpdateOperationsInput | number
-    gold?: IntFieldUpdateOperationsInput | number
-    uranium?: IntFieldUpdateOperationsInput | number
-    goldMine?: IntFieldUpdateOperationsInput | number
-    uraniumMine?: IntFieldUpdateOperationsInput | number
-    ironMine?: IntFieldUpdateOperationsInput | number
-    refinery?: IntFieldUpdateOperationsInput | number
-    soldier?: IntFieldUpdateOperationsInput | number
-    tank?: IntFieldUpdateOperationsInput | number
-    heavyTank?: IntFieldUpdateOperationsInput | number
-    su57?: IntFieldUpdateOperationsInput | number
-    f47?: IntFieldUpdateOperationsInput | number
-    f35?: IntFieldUpdateOperationsInput | number
-    j20?: IntFieldUpdateOperationsInput | number
-    f16?: IntFieldUpdateOperationsInput | number
-    f22?: IntFieldUpdateOperationsInput | number
-    am50?: IntFieldUpdateOperationsInput | number
-    b2?: IntFieldUpdateOperationsInput | number
-    tu16?: IntFieldUpdateOperationsInput | number
-    espionageDrone?: IntFieldUpdateOperationsInput | number
-    suicideDrone?: IntFieldUpdateOperationsInput | number
-    crossDrone?: IntFieldUpdateOperationsInput | number
-    witnessDrone?: IntFieldUpdateOperationsInput | number
-    simpleRocket?: IntFieldUpdateOperationsInput | number
-    crossRocket?: IntFieldUpdateOperationsInput | number
-    dotTargetRocket?: IntFieldUpdateOperationsInput | number
-    continentalRocket?: IntFieldUpdateOperationsInput | number
-    ballisticRocket?: IntFieldUpdateOperationsInput | number
-    chemicalRocket?: IntFieldUpdateOperationsInput | number
-    hyperSonicRocket?: IntFieldUpdateOperationsInput | number
-    clusterRocket?: IntFieldUpdateOperationsInput | number
-    battleship?: IntFieldUpdateOperationsInput | number
-    marineShip?: IntFieldUpdateOperationsInput | number
-    breakerShip?: IntFieldUpdateOperationsInput | number
-    nuclearSubmarine?: IntFieldUpdateOperationsInput | number
-    antiRocket?: IntFieldUpdateOperationsInput | number
-    ironDome?: IntFieldUpdateOperationsInput | number
-    s400?: IntFieldUpdateOperationsInput | number
-    taad?: IntFieldUpdateOperationsInput | number
-    hq9?: IntFieldUpdateOperationsInput | number
-    acash?: IntFieldUpdateOperationsInput | number
+    oil?: BigIntFieldUpdateOperationsInput | bigint | number
+    iron?: BigIntFieldUpdateOperationsInput | bigint | number
+    gold?: BigIntFieldUpdateOperationsInput | bigint | number
+    uranium?: BigIntFieldUpdateOperationsInput | bigint | number
+    goldMine?: BigIntFieldUpdateOperationsInput | bigint | number
+    uraniumMine?: BigIntFieldUpdateOperationsInput | bigint | number
+    ironMine?: BigIntFieldUpdateOperationsInput | bigint | number
+    refinery?: BigIntFieldUpdateOperationsInput | bigint | number
+    soldier?: BigIntFieldUpdateOperationsInput | bigint | number
+    tank?: BigIntFieldUpdateOperationsInput | bigint | number
+    heavyTank?: BigIntFieldUpdateOperationsInput | bigint | number
+    su57?: BigIntFieldUpdateOperationsInput | bigint | number
+    f47?: BigIntFieldUpdateOperationsInput | bigint | number
+    f35?: BigIntFieldUpdateOperationsInput | bigint | number
+    j20?: BigIntFieldUpdateOperationsInput | bigint | number
+    f16?: BigIntFieldUpdateOperationsInput | bigint | number
+    f22?: BigIntFieldUpdateOperationsInput | bigint | number
+    am50?: BigIntFieldUpdateOperationsInput | bigint | number
+    b2?: BigIntFieldUpdateOperationsInput | bigint | number
+    tu16?: BigIntFieldUpdateOperationsInput | bigint | number
+    espionageDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    suicideDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    crossDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    witnessDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    simpleRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    crossRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    dotTargetRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    continentalRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    ballisticRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    chemicalRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    hyperSonicRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    clusterRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    battleship?: BigIntFieldUpdateOperationsInput | bigint | number
+    marineShip?: BigIntFieldUpdateOperationsInput | bigint | number
+    breakerShip?: BigIntFieldUpdateOperationsInput | bigint | number
+    nuclearSubmarine?: BigIntFieldUpdateOperationsInput | bigint | number
+    antiRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    ironDome?: BigIntFieldUpdateOperationsInput | bigint | number
+    s400?: BigIntFieldUpdateOperationsInput | bigint | number
+    taad?: BigIntFieldUpdateOperationsInput | bigint | number
+    hq9?: BigIntFieldUpdateOperationsInput | bigint | number
+    acash?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type UserCreateManyInput = {
@@ -7836,48 +7836,48 @@ export namespace Prisma {
     satisfaction?: number
     security?: number
     lottery?: number
-    oil?: number
-    iron?: number
-    gold?: number
-    uranium?: number
-    goldMine?: number
-    uraniumMine?: number
-    ironMine?: number
-    refinery?: number
-    soldier?: number
-    tank?: number
-    heavyTank?: number
-    su57?: number
-    f47?: number
-    f35?: number
-    j20?: number
-    f16?: number
-    f22?: number
-    am50?: number
-    b2?: number
-    tu16?: number
-    espionageDrone?: number
-    suicideDrone?: number
-    crossDrone?: number
-    witnessDrone?: number
-    simpleRocket?: number
-    crossRocket?: number
-    dotTargetRocket?: number
-    continentalRocket?: number
-    ballisticRocket?: number
-    chemicalRocket?: number
-    hyperSonicRocket?: number
-    clusterRocket?: number
-    battleship?: number
-    marineShip?: number
-    breakerShip?: number
-    nuclearSubmarine?: number
-    antiRocket?: number
-    ironDome?: number
-    s400?: number
-    taad?: number
-    hq9?: number
-    acash?: number
+    oil?: bigint | number
+    iron?: bigint | number
+    gold?: bigint | number
+    uranium?: bigint | number
+    goldMine?: bigint | number
+    uraniumMine?: bigint | number
+    ironMine?: bigint | number
+    refinery?: bigint | number
+    soldier?: bigint | number
+    tank?: bigint | number
+    heavyTank?: bigint | number
+    su57?: bigint | number
+    f47?: bigint | number
+    f35?: bigint | number
+    j20?: bigint | number
+    f16?: bigint | number
+    f22?: bigint | number
+    am50?: bigint | number
+    b2?: bigint | number
+    tu16?: bigint | number
+    espionageDrone?: bigint | number
+    suicideDrone?: bigint | number
+    crossDrone?: bigint | number
+    witnessDrone?: bigint | number
+    simpleRocket?: bigint | number
+    crossRocket?: bigint | number
+    dotTargetRocket?: bigint | number
+    continentalRocket?: bigint | number
+    ballisticRocket?: bigint | number
+    chemicalRocket?: bigint | number
+    hyperSonicRocket?: bigint | number
+    clusterRocket?: bigint | number
+    battleship?: bigint | number
+    marineShip?: bigint | number
+    breakerShip?: bigint | number
+    nuclearSubmarine?: bigint | number
+    antiRocket?: bigint | number
+    ironDome?: bigint | number
+    s400?: bigint | number
+    taad?: bigint | number
+    hq9?: bigint | number
+    acash?: bigint | number
   }
 
   export type UserUpdateManyMutationInput = {
@@ -7894,48 +7894,48 @@ export namespace Prisma {
     satisfaction?: IntFieldUpdateOperationsInput | number
     security?: IntFieldUpdateOperationsInput | number
     lottery?: IntFieldUpdateOperationsInput | number
-    oil?: IntFieldUpdateOperationsInput | number
-    iron?: IntFieldUpdateOperationsInput | number
-    gold?: IntFieldUpdateOperationsInput | number
-    uranium?: IntFieldUpdateOperationsInput | number
-    goldMine?: IntFieldUpdateOperationsInput | number
-    uraniumMine?: IntFieldUpdateOperationsInput | number
-    ironMine?: IntFieldUpdateOperationsInput | number
-    refinery?: IntFieldUpdateOperationsInput | number
-    soldier?: IntFieldUpdateOperationsInput | number
-    tank?: IntFieldUpdateOperationsInput | number
-    heavyTank?: IntFieldUpdateOperationsInput | number
-    su57?: IntFieldUpdateOperationsInput | number
-    f47?: IntFieldUpdateOperationsInput | number
-    f35?: IntFieldUpdateOperationsInput | number
-    j20?: IntFieldUpdateOperationsInput | number
-    f16?: IntFieldUpdateOperationsInput | number
-    f22?: IntFieldUpdateOperationsInput | number
-    am50?: IntFieldUpdateOperationsInput | number
-    b2?: IntFieldUpdateOperationsInput | number
-    tu16?: IntFieldUpdateOperationsInput | number
-    espionageDrone?: IntFieldUpdateOperationsInput | number
-    suicideDrone?: IntFieldUpdateOperationsInput | number
-    crossDrone?: IntFieldUpdateOperationsInput | number
-    witnessDrone?: IntFieldUpdateOperationsInput | number
-    simpleRocket?: IntFieldUpdateOperationsInput | number
-    crossRocket?: IntFieldUpdateOperationsInput | number
-    dotTargetRocket?: IntFieldUpdateOperationsInput | number
-    continentalRocket?: IntFieldUpdateOperationsInput | number
-    ballisticRocket?: IntFieldUpdateOperationsInput | number
-    chemicalRocket?: IntFieldUpdateOperationsInput | number
-    hyperSonicRocket?: IntFieldUpdateOperationsInput | number
-    clusterRocket?: IntFieldUpdateOperationsInput | number
-    battleship?: IntFieldUpdateOperationsInput | number
-    marineShip?: IntFieldUpdateOperationsInput | number
-    breakerShip?: IntFieldUpdateOperationsInput | number
-    nuclearSubmarine?: IntFieldUpdateOperationsInput | number
-    antiRocket?: IntFieldUpdateOperationsInput | number
-    ironDome?: IntFieldUpdateOperationsInput | number
-    s400?: IntFieldUpdateOperationsInput | number
-    taad?: IntFieldUpdateOperationsInput | number
-    hq9?: IntFieldUpdateOperationsInput | number
-    acash?: IntFieldUpdateOperationsInput | number
+    oil?: BigIntFieldUpdateOperationsInput | bigint | number
+    iron?: BigIntFieldUpdateOperationsInput | bigint | number
+    gold?: BigIntFieldUpdateOperationsInput | bigint | number
+    uranium?: BigIntFieldUpdateOperationsInput | bigint | number
+    goldMine?: BigIntFieldUpdateOperationsInput | bigint | number
+    uraniumMine?: BigIntFieldUpdateOperationsInput | bigint | number
+    ironMine?: BigIntFieldUpdateOperationsInput | bigint | number
+    refinery?: BigIntFieldUpdateOperationsInput | bigint | number
+    soldier?: BigIntFieldUpdateOperationsInput | bigint | number
+    tank?: BigIntFieldUpdateOperationsInput | bigint | number
+    heavyTank?: BigIntFieldUpdateOperationsInput | bigint | number
+    su57?: BigIntFieldUpdateOperationsInput | bigint | number
+    f47?: BigIntFieldUpdateOperationsInput | bigint | number
+    f35?: BigIntFieldUpdateOperationsInput | bigint | number
+    j20?: BigIntFieldUpdateOperationsInput | bigint | number
+    f16?: BigIntFieldUpdateOperationsInput | bigint | number
+    f22?: BigIntFieldUpdateOperationsInput | bigint | number
+    am50?: BigIntFieldUpdateOperationsInput | bigint | number
+    b2?: BigIntFieldUpdateOperationsInput | bigint | number
+    tu16?: BigIntFieldUpdateOperationsInput | bigint | number
+    espionageDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    suicideDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    crossDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    witnessDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    simpleRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    crossRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    dotTargetRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    continentalRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    ballisticRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    chemicalRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    hyperSonicRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    clusterRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    battleship?: BigIntFieldUpdateOperationsInput | bigint | number
+    marineShip?: BigIntFieldUpdateOperationsInput | bigint | number
+    breakerShip?: BigIntFieldUpdateOperationsInput | bigint | number
+    nuclearSubmarine?: BigIntFieldUpdateOperationsInput | bigint | number
+    antiRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    ironDome?: BigIntFieldUpdateOperationsInput | bigint | number
+    s400?: BigIntFieldUpdateOperationsInput | bigint | number
+    taad?: BigIntFieldUpdateOperationsInput | bigint | number
+    hq9?: BigIntFieldUpdateOperationsInput | bigint | number
+    acash?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -7952,48 +7952,48 @@ export namespace Prisma {
     satisfaction?: IntFieldUpdateOperationsInput | number
     security?: IntFieldUpdateOperationsInput | number
     lottery?: IntFieldUpdateOperationsInput | number
-    oil?: IntFieldUpdateOperationsInput | number
-    iron?: IntFieldUpdateOperationsInput | number
-    gold?: IntFieldUpdateOperationsInput | number
-    uranium?: IntFieldUpdateOperationsInput | number
-    goldMine?: IntFieldUpdateOperationsInput | number
-    uraniumMine?: IntFieldUpdateOperationsInput | number
-    ironMine?: IntFieldUpdateOperationsInput | number
-    refinery?: IntFieldUpdateOperationsInput | number
-    soldier?: IntFieldUpdateOperationsInput | number
-    tank?: IntFieldUpdateOperationsInput | number
-    heavyTank?: IntFieldUpdateOperationsInput | number
-    su57?: IntFieldUpdateOperationsInput | number
-    f47?: IntFieldUpdateOperationsInput | number
-    f35?: IntFieldUpdateOperationsInput | number
-    j20?: IntFieldUpdateOperationsInput | number
-    f16?: IntFieldUpdateOperationsInput | number
-    f22?: IntFieldUpdateOperationsInput | number
-    am50?: IntFieldUpdateOperationsInput | number
-    b2?: IntFieldUpdateOperationsInput | number
-    tu16?: IntFieldUpdateOperationsInput | number
-    espionageDrone?: IntFieldUpdateOperationsInput | number
-    suicideDrone?: IntFieldUpdateOperationsInput | number
-    crossDrone?: IntFieldUpdateOperationsInput | number
-    witnessDrone?: IntFieldUpdateOperationsInput | number
-    simpleRocket?: IntFieldUpdateOperationsInput | number
-    crossRocket?: IntFieldUpdateOperationsInput | number
-    dotTargetRocket?: IntFieldUpdateOperationsInput | number
-    continentalRocket?: IntFieldUpdateOperationsInput | number
-    ballisticRocket?: IntFieldUpdateOperationsInput | number
-    chemicalRocket?: IntFieldUpdateOperationsInput | number
-    hyperSonicRocket?: IntFieldUpdateOperationsInput | number
-    clusterRocket?: IntFieldUpdateOperationsInput | number
-    battleship?: IntFieldUpdateOperationsInput | number
-    marineShip?: IntFieldUpdateOperationsInput | number
-    breakerShip?: IntFieldUpdateOperationsInput | number
-    nuclearSubmarine?: IntFieldUpdateOperationsInput | number
-    antiRocket?: IntFieldUpdateOperationsInput | number
-    ironDome?: IntFieldUpdateOperationsInput | number
-    s400?: IntFieldUpdateOperationsInput | number
-    taad?: IntFieldUpdateOperationsInput | number
-    hq9?: IntFieldUpdateOperationsInput | number
-    acash?: IntFieldUpdateOperationsInput | number
+    oil?: BigIntFieldUpdateOperationsInput | bigint | number
+    iron?: BigIntFieldUpdateOperationsInput | bigint | number
+    gold?: BigIntFieldUpdateOperationsInput | bigint | number
+    uranium?: BigIntFieldUpdateOperationsInput | bigint | number
+    goldMine?: BigIntFieldUpdateOperationsInput | bigint | number
+    uraniumMine?: BigIntFieldUpdateOperationsInput | bigint | number
+    ironMine?: BigIntFieldUpdateOperationsInput | bigint | number
+    refinery?: BigIntFieldUpdateOperationsInput | bigint | number
+    soldier?: BigIntFieldUpdateOperationsInput | bigint | number
+    tank?: BigIntFieldUpdateOperationsInput | bigint | number
+    heavyTank?: BigIntFieldUpdateOperationsInput | bigint | number
+    su57?: BigIntFieldUpdateOperationsInput | bigint | number
+    f47?: BigIntFieldUpdateOperationsInput | bigint | number
+    f35?: BigIntFieldUpdateOperationsInput | bigint | number
+    j20?: BigIntFieldUpdateOperationsInput | bigint | number
+    f16?: BigIntFieldUpdateOperationsInput | bigint | number
+    f22?: BigIntFieldUpdateOperationsInput | bigint | number
+    am50?: BigIntFieldUpdateOperationsInput | bigint | number
+    b2?: BigIntFieldUpdateOperationsInput | bigint | number
+    tu16?: BigIntFieldUpdateOperationsInput | bigint | number
+    espionageDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    suicideDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    crossDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    witnessDrone?: BigIntFieldUpdateOperationsInput | bigint | number
+    simpleRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    crossRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    dotTargetRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    continentalRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    ballisticRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    chemicalRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    hyperSonicRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    clusterRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    battleship?: BigIntFieldUpdateOperationsInput | bigint | number
+    marineShip?: BigIntFieldUpdateOperationsInput | bigint | number
+    breakerShip?: BigIntFieldUpdateOperationsInput | bigint | number
+    nuclearSubmarine?: BigIntFieldUpdateOperationsInput | bigint | number
+    antiRocket?: BigIntFieldUpdateOperationsInput | bigint | number
+    ironDome?: BigIntFieldUpdateOperationsInput | bigint | number
+    s400?: BigIntFieldUpdateOperationsInput | bigint | number
+    taad?: BigIntFieldUpdateOperationsInput | bigint | number
+    hq9?: BigIntFieldUpdateOperationsInput | bigint | number
+    acash?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type ProductionLineCreateInput = {
@@ -8002,8 +8002,8 @@ export namespace Prisma {
     name: string
     type: string
     imageUrl: string
-    imageFileId: string
-    dailyLimit: number
+    imageFileId?: string
+    dailyLimit?: number
     dailyOutput?: number
     setupCost: bigint | number
     createdAt?: Date | string
@@ -8019,8 +8019,8 @@ export namespace Prisma {
     name: string
     type: string
     imageUrl: string
-    imageFileId: string
-    dailyLimit: number
+    imageFileId?: string
+    dailyLimit?: number
     dailyOutput?: number
     setupCost: bigint | number
     createdAt?: Date | string
@@ -8069,8 +8069,8 @@ export namespace Prisma {
     name: string
     type: string
     imageUrl: string
-    imageFileId: string
-    dailyLimit: number
+    imageFileId?: string
+    dailyLimit?: number
     dailyOutput?: number
     setupCost: bigint | number
     createdAt?: Date | string
@@ -8117,8 +8117,8 @@ export namespace Prisma {
     name: string
     type: string
     imageUrl: string
-    imageFileId: string
-    description: string
+    imageFileId?: string
+    description?: string
     dailyLimit: number
     setupCost: bigint | number
     country: string
@@ -8132,8 +8132,8 @@ export namespace Prisma {
     name: string
     type: string
     imageUrl: string
-    imageFileId: string
-    description: string
+    imageFileId?: string
+    description?: string
     dailyLimit: number
     setupCost: bigint | number
     country: string
@@ -8176,8 +8176,8 @@ export namespace Prisma {
     name: string
     type: string
     imageUrl: string
-    imageFileId: string
-    description: string
+    imageFileId?: string
+    description?: string
     dailyLimit: number
     setupCost: bigint | number
     country: string

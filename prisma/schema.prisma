@@ -92,7 +92,7 @@ model ProductionLine {
   name          String
   type          String // مثل 'car', 'game', 'movie'
   imageUrl      String
-  imageFileId   String
+  imageFileId   String   @default("")
   dailyLimit    Int      @default(3)
   dailyOutput   Int      @default(15)
   setupCost     BigInt
@@ -103,13 +103,13 @@ model ProductionLine {
 }
 
 model PendingProductionLine {
-  id            Int      @id @default(autoincrement()) // ← اضافه کن
+  id            Int      @id @default(autoincrement())
   ownerId       BigInt
   name          String
   type          String
   imageUrl      String
-  imageFileId   String
-  description   String
+  imageFileId   String   @default("")
+  description   String   @default("")
   dailyLimit    Int
   setupCost     BigInt
   country       String
