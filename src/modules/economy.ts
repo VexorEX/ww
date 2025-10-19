@@ -96,7 +96,7 @@ export async function changeUserField(
         await prisma.user.update({
             where: { userid },
             data: {
-                [field]: isBigInt ? final : Number(final)
+                [field]: bigintFields.includes(field) ? final : Number(final)
             }
         });
 
@@ -134,7 +134,7 @@ export async function changeFieldForAllUsers(
                 where: { userid: user.userid },
                 data: {
                     [field]: bigintFields.includes(field) ? final : Number(final)
-                }
+        }
             });
         }
 
