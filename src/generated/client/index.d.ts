@@ -2913,6 +2913,7 @@ export namespace Prisma {
     id: number | null
     ownerId: number | null
     dailyLimit: number | null
+    dailyOutput: number | null
     setupCost: number | null
     unitPrice: number | null
     profitPercent: number | null
@@ -2922,6 +2923,7 @@ export namespace Prisma {
     id: number | null
     ownerId: bigint | null
     dailyLimit: number | null
+    dailyOutput: number | null
     setupCost: bigint | null
     unitPrice: number | null
     profitPercent: number | null
@@ -2936,6 +2938,7 @@ export namespace Prisma {
     imageUrl: string | null
     imageFileId: string | null
     dailyLimit: number | null
+    dailyOutput: number | null
     setupCost: bigint | null
     createdAt: Date | null
     carName: string | null
@@ -2952,6 +2955,7 @@ export namespace Prisma {
     imageUrl: string | null
     imageFileId: string | null
     dailyLimit: number | null
+    dailyOutput: number | null
     setupCost: bigint | null
     createdAt: Date | null
     carName: string | null
@@ -2968,6 +2972,7 @@ export namespace Prisma {
     imageUrl: number
     imageFileId: number
     dailyLimit: number
+    dailyOutput: number
     setupCost: number
     createdAt: number
     carName: number
@@ -2981,6 +2986,7 @@ export namespace Prisma {
     id?: true
     ownerId?: true
     dailyLimit?: true
+    dailyOutput?: true
     setupCost?: true
     unitPrice?: true
     profitPercent?: true
@@ -2990,6 +2996,7 @@ export namespace Prisma {
     id?: true
     ownerId?: true
     dailyLimit?: true
+    dailyOutput?: true
     setupCost?: true
     unitPrice?: true
     profitPercent?: true
@@ -3004,6 +3011,7 @@ export namespace Prisma {
     imageUrl?: true
     imageFileId?: true
     dailyLimit?: true
+    dailyOutput?: true
     setupCost?: true
     createdAt?: true
     carName?: true
@@ -3020,6 +3028,7 @@ export namespace Prisma {
     imageUrl?: true
     imageFileId?: true
     dailyLimit?: true
+    dailyOutput?: true
     setupCost?: true
     createdAt?: true
     carName?: true
@@ -3036,6 +3045,7 @@ export namespace Prisma {
     imageUrl?: true
     imageFileId?: true
     dailyLimit?: true
+    dailyOutput?: true
     setupCost?: true
     createdAt?: true
     carName?: true
@@ -3139,6 +3149,7 @@ export namespace Prisma {
     imageUrl: string
     imageFileId: string
     dailyLimit: number
+    dailyOutput: number
     setupCost: bigint
     createdAt: Date
     carName: string | null
@@ -3174,6 +3185,7 @@ export namespace Prisma {
     imageUrl?: boolean
     imageFileId?: boolean
     dailyLimit?: boolean
+    dailyOutput?: boolean
     setupCost?: boolean
     createdAt?: boolean
     carName?: boolean
@@ -3190,6 +3202,7 @@ export namespace Prisma {
     imageUrl?: boolean
     imageFileId?: boolean
     dailyLimit?: boolean
+    dailyOutput?: boolean
     setupCost?: boolean
     createdAt?: boolean
     carName?: boolean
@@ -3206,6 +3219,7 @@ export namespace Prisma {
     imageUrl?: boolean
     imageFileId?: boolean
     dailyLimit?: boolean
+    dailyOutput?: boolean
     setupCost?: boolean
     createdAt?: boolean
     carName?: boolean
@@ -3226,6 +3240,7 @@ export namespace Prisma {
       imageUrl: string
       imageFileId: string
       dailyLimit: number
+      dailyOutput: number
       setupCost: bigint
       createdAt: Date
       carName: string | null
@@ -3632,6 +3647,7 @@ export namespace Prisma {
     readonly imageUrl: FieldRef<"ProductionLine", 'String'>
     readonly imageFileId: FieldRef<"ProductionLine", 'String'>
     readonly dailyLimit: FieldRef<"ProductionLine", 'Int'>
+    readonly dailyOutput: FieldRef<"ProductionLine", 'Int'>
     readonly setupCost: FieldRef<"ProductionLine", 'BigInt'>
     readonly createdAt: FieldRef<"ProductionLine", 'DateTime'>
     readonly carName: FieldRef<"ProductionLine", 'String'>
@@ -6858,6 +6874,7 @@ export namespace Prisma {
     imageUrl: 'imageUrl',
     imageFileId: 'imageFileId',
     dailyLimit: 'dailyLimit',
+    dailyOutput: 'dailyOutput',
     setupCost: 'setupCost',
     createdAt: 'createdAt',
     carName: 'carName',
@@ -7284,6 +7301,7 @@ export namespace Prisma {
     imageUrl?: StringFilter<"ProductionLine"> | string
     imageFileId?: StringFilter<"ProductionLine"> | string
     dailyLimit?: IntFilter<"ProductionLine"> | number
+    dailyOutput?: IntFilter<"ProductionLine"> | number
     setupCost?: BigIntFilter<"ProductionLine"> | bigint | number
     createdAt?: DateTimeFilter<"ProductionLine"> | Date | string
     carName?: StringNullableFilter<"ProductionLine"> | string | null
@@ -7300,6 +7318,7 @@ export namespace Prisma {
     imageUrl?: SortOrder
     imageFileId?: SortOrder
     dailyLimit?: SortOrder
+    dailyOutput?: SortOrder
     setupCost?: SortOrder
     createdAt?: SortOrder
     carName?: SortOrderInput | SortOrder
@@ -7319,6 +7338,7 @@ export namespace Prisma {
     imageUrl?: StringFilter<"ProductionLine"> | string
     imageFileId?: StringFilter<"ProductionLine"> | string
     dailyLimit?: IntFilter<"ProductionLine"> | number
+    dailyOutput?: IntFilter<"ProductionLine"> | number
     setupCost?: BigIntFilter<"ProductionLine"> | bigint | number
     createdAt?: DateTimeFilter<"ProductionLine"> | Date | string
     carName?: StringNullableFilter<"ProductionLine"> | string | null
@@ -7335,6 +7355,7 @@ export namespace Prisma {
     imageUrl?: SortOrder
     imageFileId?: SortOrder
     dailyLimit?: SortOrder
+    dailyOutput?: SortOrder
     setupCost?: SortOrder
     createdAt?: SortOrder
     carName?: SortOrderInput | SortOrder
@@ -7359,6 +7380,7 @@ export namespace Prisma {
     imageUrl?: StringWithAggregatesFilter<"ProductionLine"> | string
     imageFileId?: StringWithAggregatesFilter<"ProductionLine"> | string
     dailyLimit?: IntWithAggregatesFilter<"ProductionLine"> | number
+    dailyOutput?: IntWithAggregatesFilter<"ProductionLine"> | number
     setupCost?: BigIntWithAggregatesFilter<"ProductionLine"> | bigint | number
     createdAt?: DateTimeWithAggregatesFilter<"ProductionLine"> | Date | string
     carName?: StringNullableWithAggregatesFilter<"ProductionLine"> | string | null
@@ -7982,6 +8004,7 @@ export namespace Prisma {
     imageUrl: string
     imageFileId: string
     dailyLimit: number
+    dailyOutput?: number
     setupCost: bigint | number
     createdAt?: Date | string
     carName?: string | null
@@ -7998,6 +8021,7 @@ export namespace Prisma {
     imageUrl: string
     imageFileId: string
     dailyLimit: number
+    dailyOutput?: number
     setupCost: bigint | number
     createdAt?: Date | string
     carName?: string | null
@@ -8013,6 +8037,7 @@ export namespace Prisma {
     imageUrl?: StringFieldUpdateOperationsInput | string
     imageFileId?: StringFieldUpdateOperationsInput | string
     dailyLimit?: IntFieldUpdateOperationsInput | number
+    dailyOutput?: IntFieldUpdateOperationsInput | number
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     carName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8029,6 +8054,7 @@ export namespace Prisma {
     imageUrl?: StringFieldUpdateOperationsInput | string
     imageFileId?: StringFieldUpdateOperationsInput | string
     dailyLimit?: IntFieldUpdateOperationsInput | number
+    dailyOutput?: IntFieldUpdateOperationsInput | number
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     carName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8045,6 +8071,7 @@ export namespace Prisma {
     imageUrl: string
     imageFileId: string
     dailyLimit: number
+    dailyOutput?: number
     setupCost: bigint | number
     createdAt?: Date | string
     carName?: string | null
@@ -8060,6 +8087,7 @@ export namespace Prisma {
     imageUrl?: StringFieldUpdateOperationsInput | string
     imageFileId?: StringFieldUpdateOperationsInput | string
     dailyLimit?: IntFieldUpdateOperationsInput | number
+    dailyOutput?: IntFieldUpdateOperationsInput | number
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     carName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8076,6 +8104,7 @@ export namespace Prisma {
     imageUrl?: StringFieldUpdateOperationsInput | string
     imageFileId?: StringFieldUpdateOperationsInput | string
     dailyLimit?: IntFieldUpdateOperationsInput | number
+    dailyOutput?: IntFieldUpdateOperationsInput | number
     setupCost?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     carName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8715,6 +8744,7 @@ export namespace Prisma {
     imageUrl?: SortOrder
     imageFileId?: SortOrder
     dailyLimit?: SortOrder
+    dailyOutput?: SortOrder
     setupCost?: SortOrder
     createdAt?: SortOrder
     carName?: SortOrder
@@ -8726,6 +8756,7 @@ export namespace Prisma {
     id?: SortOrder
     ownerId?: SortOrder
     dailyLimit?: SortOrder
+    dailyOutput?: SortOrder
     setupCost?: SortOrder
     unitPrice?: SortOrder
     profitPercent?: SortOrder
@@ -8740,6 +8771,7 @@ export namespace Prisma {
     imageUrl?: SortOrder
     imageFileId?: SortOrder
     dailyLimit?: SortOrder
+    dailyOutput?: SortOrder
     setupCost?: SortOrder
     createdAt?: SortOrder
     carName?: SortOrder
@@ -8756,6 +8788,7 @@ export namespace Prisma {
     imageUrl?: SortOrder
     imageFileId?: SortOrder
     dailyLimit?: SortOrder
+    dailyOutput?: SortOrder
     setupCost?: SortOrder
     createdAt?: SortOrder
     carName?: SortOrder
@@ -8767,6 +8800,7 @@ export namespace Prisma {
     id?: SortOrder
     ownerId?: SortOrder
     dailyLimit?: SortOrder
+    dailyOutput?: SortOrder
     setupCost?: SortOrder
     unitPrice?: SortOrder
     profitPercent?: SortOrder
