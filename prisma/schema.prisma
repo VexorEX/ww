@@ -93,7 +93,7 @@ model ProductionLine {
   type          String // مثل 'car', 'game', 'movie'
   imageUrl      String
   imageFileId   String
-  dailyLimit    Int
+  dailyLimit    Int      @default(3)
   dailyOutput   Int      @default(15)
   setupCost     BigInt
   createdAt     DateTime @default(now())

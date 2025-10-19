@@ -41,7 +41,6 @@ for (const type of ['car', 'film', 'music', 'game']) {
     });
 }
 
-
 // دریافت نام پروژه
 building.on('text', async (ctx, next) => {
     ctx.session ??= {};
@@ -192,9 +191,23 @@ building.action('submit_building', async (ctx) => {
 // تأیید نهایی توسط ادمین
 building.action(/admin_approve_building_(\d+)/, async (ctx) => {
     const userId = BigInt(ctx.match[1]);
-    const user = await prisma.user.findUnique({where: {userid: userId}});
-    const pending = await prisma.pendingProductionLine.findFirst({where: {ownerId: userId}});
+    const user = await prisma.user.findUnique({ where: { userid: userId } });
+    const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
     if (!user || !pending) return ctx.reply('❌ اطلاعات یافت نشد.');
+
+    // محاسبه سود روزانه برای پروژه‌های عمرانی
+    let addedProfit = 0;
+    if (pending.type !== 'car' && pending.profitPercent) {
+        const base = Number(pending.setupCost);
+        addedProfit = Math.floor(base * pending.profitPercent / 100);
+
+        await prisma.user.update({
+            where: { userid: userId },
+            data: {
+                dailyProfit: { increment: addedProfit }
+            }
+        });
+    }
 
     await prisma.productionLine.create({
         data: {
@@ -202,7 +215,7 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
             name: pending.name,
             type: pending.type,
             imageUrl: pending.imageUrl,
-            imageFileId: ctx.session.buildingImageFileId,
+            imageFileId: pending.imageFileId,
             dailyLimit: pending.dailyLimit,
             setupCost: pending.setupCost,
             country: pending.country,
@@ -210,7 +223,7 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
         }
     });
 
-    await prisma.pendingProductionLine.delete({where: {id: pending.id}});
+    await prisma.pendingProductionLine.delete({ where: { id: pending.id } });
 
     await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
         caption: escapeMarkdownV2(
@@ -223,8 +236,25 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
         parse_mode: 'MarkdownV2'
     });
 
+    // پیام به کاربر درباره تأیید و سوددهی
+    try {
+        let message =
+            `✅ پروژه "${pending.name}" تأیید شد و خط تولید فعال شد.\n` +
+            `🏗 نوع پروژه: ${pending.type}\n` +
+            `💰 بودجه: ${Math.floor(Number(pending.setupCost) / 1_000_000)}M`;
+
+        if (addedProfit > 0) {
+            message += `\n➕ سود روزانه: ${Math.floor(addedProfit / 1_000_000)}M به حساب سود شما اضافه شد.`;
+        }
+
+        await ctx.telegram.sendMessage(Number(userId), message);
+    } catch (err) {
+        console.warn('❌ ارسال پیام به کاربر ممکن نبود:', err);
+    }
+
     await ctx.reply('✅ خط تولید ثبت شد و به کانال ارسال شد.');
 });
+
 
 // رد درخواست توسط ادمین
 building.action(/admin_reject_building_(\d+)/, async (ctx) => {
@@ -264,7 +294,5 @@ building.action(/admin_reject_building_(\d+)/, async (ctx) => {
 
     await ctx.answerCbQuery('✅ درخواست رد شد و پول برگشت.');
 });
-
-
 
 export default building;
