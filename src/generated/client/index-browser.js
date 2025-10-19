@@ -184,6 +184,7 @@ exports.Prisma.ProductionLineScalarFieldEnum = {
   name: 'name',
   type: 'type',
   imageUrl: 'imageUrl',
+  imageFileId: 'imageFileId',
   dailyLimit: 'dailyLimit',
   setupCost: 'setupCost',
   createdAt: 'createdAt',

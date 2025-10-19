@@ -3,7 +3,6 @@ import type { CustomContext } from '../middlewares/userAuth';
 import { escapeMarkdownV2 } from '../utils/escape';
 import { prisma } from '../prisma';
 import config from '../config/config.json';
-import { createProductionLine } from './helper/Building';
 import { changeCapital } from './economy';
 
 const admins: number[] = config.manage.buildings.admins;
@@ -104,7 +103,7 @@ building.on('text', async (ctx, next) => {
             [Markup.button.callback('🔙 بازگشت', 'building')]
         ]);
 
-        await ctx.replyWithPhoto(ctx.session.carImageFileId, {
+        await ctx.replyWithPhoto(ctx.session.buildingImageFileId, {
             caption: preview,
             parse_mode: 'MarkdownV2',
             reply_markup: keyboard.reply_markup
@@ -124,8 +123,8 @@ building.on('photo', async (ctx, next) => {
     if (!photo) return ctx.reply('❌ تصویر معتبر ارسال نشده.');
 
     const imageUrl = await ctx.telegram.getFileLink(photo.file_id);
-    ctx.session.carImage = imageUrl.href;
-    ctx.session.carImageFileId = photo.file_id;
+    ctx.session.buildingImage = imageUrl.href;
+    ctx.session.buildingImageFileId = photo.file_id;
     ctx.session.buildingStep = 'awaiting_build_description';
 
     await ctx.reply('📝 توضیحی درباره محصولت بنویس (مثلاً ویژگی‌ها یا هدف تولید):');
@@ -203,6 +202,7 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
             name: pending.name,
             type: pending.type,
             imageUrl: pending.imageUrl,
+            imageFileId: ctx.session.buildingImageFileId,
             dailyLimit: pending.dailyLimit,
             setupCost: pending.setupCost,
             country: pending.country,
@@ -268,3 +268,251 @@ building.action(/admin_reject_building_(\d+)/, async (ctx) => {
 
 
 export default building;
+in building hast
+
+va in ham market :
+import { Composer, Markup } from 'telegraf';
+import type { CustomContext } from '../middlewares/userAuth';
+import { prisma } from '../prisma';
+import { changeCapital } from './economy';
+import { escapeMarkdownV2 } from '../utils/escape';
+
+const sell = new Composer<CustomContext>();
+
+// تابع محاسبه قیمت فروش
+function calculateSellPrice(prod: {
+    type: string;
+    unitPrice?: number | null;
+    dailyLimit: number;
+    setupCost: bigint;
+    profitPercent?: number | null;
+}): number {
+    if (prod.type === 'car') {
+        return (prod.unitPrice ?? 0) * prod.dailyLimit;
+    }
+    const base = Number(prod.setupCost);
+    const profit = Math.floor(base * (prod.profitPercent ?? 0) / 100);
+    return base + profit;
+}
+
+// نمایش تولیدات قابل فروش
+sell.action('sell', async (ctx) => {
+    const userId = BigInt(ctx.from.id);
+    const productions = await prisma.productionLine.findMany({ where: { ownerId: userId } });
+
+    if (productions.length === 0) {
+        await ctx.reply('❌ شما هیچ تولید فعالی برای فروش ندارید.');
+        return ctx.answerCbQuery();
+    }
+
+    for (const prod of productions) {
+        const price = calculateSellPrice(prod);
+        const caption = escapeMarkdownV2(
+            `🛒 ${prod.name} (${prod.type})\n` +
+            `💰 قیمت فروش: ${Math.floor(price / 1_000_000)}M`
+        );
+
+        const keyboard = Markup.inlineKeyboard([
+            [Markup.button.callback(`📤 فروش به ${Math.floor(price / 1_000_000)}M`, `sell_${prod.id}`)]
+        ]);
+
+        try {
+            if (prod.imageFileId) {
+                await ctx.replyWithPhoto(prod.imageFileId, {
+                    caption,
+                    parse_mode: 'MarkdownV2',
+                    reply_markup: keyboard.reply_markup
+                });
+            } else {
+                await ctx.reply(caption, {
+                    parse_mode: 'MarkdownV2',
+                    reply_markup: keyboard.reply_markup
+                });
+            }
+        } catch (err) {
+            console.error('خطا در ارسال عکس:', err);
+            await ctx.reply(caption, {
+                parse_mode: 'MarkdownV2',
+                reply_markup: keyboard.reply_markup
+            });
+        }
+    }
+
+    await ctx.answerCbQuery();
+});
+
+// هندل فروش با دکمه
+sell.action(/^sell_(\d+)$/, async (ctx) => {
+    const prodId = Number(ctx.match[1]);
+    const userId = BigInt(ctx.from.id);
+
+    const prod = await prisma.productionLine.findUnique({ where: { id: prodId } });
+    if (!prod || prod.ownerId !== userId) {
+        return ctx.answerCbQuery('❌ محصول یافت نشد یا متعلق به شما نیست.');
+    }
+
+    const price = calculateSellPrice(prod);
+
+    const result = await changeCapital(userId, 'add', price);
+    if (result !== 'ok') {
+        return ctx.answerCbQuery('❌ خطا در انتقال سرمایه.');
+    }
+
+    await prisma.productionLine.delete({ where: { id: prodId } });
+
+    await ctx.reply(
+        `✅ "${prod.name}" با موفقیت فروخته شد.\n` +
+        `💰 مبلغ ${Math.floor(price / 1_000_000)}M به حساب شما اضافه شد.`
+    );
+
+    ctx.answerCbQuery();
+});
+
+export default sell;
+
+
+
+ghazie az in gharare ke
+braye car bayad roozi 15 ta be user result bede
+vali braye music o film o game bayad random 10-82% az mablaghi ke user be onvan sarmaye taiin karde be dailyprofitesh add beshe
+
+
+
+in ham cron:
+import cron from 'node-cron';
+import { prisma } from './prisma';
+import { Telegraf } from 'telegraf';
+import config from './config/config.json';
+import { runDailyTasks } from "./modules/helper/runDailyTasks";
+
+const bot = new Telegraf(config.token);
+
+// 📩 ارسال پیام گزارش به کاربران
+async function notifyUsersDaily() {
+    const users = await prisma.user.findMany({ select: { userid: true } });
+
+    for (const user of users) {
+        try {
+            await bot.telegram.sendMessage(
+                user.userid.toString(),
+                '📅 روز جدید آغاز شد!\n✅ خودروها تحویل داده شدند.\n🔄 محدودیت ساخت‌وساز ریست شد.'
+            );
+        } catch (err) {
+            console.error(`❌ ارسال پیام به کاربر ${user.userid} ناموفق بود.`);
+        }
+    }
+}
+
+// 📢 ارسال پیام به کانال عمومی
+async function notifyChannelDaily() {
+    const channelId = config.channels.updates; // مثلاً "@my_channel"
+    try {
+        await bot.telegram.sendMessage(channelId, '📢 روز جدید آغاز شد!');
+    } catch (err) {
+        console.error('❌ ارسال پیام به کانال ناموفق بود.');
+    }
+}
+
+export async function deliverDailyCars() {
+    const lines = await prisma.productionLine.findMany();
+    const userStats: Record<string, { count: number; total: number }> = {};
+
+    for (const line of lines) {
+        const cars = Array.from({ length: line.dailyLimit }).map(() => {
+            const price = Math.floor(Math.random() * (18_000_000 - 10_000_000 + 1)) + 10_000_000;
+            const ownerId = line.ownerId.toString();
+
+            if (!userStats[ownerId]) {
+                userStats[ownerId] = { count: 0, total: 0 };
+            }
+
+            userStats[ownerId].count += 1;
+            userStats[ownerId].total += price;
+
+            return {
+                ownerId: line.ownerId,
+                name: line.name,
+                imageUrl: line.imageUrl,
+                price
+            };
+        });
+
+        await prisma.car.createMany({ data: cars });
+    }
+
+    console.log(`✅ ${lines.length} خط تولید پردازش شد و خودروها تحویل داده شدند.`);
+
+    // ارسال پیام به کاربران
+    for (const [userId, stats] of Object.entries(userStats)) {
+        try {
+            const message =
+                `🚗 *تحویل روزانه خودروها*\n\n` +
+                `📦 تعداد خودرو: *${stats.count.toLocaleString()}*\n` +
+                `💰 مجموع ارزش: *${stats.total.toLocaleString()} ریال*\n\n` +
+                `🎉 خودروها به انبار شما اضافه شدند.`;
+
+            await bot.telegram.sendMessage(userId, message, { parse_mode: 'Markdown' });
+        } catch (err) {
+            console.warn(`❌ ارسال پیام به کاربر ${userId} ناموفق بود.`);
+        }
+    }
+}
+
+export async function deliverDailyProfit(bot: Telegraf) {
+    const users = await prisma.user.findMany({ select: { userid: true, dailyProfit: true } });
+
+    for (const user of users) {
+        const profit = Number(user.dailyProfit || 0);
+        if (profit <= 0) continue;
+
+        await prisma.user.update({
+            where: { userid: user.userid },
+            data: {
+                capital: { increment: profit }
+            }
+        });
+
+        try {
+            await bot.telegram.sendMessage(
+                user.userid.toString(),
+                `💰 *سود روزانه واریز شد*\n\n➕ مبلغ *${profit.toLocaleString()} ریال* به حساب شما اضافه شد.`,
+                { parse_mode: 'Markdown' }
+            );
+        } catch (err) {
+            console.warn(`❌ ارسال پیام سود به کاربر ${user.userid} ناموفق بود.`);
+        }
+    }
+
+    console.log(`✅ سود روزانه برای ${users.length} کاربر واریز شد.`);
+}
+
+// 🕛 اجرای همه وظایف رأس ساعت ۰۰:۰۰
+cron.schedule('0 0 * * *', async () => {
+    console.log('🚀 شروع وظایف روزانه...');
+    await runDailyTasks(false);
+    await deliverDailyCars();
+    await deliverDailyProfit(bot);
+    await notifyUsersDaily();
+    await notifyChannelDaily();
+    console.log('✅ همه وظایف روزانه با موفقیت انجام شدند.');
+});
+
+
+
+bbin market faghat braye car productline hast
+mikhaim ke aval az hame name ro az market be products taghir bedim chon gharare ke product haro manage konim
+
+mikham ke product line ha ro be in sorat neshon bede (agar product line nadash be sorat inlinebtn mige nadare):
+['name line']['price']['tedad tolidi dar rooz'][show]
+
+3 btn aval az 4 btn namayeshi hastan vali show mire be panel marbot be product linesh mishe be in sorat:
+['price per one']['price all']
+[count one][count all]
+['sell tab']
+[sell count][sell all]
+[close][back]
+
+hamon tor ke malome 2 halat dare ke halat aval mishe mahsol to be tedad moshakhas forokht , va dovomi hame ro yekja mifroshi
+price ha ham yekish gheimat yekdone hast o oon yeki gheimat hame ba ham
+
+gheimat mashin ha ham har rooz tebgh cron bayad mojadad gheimat gozari beshe va random az 10-18M beshe ke braye har user ham mojazast

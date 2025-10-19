@@ -92,6 +92,7 @@ model ProductionLine {
   name          String
   type          String // مثل 'car', 'game', 'movie'
   imageUrl      String
+  imageFileId   String
   dailyLimit    Int
   setupCost     BigInt
   createdAt     DateTime @default(now())
