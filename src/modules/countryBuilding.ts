@@ -39,6 +39,32 @@ for (const type of ['car', 'film', 'music', 'game']) {
 // دریافت نام پروژه
 building.on('text', async (ctx, next) => {
     ctx.session ??= {};
+
+    if (ctx.session.buildingStep === 'awaiting_setup_cost') {
+        const raw = ctx.message.text?.trim();
+        const cost = Number(raw.replace(/[^\d]/g, ''));
+        if (isNaN(cost) || cost < 55_000_000 || cost > 750_000_000) {
+            return ctx.reply('❌ عدد معتبر نیست. لطفاً عددی بین 55 تا 750 میلیون وارد کن.');
+        }
+
+        const userId = BigInt(ctx.from.id);
+        const user = await prisma.user.findUnique({ where: { userid: userId } });
+        if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+
+        if (user.capital < BigInt(cost)) {
+            return ctx.reply(
+                `❌ بودجه کافی ندارید!\n` +
+                `💰 سرمایه مورد نیاز: ${(cost / 1_000_000).toLocaleString()}M\n` +
+                `💳 سرمایه فعلی شما: ${Number(user.capital / BigInt(1_000_000)).toLocaleString()}M`
+            );
+        }
+
+        ctx.session.setupCost = cost;
+        ctx.session.buildingStep = 'awaiting_name';
+        await ctx.reply('📌 نام پروژه را وارد کن:');
+        return;
+    }
+
     if (ctx.session.buildingStep === 'awaiting_name') {
         const name = ctx.message.text?.trim();
         if (!name || name.length < 2) return ctx.reply('❌ نام محصول معتبر نیست.');
@@ -236,10 +262,9 @@ for (const type of ['film', 'music', 'game']) {
     building.action(`build_${type}`, async (ctx) => {
         ctx.session = {
             buildingType: type,
-            buildingStep: 'awaiting_name'
+            buildingStep: 'awaiting_setup_cost'
         };
-        await ctx.reply(`📌 نام پروژه ${type === 'film' ? 'فیلم' : type === 'music' ? 'موزیک' : 'بازی'} را وارد کن:`);
-        ctx.answerCbQuery();
+        await ctx.reply('💰 سرمایه اولیه پروژه را وارد کن (بین 55 تا 750 میلیون):');
     });
 }
 
