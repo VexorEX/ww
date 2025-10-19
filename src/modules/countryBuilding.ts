@@ -103,7 +103,7 @@ building.on('text', async (ctx, next) => {
             [Markup.button.callback('🔙 بازگشت', 'building')]
         ]);
 
-        await ctx.replyWithPhoto(ctx.session.carImageFileId, {
+        await ctx.replyWithPhoto(ctx.session.buildingImageFileId, {
             caption: preview,
             parse_mode: 'MarkdownV2',
             reply_markup: keyboard.reply_markup
