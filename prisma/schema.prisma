@@ -94,6 +94,7 @@ model ProductionLine {
   imageUrl      String
   imageFileId   String
   dailyLimit    Int
+  dailyOutput   Int      @default(15)
   setupCost     BigInt
   createdAt     DateTime @default(now())
   carName       String?

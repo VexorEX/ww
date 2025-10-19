@@ -33,33 +33,47 @@ async function notifyChannelDaily() {
 }
 
 export async function deliverDailyCars() {
-    const lines = await prisma.productionLine.findMany();
+    const lines = await prisma.productionLine.findMany({ where: { type: 'car' } });
     const userStats: Record<string, { count: number; total: number }> = {};
 
     for (const line of lines) {
-        const cars = Array.from({ length: line.dailyLimit }).map(() => {
-            const price = Math.floor(Math.random() * (18_000_000 - 10_000_000 + 1)) + 10_000_000;
-            const ownerId = line.ownerId.toString();
+        const outputCount = 15;
+        const unitPrice = Math.floor(Math.random() * (18_000_000 - 10_000_000 + 1)) + 10_000_000;
+        const ownerId = line.ownerId.toString();
 
-            if (!userStats[ownerId]) {
-                userStats[ownerId] = { count: 0, total: 0 };
-            }
-
-            userStats[ownerId].count += 1;
-            userStats[ownerId].total += price;
-
-            return {
-                ownerId: line.ownerId,
-                name: line.name,
-                imageUrl: line.imageUrl,
-                price
-            };
-        });
+        const cars = Array.from({ length: outputCount }).map(() => ({
+            ownerId: line.ownerId,
+            name: line.name,
+            imageUrl: line.imageUrl,
+            price: unitPrice
+        }));
 
         await prisma.car.createMany({ data: cars });
+
+        // جمع‌آوری آمار برای پیام کاربر
+        if (!userStats[ownerId]) {
+            userStats[ownerId] = { count: 0, total: 0 };
+        }
+        userStats[ownerId].count += outputCount;
+        userStats[ownerId].total += outputCount * unitPrice;
+
+        // آپدیت خط تولید: قیمت جدید، خروجی جدید، کاهش عمر
+        const updatedLimit = line.dailyLimit - 1;
+        if (updatedLimit <= 0) {
+            await prisma.productionLine.delete({ where: { id: line.id } });
+        } else {
+            await prisma.productionLine.update({
+                where: { id: line.id },
+                data: {
+                    unitPrice,
+                    dailyOutput: outputCount,
+                    dailyLimit: updatedLimit
+                }
+            });
+        }
     }
 
-    console.log(`✅ ${lines.length} خط تولید پردازش شد و خودروها تحویل داده شدند.`);
+    console.log(`✅ ${lines.length} خط تولید خودرو پردازش شد.`);
 
     // ارسال پیام به کاربران
     for (const [userId, stats] of Object.entries(userStats)) {
