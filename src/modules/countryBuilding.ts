@@ -3,7 +3,6 @@ import type { CustomContext } from '../middlewares/userAuth';
 import { escapeMarkdownV2 } from '../utils/escape';
 import { prisma } from '../prisma';
 import config from '../config/config.json';
-import { createProductionLine } from './helper/Building';
 import { changeCapital } from './economy';
 
 const admins: number[] = config.manage.buildings.admins;
@@ -124,8 +123,8 @@ building.on('photo', async (ctx, next) => {
     if (!photo) return ctx.reply('❌ تصویر معتبر ارسال نشده.');
 
     const imageUrl = await ctx.telegram.getFileLink(photo.file_id);
-    ctx.session.carImage = imageUrl.href;
-    ctx.session.carImageFileId = photo.file_id;
+    ctx.session.buildingImage = imageUrl.href;
+    ctx.session.buildingImageFileId = photo.file_id;
     ctx.session.buildingStep = 'awaiting_build_description';
 
     await ctx.reply('📝 توضیحی درباره محصولت بنویس (مثلاً ویژگی‌ها یا هدف تولید):');
