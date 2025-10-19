@@ -24,7 +24,7 @@ const userMainKeyboard = config.manage.status
         ],
         [Markup.button.callback('─────────────', 'noop')],
         config.manage?.buildings?.status
-            ? [Markup.button.callback('🏗 ساخت و ساز', 'building'),Markup.button.callback('🛒 فروش تولیدات', 'sell')]
+            ? [Markup.button.callback('🏗 ساخت و ساز', 'building'),Markup.button.callback('🛒 فروش تولیدات', 'products')]
             : [],
         [
             ...(config.manage?.stock?.status
