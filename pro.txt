@@ -191,9 +191,23 @@ building.action('submit_building', async (ctx) => {
 // تأیید نهایی توسط ادمین
 building.action(/admin_approve_building_(\d+)/, async (ctx) => {
     const userId = BigInt(ctx.match[1]);
-    const user = await prisma.user.findUnique({where: {userid: userId}});
-    const pending = await prisma.pendingProductionLine.findFirst({where: {ownerId: userId}});
+    const user = await prisma.user.findUnique({ where: { userid: userId } });
+    const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
     if (!user || !pending) return ctx.reply('❌ اطلاعات یافت نشد.');
+
+    // محاسبه سود روزانه برای پروژه‌های عمرانی
+    let addedProfit = 0;
+    if (pending.type !== 'car' && pending.profitPercent) {
+        const base = Number(pending.setupCost);
+        addedProfit = Math.floor(base * pending.profitPercent / 100);
+
+        await prisma.user.update({
+            where: { userid: userId },
+            data: {
+                dailyProfit: { increment: addedProfit }
+            }
+        });
+    }
 
     await prisma.productionLine.create({
         data: {
@@ -201,7 +215,7 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
             name: pending.name,
             type: pending.type,
             imageUrl: pending.imageUrl,
-            imageFileId: ctx.session.buildingImageFileId,
+            imageFileId: pending.imageFileId,
             dailyLimit: pending.dailyLimit,
             setupCost: pending.setupCost,
             country: pending.country,
@@ -209,7 +223,7 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
         }
     });
 
-    await prisma.pendingProductionLine.delete({where: {id: pending.id}});
+    await prisma.pendingProductionLine.delete({ where: { id: pending.id } });
 
     await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
         caption: escapeMarkdownV2(
@@ -222,8 +236,25 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
         parse_mode: 'MarkdownV2'
     });
 
+    // پیام به کاربر درباره تأیید و سوددهی
+    try {
+        let message =
+            `✅ پروژه "${pending.name}" تأیید شد و خط تولید فعال شد.\n` +
+            `🏗 نوع پروژه: ${pending.type}\n` +
+            `💰 بودجه: ${Math.floor(Number(pending.setupCost) / 1_000_000)}M`;
+
+        if (addedProfit > 0) {
+            message += `\n➕ سود روزانه: ${Math.floor(addedProfit / 1_000_000)}M به حساب سود شما اضافه شد.`;
+        }
+
+        await ctx.telegram.sendMessage(Number(userId), message);
+    } catch (err) {
+        console.warn('❌ ارسال پیام به کاربر ممکن نبود:', err);
+    }
+
     await ctx.reply('✅ خط تولید ثبت شد و به کانال ارسال شد.');
 });
+
 
 // رد درخواست توسط ادمین
 building.action(/admin_reject_building_(\d+)/, async (ctx) => {
@@ -266,5 +297,149 @@ building.action(/admin_reject_building_(\d+)/, async (ctx) => {
 
 export default building;
 
-khob alan market ke marbot be product line car bood ro okay kardim
-hala bia omtani ha ro ham fix konim , bbin be sorat random 10-82 % az mablaghi ke be onvam bodje taiin shode be dailyprofit user add mishe
+
+
+buildings ro bbin
+tafavotesh ba mine ine ke :
+1. dar mine niyazi e taiin name , image , roll nadare
+2. niyazi be taiid admin nadare
+
+
+un ham schema hast :
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client" // optional: client رو در src بساز برای import آسان
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userid       BigInt @id
+  country      String
+  countryName  String
+  level        Int    @default(0)
+  rank         Int    @default(0)
+  government   String
+  religion     String @default("islam")
+  crowd        BigInt @default(15000000)
+  capital      BigInt @default(150000000)
+  dailyProfit  BigInt @default(100000000)
+  satisfaction Int    @default(80)
+  security     Int    @default(80)
+  lottery      Int    @default(0)
+
+  // منابع
+  oil         BigInt @default(0)
+  iron        BigInt @default(0)
+  gold        BigInt @default(0)
+  uranium     BigInt @default(0)
+  goldMine    BigInt @default(0)
+  uraniumMine BigInt @default(0)
+  ironMine    BigInt @default(0)
+  refinery    BigInt @default(0)
+
+  // ارتش پایه
+  soldier   BigInt @default(0)
+  tank      BigInt @default(0)
+  heavyTank BigInt @default(0)
+
+  // جنگنده‌ها
+  su57 BigInt @default(0)
+  f47  BigInt @default(0)
+  f35  BigInt @default(0)
+  j20  BigInt @default(0)
+  f16  BigInt @default(0)
+  f22  BigInt @default(0)
+  am50 BigInt @default(0)
+  b2   BigInt @default(0)
+  tu16 BigInt @default(0)
+
+  // پهپادها
+  espionageDrone BigInt @default(0)
+  suicideDrone   BigInt @default(0)
+  crossDrone     BigInt @default(0)
+  witnessDrone   BigInt @default(0)
+
+  // موشک‌ها
+  simpleRocket      BigInt @default(0)
+  crossRocket       BigInt @default(0)
+  dotTargetRocket   BigInt @default(0)
+  continentalRocket BigInt @default(0)
+  ballisticRocket   BigInt @default(0)
+  chemicalRocket    BigInt @default(0)
+  hyperSonicRocket  BigInt @default(0)
+  clusterRocket     BigInt @default(0)
+
+  // کشتی‌های دریایی
+  battleship       BigInt @default(0)
+  marineShip       BigInt @default(0)
+  breakerShip      BigInt @default(0)
+  nuclearSubmarine BigInt @default(0)
+
+  // دفاع
+  antiRocket BigInt @default(0)
+  ironDome   BigInt @default(0)
+  s400       BigInt @default(0)
+  taad       BigInt @default(0)
+  hq9        BigInt @default(0)
+  acash      BigInt @default(0)
+
+  @@map("users")
+}
+
+model ProductionLine {
+  id            Int      @id @default(autoincrement())
+  ownerId       BigInt
+  country       String
+  name          String
+  type          String // مثل 'car', 'game', 'movie'
+  imageUrl      String
+  imageFileId   String   @default("")
+  dailyLimit    Int      @default(3)
+  dailyOutput   Int      @default(15)
+  setupCost     BigInt
+  createdAt     DateTime @default(now())
+  carName       String?
+  unitPrice     Int? // فقط برای خودرو
+  profitPercent Int? // فقط برای پروژه‌های عمرانی
+}
+
+model PendingProductionLine {
+  id            Int      @id @default(autoincrement())
+  ownerId       BigInt
+  name          String
+  type          String
+  imageUrl      String
+  imageFileId   String   @default("")
+  description   String   @default("")
+  dailyLimit    Int
+  setupCost     BigInt
+  country       String
+  profitPercent Int?
+  createdAt     DateTime @default(now()) // ← اضافه کن
+
+  @@map("PendingProductionLine")
+}
+
+model Car {
+  id        Int      @id @default(autoincrement())
+  ownerId   BigInt
+  name      String
+  imageUrl  String
+  price     Int
+  createdAt DateTime @default(now())
+}
+
+model PendingBuilding {
+  id        Int      @id @default(autoincrement())
+  userId    BigInt
+  carName   String
+  imageUrl  String
+  createdAt DateTime @default(now())
+}

@@ -3,6 +3,7 @@ import { prisma } from './prisma';
 import { Telegraf } from 'telegraf';
 import config from './config/config.json';
 import { runDailyTasks } from "./modules/helper/runDailyTasks";
+import {applyDailyMineProfitForAllUsers} from "./modules/countryMines";
 
 const bot = new Telegraf(config.token);
 
@@ -104,19 +105,7 @@ export async function deliverDailyProfit(bot: Telegraf) {
                 capital: { increment: profit }
             }
         });
-
-        try {
-            await bot.telegram.sendMessage(
-                user.userid.toString(),
-                `💰 *سود روزانه واریز شد*\n\n➕ مبلغ *${profit.toLocaleString()} ریال* به حساب شما اضافه شد.`,
-                { parse_mode: 'Markdown' }
-            );
-        } catch (err) {
-            console.warn(`❌ ارسال پیام سود به کاربر ${user.userid} ناموفق بود.`);
-        }
     }
-
-    console.log(`✅ سود روزانه برای ${users.length} کاربر واریز شد.`);
 }
 
 // 🕛 اجرای همه وظایف رأس ساعت ۰۰:۰۰
@@ -127,5 +116,6 @@ cron.schedule('0 0 * * *', async () => {
     await deliverDailyProfit(bot);
     await notifyUsersDaily();
     await notifyChannelDaily();
+    await applyDailyMineProfitForAllUsers();
     console.log('✅ همه وظایف روزانه با موفقیت انجام شدند.');
 });
