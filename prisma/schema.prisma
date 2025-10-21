@@ -125,6 +125,8 @@ model Car {
   name      String
   imageUrl  String
   price     Int
+  count     Int      @default(15) // 👈 تعداد خودرو تولید شده
+  lineId    Int      @default(0)
   createdAt DateTime @default(now())
 }
 

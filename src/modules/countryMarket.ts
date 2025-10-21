@@ -90,10 +90,9 @@ products.action(/^show_(\d+)$/, async (ctx) => {
         [
             Markup.button.callback('🧾 فروش محصول', 'noop')
         ],
-        [
-            Markup.button.callback('📤 فروش تعداد', `sell_one_${line.id}`),
-            Markup.button.callback('📤 فروش همه', `sell_all_${line.id}`)
-        ],
+        line.type === 'car'
+            ? [Markup.button.callback('📤 فروش همه خودروها', `sell_all_${line.id}`)]
+            : [Markup.button.callback('📤 فروش تعداد', `sell_one_${line.id}`)],
         [
             Markup.button.callback('❌ بستن', 'delete'),
             Markup.button.callback('🔙 بازگشت', 'products')
@@ -175,6 +174,7 @@ products.action(/^sell_all_(\d+)$/, async (ctx) => {
     const cars = await prisma.car.findMany({
         where: {
             ownerId: userId,
+            lineId: lineId,
             name: line.name,
             imageUrl: line.imageUrl
         }
@@ -193,7 +193,8 @@ products.action(/^sell_all_(\d+)$/, async (ctx) => {
         where: {
             ownerId: userId,
             name: line.name,
-            imageUrl: line.imageUrl
+            imageUrl: line.imageUrl,
+            lineId: lineId
         }
     });
 

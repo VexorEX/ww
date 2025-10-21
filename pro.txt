@@ -1,48 +1,25 @@
 import { Composer, Markup } from 'telegraf';
-import type { CustomContext } from '../middlewares/userAuth';
-import { escapeMarkdownV2 } from '../utils/escape';
-import { prisma } from '../prisma';
-import config from '../config/config.json';
-import { changeCapital } from './economy';
+import type { CustomContext } from '../../middlewares/userAuth';
+import { escapeMarkdownV2 } from '../../utils/escape';
+import { prisma } from '../../prisma';
+import config from '../../config/config.json';
+import { changeCapital } from '../economy';
 
 const admins: number[] = config.manage.buildings.admins;
-const building = new Composer<CustomContext>();
+const car = new Composer<CustomContext>();
 
-// منوی اصلی ساخت‌وساز
-building.action('building', async (ctx) => {
-    const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('🚗 خودروسازی', 'build_car')],
-        [Markup.button.callback('🎬 فیلم‌سازی', 'build_film')],
-        [Markup.button.callback('🎵 موزیک‌سازی', 'build_music')],
-        [Markup.button.callback('🎮 بازی‌سازی', 'build_game')],
-        [Markup.button.callback('🔙 بازگشت', 'back_main'), Markup.button.callback('❌ بستن', 'delete')]
-    ]);
-    await ctx.reply('🏗 نوع ساخت‌وساز را انتخاب کن:', keyboard);
+car.action('build_car', async (ctx) => {
+    ctx.session = {
+        buildingType: 'car',
+        setupCost: 250_000_000,
+        buildingStep: 'awaiting_name'
+    };
+    await ctx.reply('📌 نام پروژه خودرو را وارد کن:');
     ctx.answerCbQuery();
 });
 
-// شروع ساخت پروژه
-for (const type of ['car', 'film', 'music', 'game']) {
-    building.action(`build_${type}`, async (ctx) => {
-        ctx.session = {
-            buildingType: type
-        };
-
-        if (type === 'car') {
-            ctx.session.setupCost = 250_000_000;
-            ctx.session.buildingStep = 'awaiting_name';
-            await ctx.reply('📌 نام پروژه خودرو را وارد کن:');
-        } else {
-            ctx.session.buildingStep = 'awaiting_setup_cost';
-            await ctx.reply('💰 سرمایه اولیه پروژه را وارد کن (بین 55 تا 750 میلیون):');
-        }
-
-        ctx.answerCbQuery();
-    });
-}
-
 // دریافت نام پروژه
-building.on('text', async (ctx, next) => {
+car.on('text', async (ctx, next) => {
     ctx.session ??= {};
 
     if (ctx.session.buildingStep === 'awaiting_setup_cost') {
@@ -114,7 +91,7 @@ building.on('text', async (ctx, next) => {
 });
 
 // دریافت تصویر
-building.on('photo', async (ctx, next) => {
+car.on('photo', async (ctx, next) => {
     ctx.session ??= {};
     if (ctx.session.buildingStep !== 'awaiting_image') return next();
 
@@ -130,7 +107,7 @@ building.on('photo', async (ctx, next) => {
 });
 
 // ارسال درخواست به ادمین
-building.action('submit_building', async (ctx) => {
+car.action('submit_building', async (ctx) => {
     ctx.session ??= {};
     const { buildingType, buildingName, buildingImageFileId, buildingDescription, setupCost } = ctx.session;
     const userId = BigInt(ctx.from.id);
@@ -189,7 +166,7 @@ building.action('submit_building', async (ctx) => {
 });
 
 // تأیید نهایی توسط ادمین
-building.action(/admin_approve_building_(\d+)/, async (ctx) => {
+car.action(/admin_approve_building_(\d+)/, async (ctx) => {
     const userId = BigInt(ctx.match[1]);
     const user = await prisma.user.findUnique({ where: { userid: userId } });
     const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
@@ -255,9 +232,8 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
     await ctx.reply('✅ خط تولید ثبت شد و به کانال ارسال شد.');
 });
 
-
 // رد درخواست توسط ادمین
-building.action(/admin_reject_building_(\d+)/, async (ctx) => {
+car.action(/admin_reject_building_(\d+)/, async (ctx) => {
     const userId = BigInt(ctx.match[1]);
     const adminId = ctx.from.id;
 
@@ -295,151 +271,7 @@ building.action(/admin_reject_building_(\d+)/, async (ctx) => {
     await ctx.answerCbQuery('✅ درخواست رد شد و پول برگشت.');
 });
 
-export default building;
+export default car;
 
-
-
-buildings ro bbin
-tafavotesh ba mine ine ke :
-1. dar mine niyazi e taiin name , image , roll nadare
-2. niyazi be taiid admin nadare
-
-
-un ham schema hast :
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/client" // optional: client رو در src بساز برای import آسان
-}
-
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
-
-model User {
-  userid       BigInt @id
-  country      String
-  countryName  String
-  level        Int    @default(0)
-  rank         Int    @default(0)
-  government   String
-  religion     String @default("islam")
-  crowd        BigInt @default(15000000)
-  capital      BigInt @default(150000000)
-  dailyProfit  BigInt @default(100000000)
-  satisfaction Int    @default(80)
-  security     Int    @default(80)
-  lottery      Int    @default(0)
-
-  // منابع
-  oil         BigInt @default(0)
-  iron        BigInt @default(0)
-  gold        BigInt @default(0)
-  uranium     BigInt @default(0)
-  goldMine    BigInt @default(0)
-  uraniumMine BigInt @default(0)
-  ironMine    BigInt @default(0)
-  refinery    BigInt @default(0)
-
-  // ارتش پایه
-  soldier   BigInt @default(0)
-  tank      BigInt @default(0)
-  heavyTank BigInt @default(0)
-
-  // جنگنده‌ها
-  su57 BigInt @default(0)
-  f47  BigInt @default(0)
-  f35  BigInt @default(0)
-  j20  BigInt @default(0)
-  f16  BigInt @default(0)
-  f22  BigInt @default(0)
-  am50 BigInt @default(0)
-  b2   BigInt @default(0)
-  tu16 BigInt @default(0)
-
-  // پهپادها
-  espionageDrone BigInt @default(0)
-  suicideDrone   BigInt @default(0)
-  crossDrone     BigInt @default(0)
-  witnessDrone   BigInt @default(0)
-
-  // موشک‌ها
-  simpleRocket      BigInt @default(0)
-  crossRocket       BigInt @default(0)
-  dotTargetRocket   BigInt @default(0)
-  continentalRocket BigInt @default(0)
-  ballisticRocket   BigInt @default(0)
-  chemicalRocket    BigInt @default(0)
-  hyperSonicRocket  BigInt @default(0)
-  clusterRocket     BigInt @default(0)
-
-  // کشتی‌های دریایی
-  battleship       BigInt @default(0)
-  marineShip       BigInt @default(0)
-  breakerShip      BigInt @default(0)
-  nuclearSubmarine BigInt @default(0)
-
-  // دفاع
-  antiRocket BigInt @default(0)
-  ironDome   BigInt @default(0)
-  s400       BigInt @default(0)
-  taad       BigInt @default(0)
-  hq9        BigInt @default(0)
-  acash      BigInt @default(0)
-
-  @@map("users")
-}
-
-model ProductionLine {
-  id            Int      @id @default(autoincrement())
-  ownerId       BigInt
-  country       String
-  name          String
-  type          String // مثل 'car', 'game', 'movie'
-  imageUrl      String
-  imageFileId   String   @default("")
-  dailyLimit    Int      @default(3)
-  dailyOutput   Int      @default(15)
-  setupCost     BigInt
-  createdAt     DateTime @default(now())
-  carName       String?
-  unitPrice     Int? // فقط برای خودرو
-  profitPercent Int? // فقط برای پروژه‌های عمرانی
-}
-
-model PendingProductionLine {
-  id            Int      @id @default(autoincrement())
-  ownerId       BigInt
-  name          String
-  type          String
-  imageUrl      String
-  imageFileId   String   @default("")
-  description   String   @default("")
-  dailyLimit    Int
-  setupCost     BigInt
-  country       String
-  profitPercent Int?
-  createdAt     DateTime @default(now()) // ← اضافه کن
-
-  @@map("PendingProductionLine")
-}
-
-model Car {
-  id        Int      @id @default(autoincrement())
-  ownerId   BigInt
-  name      String
-  imageUrl  String
-  price     Int
-  createdAt DateTime @default(now())
-}
-
-model PendingBuilding {
-  id        Int      @id @default(autoincrement())
-  userId    BigInt
-  carName   String
-  imageUrl  String
-  createdAt DateTime @default(now())
-}
+okay?
+marahel bayad in bashe : name > image > submit > admin submit

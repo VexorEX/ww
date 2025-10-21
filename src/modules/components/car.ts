@@ -1,48 +1,25 @@
 import { Composer, Markup } from 'telegraf';
-import type { CustomContext } from '../middlewares/userAuth';
-import { escapeMarkdownV2 } from '../utils/escape';
-import { prisma } from '../prisma';
-import config from '../config/config.json';
-import { changeCapital } from './economy';
+import type { CustomContext } from '../../middlewares/userAuth';
+import { escapeMarkdownV2 } from '../../utils/escape';
+import { prisma } from '../../prisma';
+import config from '../../config/config.json';
+import { changeCapital } from '../economy';
 
-const admins: number[] = config.manage.buildings.admins;
-const building = new Composer<CustomContext>();
+const admins: number[] = config.manage.buildings.car.admins;
+const car = new Composer<CustomContext>();
 
-// منوی اصلی ساخت‌وساز
-building.action('building', async (ctx) => {
-    const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('🚗 خودروسازی', 'build_car')],
-        [Markup.button.callback('🎬 فیلم‌سازی', 'build_film')],
-        [Markup.button.callback('🎵 موزیک‌سازی', 'build_music')],
-        [Markup.button.callback('🎮 بازی‌سازی', 'build_game')],
-        [Markup.button.callback('🔙 بازگشت', 'back_main'), Markup.button.callback('❌ بستن', 'delete')]
-    ]);
-    await ctx.reply('🏗 نوع ساخت‌وساز را انتخاب کن:', keyboard);
+car.action('build_car', async (ctx) => {
+    ctx.session = {
+        buildingType: 'car',
+        setupCost: 250_000_000,
+        buildingStep: 'awaiting_name'
+    };
+    await ctx.reply('📌 نام پروژه خودرو را وارد کن:');
     ctx.answerCbQuery();
 });
 
-// شروع ساخت پروژه
-for (const type of ['car', 'film', 'music', 'game']) {
-    building.action(`build_${type}`, async (ctx) => {
-        ctx.session = {
-            buildingType: type
-        };
-
-        if (type === 'car') {
-            ctx.session.setupCost = 250_000_000;
-            ctx.session.buildingStep = 'awaiting_name';
-            await ctx.reply('📌 نام پروژه خودرو را وارد کن:');
-        } else {
-            ctx.session.buildingStep = 'awaiting_setup_cost';
-            await ctx.reply('💰 سرمایه اولیه پروژه را وارد کن (بین 55 تا 750 میلیون):');
-        }
-
-        ctx.answerCbQuery();
-    });
-}
-
 // دریافت نام پروژه
-building.on('text', async (ctx, next) => {
+car.on('text', async (ctx, next) => {
     ctx.session ??= {};
 
     if (ctx.session.buildingStep === 'awaiting_setup_cost') {
@@ -114,7 +91,7 @@ building.on('text', async (ctx, next) => {
 });
 
 // دریافت تصویر
-building.on('photo', async (ctx, next) => {
+car.on('photo', async (ctx, next) => {
     ctx.session ??= {};
     if (ctx.session.buildingStep !== 'awaiting_image') return next();
 
@@ -130,7 +107,7 @@ building.on('photo', async (ctx, next) => {
 });
 
 // ارسال درخواست به ادمین
-building.action('submit_building', async (ctx) => {
+car.action('submit_building', async (ctx) => {
     ctx.session ??= {};
     const { buildingType, buildingName, buildingImageFileId, buildingDescription, setupCost } = ctx.session;
     const userId = BigInt(ctx.from.id);
@@ -189,7 +166,7 @@ building.action('submit_building', async (ctx) => {
 });
 
 // تأیید نهایی توسط ادمین
-building.action(/admin_approve_building_(\d+)/, async (ctx) => {
+car.action(/admin_approve_building_(\d+)/, async (ctx) => {
     const userId = BigInt(ctx.match[1]);
     const user = await prisma.user.findUnique({ where: { userid: userId } });
     const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
@@ -255,9 +232,8 @@ building.action(/admin_approve_building_(\d+)/, async (ctx) => {
     await ctx.reply('✅ خط تولید ثبت شد و به کانال ارسال شد.');
 });
 
-
 // رد درخواست توسط ادمین
-building.action(/admin_reject_building_(\d+)/, async (ctx) => {
+car.action(/admin_reject_building_(\d+)/, async (ctx) => {
     const userId = BigInt(ctx.match[1]);
     const adminId = ctx.from.id;
 
@@ -295,4 +271,4 @@ building.action(/admin_reject_building_(\d+)/, async (ctx) => {
     await ctx.answerCbQuery('✅ درخواست رد شد و پول برگشت.');
 });
 
-export default building;
+export default car;

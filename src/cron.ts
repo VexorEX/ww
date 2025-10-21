@@ -2,63 +2,45 @@ import cron from 'node-cron';
 import { prisma } from './prisma';
 import { Telegraf } from 'telegraf';
 import config from './config/config.json';
-import { runDailyTasks } from "./modules/helper/runDailyTasks";
-import {applyDailyMineProfitForAllUsers} from "./modules/countryMines";
+import { runDailyTasks } from './modules/helper/runDailyTasks';
+import { applyDailyMineProfitForAllUsers } from './modules/components/mines';
 
 const bot = new Telegraf(config.token);
 
-// 📩 ارسال پیام گزارش به کاربران
-async function notifyUsersDaily() {
-    const users = await prisma.user.findMany({ select: { userid: true } });
+type UserStats = {
+    carCount: number;
+    carValue: number;
+    profit: number;
+};
 
-    for (const user of users) {
-        try {
-            await bot.telegram.sendMessage(
-                user.userid.toString(),
-                '📅 روز جدید آغاز شد!\n✅ خودروها تحویل داده شدند.\n🔄 محدودیت ساخت‌وساز ریست شد.'
-            );
-        } catch (err) {
-            console.error(`❌ ارسال پیام به کاربر ${user.userid} ناموفق بود.`);
-        }
-    }
-}
+const userStats: Record<string, UserStats> = {};
 
-// 📢 ارسال پیام به کانال عمومی
-async function notifyChannelDaily() {
-    const channelId = config.channels.updates; // مثلاً "@my_channel"
-    try {
-        await bot.telegram.sendMessage(channelId, '📢 روز جدید آغاز شد!');
-    } catch (err) {
-        console.error('❌ ارسال پیام به کانال ناموفق بود.');
-    }
-}
-
+// 🚗 تحویل خودروها
 export async function deliverDailyCars() {
     const lines = await prisma.productionLine.findMany({ where: { type: 'car' } });
-    const userStats: Record<string, { count: number; total: number }> = {};
 
     for (const line of lines) {
         const outputCount = 15;
         const unitPrice = Math.floor(Math.random() * (18_000_000 - 10_000_000 + 1)) + 10_000_000;
         const ownerId = line.ownerId.toString();
 
-        const cars = Array.from({ length: outputCount }).map(() => ({
-            ownerId: line.ownerId,
-            name: line.name,
-            imageUrl: line.imageUrl,
-            price: unitPrice
-        }));
+        await prisma.car.create({
+            data: {
+                ownerId: line.ownerId,
+                name: line.name,
+                imageUrl: line.imageUrl,
+                price: unitPrice,
+                count: outputCount,
+                lineId: line.id
+            }
+        });
 
-        await prisma.car.createMany({ data: cars });
-
-        // جمع‌آوری آمار برای پیام کاربر
         if (!userStats[ownerId]) {
-            userStats[ownerId] = { count: 0, total: 0 };
+            userStats[ownerId] = { carCount: 0, carValue: 0, profit: 0 };
         }
-        userStats[ownerId].count += outputCount;
-        userStats[ownerId].total += outputCount * unitPrice;
+        userStats[ownerId].carCount += outputCount;
+        userStats[ownerId].carValue += outputCount * unitPrice;
 
-        // آپدیت خط تولید: قیمت جدید، خروجی جدید، کاهش عمر
         const updatedLimit = line.dailyLimit - 1;
         if (updatedLimit <= 0) {
             await prisma.productionLine.delete({ where: { id: line.id } });
@@ -75,24 +57,10 @@ export async function deliverDailyCars() {
     }
 
     console.log(`✅ ${lines.length} خط تولید خودرو پردازش شد.`);
-
-    // ارسال پیام به کاربران
-    for (const [userId, stats] of Object.entries(userStats)) {
-        try {
-            const message =
-                `🚗 *تحویل روزانه خودروها*\n\n` +
-                `📦 تعداد خودرو: *${stats.count.toLocaleString()}*\n` +
-                `💰 مجموع ارزش: *${stats.total.toLocaleString()} ریال*\n\n` +
-                `🎉 خودروها به انبار شما اضافه شدند.`;
-
-            await bot.telegram.sendMessage(userId, message, { parse_mode: 'Markdown' });
-        } catch (err) {
-            console.warn(`❌ ارسال پیام به کاربر ${userId} ناموفق بود.`);
-        }
-    }
 }
 
-export async function deliverDailyProfit(bot: Telegraf) {
+// 💰 افزودن سود پروژه‌های عمرانی
+export async function deliverDailyProfit() {
     const users = await prisma.user.findMany({ select: { userid: true, dailyProfit: true } });
 
     for (const user of users) {
@@ -105,17 +73,54 @@ export async function deliverDailyProfit(bot: Telegraf) {
                 capital: { increment: profit }
             }
         });
+
+        const uid = user.userid.toString();
+        if (!userStats[uid]) {
+            userStats[uid] = { carCount: 0, carValue: 0, profit: 0 };
+        }
+        userStats[uid].profit += profit;
+    }
+
+    console.log(`✅ سود روزانه ${users.length} کاربر اعمال شد.`);
+}
+
+// 📩 ارسال پیام ترکیبی به کاربران
+export async function notifyUsersCombined() {
+    for (const [userId, stats] of Object.entries(userStats)) {
+        const message =
+            `📅 روز جدید آغاز شد!\n\n` +
+            `🚗 خودروها تحویل داده شدند: *${stats.carCount.toLocaleString()}* واحد\n` +
+            `💰 مجموع ارزش خودروها: *${stats.carValue.toLocaleString()} ریال*\n` +
+            `➕ سود پروژه‌های عمرانی: *${stats.profit.toLocaleString()} ریال*\n` +
+            `⛏ منابع معادن نیز به حساب شما اضافه شدند.\n\n` +
+            `🎉 روز خوبی داشته باشی!`;
+
+        try {
+            await bot.telegram.sendMessage(userId, message, { parse_mode: 'Markdown' });
+        } catch (err) {
+            console.warn(`❌ ارسال پیام به کاربر ${userId} ناموفق بود.`);
+        }
+    }
+}
+
+// 📢 پیام عمومی به کانال
+export async function notifyChannelDaily() {
+    const channelId = config.channels.updates;
+    try {
+        await bot.telegram.sendMessage(channelId, '📢 روز جدید آغاز شد!');
+    } catch (err) {
+        console.error('❌ ارسال پیام به کانال ناموفق بود.');
     }
 }
 
 // 🕛 اجرای همه وظایف رأس ساعت ۰۰:۰۰
-cron.schedule('0 0 * * *', async () => {
-    console.log('🚀 شروع وظایف روزانه...');
-    await runDailyTasks(false);
-    await deliverDailyCars();
-    await deliverDailyProfit(bot);
-    await notifyUsersDaily();
-    await notifyChannelDaily();
-    await applyDailyMineProfitForAllUsers();
-    console.log('✅ همه وظایف روزانه با موفقیت انجام شدند.');
-});
+// cron.schedule('0 0 * * *', async () => {
+//     console.log('🚀 شروع وظایف روزانه...');
+//     await runDailyTasks(false);
+//     await deliverDailyCars();
+//     await deliverDailyProfit();
+//     await applyDailyMineProfitForAllUsers();
+//     await notifyUsersCombined();
+//     await notifyChannelDaily();
+//     console.log('✅ همه وظایف روزانه با موفقیت انجام شدند.');
+// });
