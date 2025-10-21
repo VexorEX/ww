@@ -35,10 +35,11 @@ toggleMenu.action('admin_toggleMenu', async (ctx) => {
 
     const keyboard = Markup.inlineKeyboard(
         paths.map((path) => {
-            const keys = path.split('.').slice(1); // remove "manage"
-            const status = keys.reduce((acc, key) => acc?.[key], config.manage);
+            const keys = path.split('.').slice(1);
+            const sectionObj = keys.reduce((acc, key) => acc?.[key], config.manage);
+            const status = typeof sectionObj?.status === 'boolean' ? sectionObj.status : null;
             const label = keys.join(' › ');
-            return [Markup.button.callback(`${status ? '✅' : '❌'} ${label}`, `toggle_section_${keys.join('__')}`)];
+            return [Markup.button.callback(`${status === true ? '✅' : status === false ? '❌' : '❓'} ${label}`, `toggle_section_${keys.join('__')}`)];
         })
     );
 
@@ -47,7 +48,7 @@ toggleMenu.action('admin_toggleMenu', async (ctx) => {
 });
 
 // 🧩 تغییر وضعیت
-toggleMenu.action(/^toggle_section_(.+)$/, async (ctx) => {
+toggleMenu.action( /^toggle_section_(.+)$/, async (ctx) => {
     const sectionKey = ctx.match[1]; // e.g. "buildings__car"
     const keys = sectionKey.split('__');
 
@@ -62,7 +63,7 @@ toggleMenu.action(/^toggle_section_(.+)$/, async (ctx) => {
         if (!target) return ctx.answerCbQuery('❌ مسیر نامعتبر است.');
     }
 
-    const lastKey = keys[keys.length - 1];
+    const lastKey  = keys[keys.length - 1];
     const current = target?.[lastKey]?.status;
 
     if (typeof current !== 'boolean') {
@@ -78,11 +79,13 @@ toggleMenu.action(/^toggle_section_(.+)$/, async (ctx) => {
     const keyboard = Markup.inlineKeyboard(
         paths.map((path) => {
             const keys = path.split('.').slice(1);
-            const status = keys.reduce((acc, key) => acc?.[key], freshConfig.manage);
+            const sectionObj = keys.reduce((acc, key) => acc?.[key], config.manage);
+            const status = typeof sectionObj?.status === 'boolean' ? sectionObj.status : null;
             const label = keys.join(' › ');
-            return [Markup.button.callback(`${status ? '✅' : '❌'} ${label}`, `toggle_section_${keys.join('__')}`)];
+            return [Markup.button.callback(`${status === true ? '✅' : status === false ? '❌' : '❓'} ${label}`, `toggle_section_${keys.join('__')}`)];
         })
     );
+
 
     try {
         await ctx.editMessageText('🧩 وضعیت نمایش دکمه‌های منو:', {
@@ -91,6 +94,7 @@ toggleMenu.action(/^toggle_section_(.+)$/, async (ctx) => {
     } catch (err) {
         console.error('❌ خطا در ویرایش پیام:', err);
         await ctx.reply(`✅ وضعیت "${keys.join(' › ')}" به ${!current ? 'فعال' : 'غیرفعال'} تغییر یافت.`);
+
     }
 
     ctx.answerCbQuery();
