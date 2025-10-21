@@ -25,7 +25,7 @@ function calculateSellPrice(prod: {
 // نمایش لیست خطوط تولید
 products.action('products', async (ctx) => {
     const userId = BigInt(ctx.from.id);
-    const lines = await prisma.productionLine.findMany({ where: { ownerId: userId } });
+    const lines = await prisma.productionLine.findMany({ where: { ownerId: userId , type: 'car' } });
 
     if (lines.length === 0) {
         const keyboard = Markup.inlineKeyboard([
@@ -90,9 +90,7 @@ products.action(/^show_(\d+)$/, async (ctx) => {
         [
             Markup.button.callback('🧾 فروش محصول', 'noop')
         ],
-        line.type === 'car'
-            ? [Markup.button.callback('📤 فروش همه خودروها', `sell_all_${line.id}`)]
-            : [Markup.button.callback('📤 فروش تعداد', `sell_one_${line.id}`)],
+            [Markup.button.callback('📤 فروش همه', `sell_all_${line.id}`),Markup.button.callback('📤 فروش تعداد', `sell_one_${line.id}`)],
         [
             Markup.button.callback('❌ بستن', 'delete'),
             Markup.button.callback('🔙 بازگشت', 'products')

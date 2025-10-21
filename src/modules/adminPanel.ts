@@ -33,7 +33,7 @@ adminPanel.use(showUser)
 adminPanel.use(toggleMenu)
 adminPanel.action('admin_dailyReward', async (ctx) => {
     const adminId = ctx.from.id;
-    if (!config.manage.buildings.admins.includes(adminId)) {
+    if (!config.manage.admins.includes(adminId)) {
         return ctx.reply('⛔ فقط ادمین‌ها می‌تونن این عملیات رو اجرا کنن.');
     }
 
