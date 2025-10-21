@@ -215,6 +215,8 @@ exports.Prisma.CarScalarFieldEnum = {
   name: 'name',
   imageUrl: 'imageUrl',
   price: 'price',
+  count: 'count',
+  lineId: 'lineId',
   createdAt: 'createdAt'
 };
 

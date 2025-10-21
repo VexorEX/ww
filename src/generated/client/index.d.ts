@@ -4965,12 +4965,16 @@ export namespace Prisma {
     id: number | null
     ownerId: number | null
     price: number | null
+    count: number | null
+    lineId: number | null
   }
 
   export type CarSumAggregateOutputType = {
     id: number | null
     ownerId: bigint | null
     price: number | null
+    count: number | null
+    lineId: number | null
   }
 
   export type CarMinAggregateOutputType = {
@@ -4979,6 +4983,8 @@ export namespace Prisma {
     name: string | null
     imageUrl: string | null
     price: number | null
+    count: number | null
+    lineId: number | null
     createdAt: Date | null
   }
 
@@ -4988,6 +4994,8 @@ export namespace Prisma {
     name: string | null
     imageUrl: string | null
     price: number | null
+    count: number | null
+    lineId: number | null
     createdAt: Date | null
   }
 
@@ -4997,6 +5005,8 @@ export namespace Prisma {
     name: number
     imageUrl: number
     price: number
+    count: number
+    lineId: number
     createdAt: number
     _all: number
   }
@@ -5006,12 +5016,16 @@ export namespace Prisma {
     id?: true
     ownerId?: true
     price?: true
+    count?: true
+    lineId?: true
   }
 
   export type CarSumAggregateInputType = {
     id?: true
     ownerId?: true
     price?: true
+    count?: true
+    lineId?: true
   }
 
   export type CarMinAggregateInputType = {
@@ -5020,6 +5034,8 @@ export namespace Prisma {
     name?: true
     imageUrl?: true
     price?: true
+    count?: true
+    lineId?: true
     createdAt?: true
   }
 
@@ -5029,6 +5045,8 @@ export namespace Prisma {
     name?: true
     imageUrl?: true
     price?: true
+    count?: true
+    lineId?: true
     createdAt?: true
   }
 
@@ -5038,6 +5056,8 @@ export namespace Prisma {
     name?: true
     imageUrl?: true
     price?: true
+    count?: true
+    lineId?: true
     createdAt?: true
     _all?: true
   }
@@ -5134,6 +5154,8 @@ export namespace Prisma {
     name: string
     imageUrl: string
     price: number
+    count: number
+    lineId: number
     createdAt: Date
     _count: CarCountAggregateOutputType | null
     _avg: CarAvgAggregateOutputType | null
@@ -5162,6 +5184,8 @@ export namespace Prisma {
     name?: boolean
     imageUrl?: boolean
     price?: boolean
+    count?: boolean
+    lineId?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["car"]>
 
@@ -5171,6 +5195,8 @@ export namespace Prisma {
     name?: boolean
     imageUrl?: boolean
     price?: boolean
+    count?: boolean
+    lineId?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["car"]>
 
@@ -5180,6 +5206,8 @@ export namespace Prisma {
     name?: boolean
     imageUrl?: boolean
     price?: boolean
+    count?: boolean
+    lineId?: boolean
     createdAt?: boolean
   }
 
@@ -5193,6 +5221,8 @@ export namespace Prisma {
       name: string
       imageUrl: string
       price: number
+      count: number
+      lineId: number
       createdAt: Date
     }, ExtArgs["result"]["car"]>
     composites: {}
@@ -5592,6 +5622,8 @@ export namespace Prisma {
     readonly name: FieldRef<"Car", 'String'>
     readonly imageUrl: FieldRef<"Car", 'String'>
     readonly price: FieldRef<"Car", 'Int'>
+    readonly count: FieldRef<"Car", 'Int'>
+    readonly lineId: FieldRef<"Car", 'Int'>
     readonly createdAt: FieldRef<"Car", 'DateTime'>
   }
     
@@ -6909,6 +6941,8 @@ export namespace Prisma {
     name: 'name',
     imageUrl: 'imageUrl',
     price: 'price',
+    count: 'count',
+    lineId: 'lineId',
     createdAt: 'createdAt'
   };
 
@@ -7486,6 +7520,8 @@ export namespace Prisma {
     name?: StringFilter<"Car"> | string
     imageUrl?: StringFilter<"Car"> | string
     price?: IntFilter<"Car"> | number
+    count?: IntFilter<"Car"> | number
+    lineId?: IntFilter<"Car"> | number
     createdAt?: DateTimeFilter<"Car"> | Date | string
   }
 
@@ -7495,6 +7531,8 @@ export namespace Prisma {
     name?: SortOrder
     imageUrl?: SortOrder
     price?: SortOrder
+    count?: SortOrder
+    lineId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -7507,6 +7545,8 @@ export namespace Prisma {
     name?: StringFilter<"Car"> | string
     imageUrl?: StringFilter<"Car"> | string
     price?: IntFilter<"Car"> | number
+    count?: IntFilter<"Car"> | number
+    lineId?: IntFilter<"Car"> | number
     createdAt?: DateTimeFilter<"Car"> | Date | string
   }, "id">
 
@@ -7516,6 +7556,8 @@ export namespace Prisma {
     name?: SortOrder
     imageUrl?: SortOrder
     price?: SortOrder
+    count?: SortOrder
+    lineId?: SortOrder
     createdAt?: SortOrder
     _count?: CarCountOrderByAggregateInput
     _avg?: CarAvgOrderByAggregateInput
@@ -7533,6 +7575,8 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Car"> | string
     imageUrl?: StringWithAggregatesFilter<"Car"> | string
     price?: IntWithAggregatesFilter<"Car"> | number
+    count?: IntWithAggregatesFilter<"Car"> | number
+    lineId?: IntWithAggregatesFilter<"Car"> | number
     createdAt?: DateTimeWithAggregatesFilter<"Car"> | Date | string
   }
 
@@ -8219,6 +8263,8 @@ export namespace Prisma {
     name: string
     imageUrl: string
     price: number
+    count?: number
+    lineId?: number
     createdAt?: Date | string
   }
 
@@ -8228,6 +8274,8 @@ export namespace Prisma {
     name: string
     imageUrl: string
     price: number
+    count?: number
+    lineId?: number
     createdAt?: Date | string
   }
 
@@ -8236,6 +8284,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     imageUrl?: StringFieldUpdateOperationsInput | string
     price?: IntFieldUpdateOperationsInput | number
+    count?: IntFieldUpdateOperationsInput | number
+    lineId?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -8245,6 +8295,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     imageUrl?: StringFieldUpdateOperationsInput | string
     price?: IntFieldUpdateOperationsInput | number
+    count?: IntFieldUpdateOperationsInput | number
+    lineId?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -8254,6 +8306,8 @@ export namespace Prisma {
     name: string
     imageUrl: string
     price: number
+    count?: number
+    lineId?: number
     createdAt?: Date | string
   }
 
@@ -8262,6 +8316,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     imageUrl?: StringFieldUpdateOperationsInput | string
     price?: IntFieldUpdateOperationsInput | number
+    count?: IntFieldUpdateOperationsInput | number
+    lineId?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -8271,6 +8327,8 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     imageUrl?: StringFieldUpdateOperationsInput | string
     price?: IntFieldUpdateOperationsInput | number
+    count?: IntFieldUpdateOperationsInput | number
+    lineId?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -8920,6 +8978,8 @@ export namespace Prisma {
     name?: SortOrder
     imageUrl?: SortOrder
     price?: SortOrder
+    count?: SortOrder
+    lineId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -8927,6 +8987,8 @@ export namespace Prisma {
     id?: SortOrder
     ownerId?: SortOrder
     price?: SortOrder
+    count?: SortOrder
+    lineId?: SortOrder
   }
 
   export type CarMaxOrderByAggregateInput = {
@@ -8935,6 +8997,8 @@ export namespace Prisma {
     name?: SortOrder
     imageUrl?: SortOrder
     price?: SortOrder
+    count?: SortOrder
+    lineId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -8944,6 +9008,8 @@ export namespace Prisma {
     name?: SortOrder
     imageUrl?: SortOrder
     price?: SortOrder
+    count?: SortOrder
+    lineId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -8951,6 +9017,8 @@ export namespace Prisma {
     id?: SortOrder
     ownerId?: SortOrder
     price?: SortOrder
+    count?: SortOrder
+    lineId?: SortOrder
   }
 
   export type PendingBuildingCountOrderByAggregateInput = {

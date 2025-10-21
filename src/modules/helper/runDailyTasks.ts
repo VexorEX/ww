@@ -1,11 +1,7 @@
-import { prisma } from '../../prisma';
-import { Telegraf } from 'telegraf';
-import config from '../../config/config.json';
-import { deliverDailyCars,deliverDailyProfit } from '../../cron';
+import { deliverDailyCars,deliverDailyProfit,notifyUsersCombined,notifyChannelDaily } from '../../cron';
 import fs from 'fs';
 import path from 'path';
 
-const bot = new Telegraf(config.token);
 const statePath = path.join(__dirname, './.dailyState.json');
 
 function getTodayDate(): string {
@@ -37,27 +33,9 @@ export async function runDailyTasks(manualTrigger = false): Promise<string> {
 
     console.log('🚀 شروع وظایف روزانه...');
     await deliverDailyCars();
-    await deliverDailyProfit(bot);
-
-    // پیام به کاربران
-    const users = await prisma.user.findMany({ select: { userid: true } });
-    for (const user of users) {
-        try {
-            await bot.telegram.sendMessage(
-                user.userid.toString(),
-                '📅 روز جدید آغاز شد!\n✅ خودروها تحویل داده شدند.\n💰 سود روزانه واریز شد.\n🔄 محدودیت ساخت‌وساز ریست شد.'
-            );
-        } catch (err) {
-            console.warn(`❌ ارسال پیام به کاربر ${user.userid} ناموفق بود.`);
-        }
-    }
-
-    // پیام به کانال
-    try {
-        await bot.telegram.sendMessage(config.channels.updates, '📢 روز جدید آغاز شد! همه چیز ریست شد.');
-    } catch (err) {
-        console.warn('❌ ارسال پیام به کانال ناموفق بود.');
-    }
+    await deliverDailyProfit();
+    await notifyUsersCombined();      // پیام ترکیبی به کاربران
+    await notifyChannelDaily();      // پیام عمومی به کانال
 
     setLastRunDate(today);
     return '✅ وظایف روزانه با موفقیت اجرا شدند.';

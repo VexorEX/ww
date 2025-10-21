@@ -3,9 +3,11 @@ import { CustomContext } from "../middlewares/userAuth";
 import config from "../config/config.json";
 import management from './countryManagement'
 import shop from "./countryShop";
-import building from "./countryBuilding";
+import building from "./components/car";
 import market from "./countryMarket";
 import state from "./countryState";
+import construction from "./components/construction";
+import mines from "./components/mines";
 
 const userPanel = new Composer<CustomContext>();
 
@@ -23,8 +25,11 @@ const userMainKeyboard = config.manage.status
                 : [])
         ],
         [Markup.button.callback('─────────────', 'noop')],
-        config.manage?.buildings?.status
-            ? [Markup.button.callback('🏗 ساخت و ساز', 'building'),Markup.button.callback('🛒 فروش تولیدات', 'products')]
+        config.manage?.buildings?.car.status
+            ? [Markup.button.callback('🚗 ساخت خودرو', 'build_car'),Markup.button.callback('🛒 فروش تولیدات', 'products')]
+            : [],
+        config.manage?.buildings?.construction
+            ? [Markup.button.callback('🏗 ساخت پروژه عمرانی', 'construction'),Markup.button.callback('⛏ مدیریت معادن', 'manage_mines')]
             : [],
         [
             ...(config.manage?.stock?.status
@@ -47,9 +52,11 @@ export async function handleUserStart(ctx: CustomContext) {
 }
 userPanel.use(management);
 userPanel.use(shop);
-userPanel.use(state);  // state قبل از building
+userPanel.use(state);
 userPanel.use(building);
 userPanel.use(market);
+userPanel.use(construction);
+userPanel.use(mines);
 
 userPanel.action('back_main', async (ctx) => {
     const name = ctx.from.first_name;

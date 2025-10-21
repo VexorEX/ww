@@ -1,8 +1,8 @@
 import { Composer, Markup } from 'telegraf';
-import type { CustomContext } from '../middlewares/userAuth';
-import { changeCapital, changeUserField } from './economy';
-import { prisma } from '../prisma';
-import type { Prisma } from '../generated/client';
+import type { CustomContext } from '../../middlewares/userAuth';
+import { changeCapital, changeUserField } from '../economy';
+import { prisma } from '../../prisma';
+import type { Prisma } from '../../generated/client';
 
 type User = Prisma.UserGetPayload<{}>;
 
