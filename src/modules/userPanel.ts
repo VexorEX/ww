@@ -28,7 +28,7 @@ const userMainKeyboard = config.manage.status
         config.manage?.buildings?.car.status
             ? [Markup.button.callback('🚗 ساخت خودرو', 'build_car'),Markup.button.callback('🛒 فروش تولیدات', 'products')]
             : [],
-        config.manage?.buildings?.construction
+        config.manage?.buildings?.construction?.status
             ? [Markup.button.callback('🏗 ساخت پروژه عمرانی', 'construction'),Markup.button.callback('⛏ مدیریت معادن', 'manage_mines')]
             : [],
         [
