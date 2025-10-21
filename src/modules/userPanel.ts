@@ -11,13 +11,11 @@ import mines from "./components/mines";
 
 const userPanel = new Composer<CustomContext>();
 
-const productionButtons = [
-    ...(config.manage?.buildings?.car?.status
-        ? [
-            Markup.button.callback('🚗 ساخت خودرو', 'build_car'),
-            Markup.button.callback('🛒 فروش تولیدات', 'products')
-        ]
-        : []),
+const productionRow1 = config.manage?.buildings?.car?.status
+    ? [Markup.button.callback('🚗 ساخت خودرو', 'build_car'), Markup.button.callback('🛒 فروش تولیدات', 'products')]
+    : [];
+
+const productionRow2 = [
     ...(config.manage?.buildings?.construction?.status
         ? [Markup.button.callback('🏗 ساخت پروژه عمرانی', 'construction')]
         : []),
@@ -40,7 +38,8 @@ const userMainKeyboard = config.manage.status
                 : [])
         ],
         [Markup.button.callback('─────────────', 'noop')],
-        ...(productionButtons.length > 0 ? [productionButtons] : []),
+        ...(productionRow1.length > 0 ? [productionRow1] : []),
+        ...(productionRow2.length > 0 ? [productionRow2] : []),
         [
             ...(config.manage?.stock?.status
                 ? [Markup.button.callback('📈 سهام', 'stock')]
@@ -53,7 +52,6 @@ const userMainKeyboard = config.manage.status
     : Markup.inlineKeyboard([
         [Markup.button.callback('⛔ بازی متوقف شده', 'noop')]
     ]);
-
 
 export async function handleUserStart(ctx: CustomContext) {
     await ctx.reply(`🎮 خوش آمدی ${ctx.from.first_name}! کشور شما: ${ctx.user?.countryName}`, userMainKeyboard);
