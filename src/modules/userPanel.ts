@@ -11,14 +11,26 @@ import mines from "./components/mines";
 
 const userPanel = new Composer<CustomContext>();
 
+const productionButtons = [
+    ...(config.manage?.buildings?.car?.status
+        ? [
+            Markup.button.callback('🚗 ساخت خودرو', 'build_car'),
+            Markup.button.callback('🛒 فروش تولیدات', 'products')
+        ]
+        : []),
+    ...(config.manage?.buildings?.construction?.status
+        ? [Markup.button.callback('🏗 ساخت پروژه عمرانی', 'construction')]
+        : []),
+    ...(config.manage?.buildings?.mines?.status
+        ? [Markup.button.callback('⛏ مدیریت معادن', 'manage_mines')]
+        : [])
+];
+
 const userMainKeyboard = config.manage.status
     ? Markup.inlineKeyboard([
-        // 📜 بیانیه
         config.manage?.state?.status
             ? [Markup.button.callback('📜 بیانیه', 'state')]
             : [],
-
-        // 🛠 مدیریت کشور + 🛒 خرید
         [
             ...(config.manage?.management?.status
                 ? [Markup.button.callback('🛠 مدیریت کشور', 'management')]
@@ -27,27 +39,8 @@ const userMainKeyboard = config.manage.status
                 ? [Markup.button.callback('🛒 خرید', 'shop')]
                 : [])
         ],
-
-        // ─────────────
         [Markup.button.callback('─────────────', 'noop')],
-
-        // 🚗 ساخت خودرو + 🛒 فروش تولیدات + 🏗 پروژه عمرانی + ⛏ معادن
-        [
-            ...(config.manage?.buildings?.car?.status
-                ? [
-                    Markup.button.callback('🚗 ساخت خودرو', 'build_car'),
-                    Markup.button.callback('🛒 فروش تولیدات', 'products')
-                ]
-                : []),
-            ...(config.manage?.buildings?.construction?.status
-                ? [Markup.button.callback('🏗 ساخت پروژه عمرانی', 'construction')]
-                : []),
-            ...(config.manage?.buildings?.mines?.status
-                ? [Markup.button.callback('⛏ مدیریت معادن', 'manage_mines')]
-                : [])
-        ],
-
-        // 📈 سهام + ⚓ تجارت
+        ...(productionButtons.length > 0 ? [productionButtons] : []),
         [
             ...(config.manage?.stock?.status
                 ? [Markup.button.callback('📈 سهام', 'stock')]
@@ -60,6 +53,7 @@ const userMainKeyboard = config.manage.status
     : Markup.inlineKeyboard([
         [Markup.button.callback('⛔ بازی متوقف شده', 'noop')]
     ]);
+
 
 export async function handleUserStart(ctx: CustomContext) {
     await ctx.reply(`🎮 خوش آمدی ${ctx.from.first_name}! کشور شما: ${ctx.user?.countryName}`, userMainKeyboard);
