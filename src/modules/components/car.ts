@@ -221,7 +221,7 @@ car.action(/^admin_approve_building_(\d+)$/, async (ctx) => {
     // ویرایش پیام ادمین (در صورت وجود)
     if (pending.adminChatId && pending.adminMessageId) {
         try {
-            await ctx.telegram.editMessageText(
+            await ctx.telegram.editMessageCaption(
                 pending.adminChatId.toString(),
                 pending.adminMessageId,
                 undefined,
@@ -264,7 +264,7 @@ car.action(/^admin_reject_building_(\d+)$/, async (ctx) => {
     }
 
     if (pending.adminChatId && pending.adminMessageId) {
-        await ctx.telegram.editMessageText(
+        await ctx.telegram.editMessageCaption(
             pending.adminChatId.toString(),
             pending.adminMessageId,
             undefined,
