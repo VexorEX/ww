@@ -274,3 +274,5 @@ car.action(/^admin_reject_building_(\d+)$/, async (ctx) => {
 
     await ctx.answerCbQuery('✅ پروژه رد شد.');
 });
+
+export default car;
