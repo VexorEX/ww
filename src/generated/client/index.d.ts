@@ -1363,6 +1363,8 @@ export namespace Prisma {
     taad: bigint | null
     hq9: bigint | null
     acash: bigint | null
+    lastCarBuildAt: Date | null
+    lastConstructionBuildAt: Date | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -1421,6 +1423,8 @@ export namespace Prisma {
     taad: bigint | null
     hq9: bigint | null
     acash: bigint | null
+    lastCarBuildAt: Date | null
+    lastConstructionBuildAt: Date | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -1479,6 +1483,8 @@ export namespace Prisma {
     taad: number
     hq9: number
     acash: number
+    lastCarBuildAt: number
+    lastConstructionBuildAt: number
     _all: number
   }
 
@@ -1647,6 +1653,8 @@ export namespace Prisma {
     taad?: true
     hq9?: true
     acash?: true
+    lastCarBuildAt?: true
+    lastConstructionBuildAt?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -1705,6 +1713,8 @@ export namespace Prisma {
     taad?: true
     hq9?: true
     acash?: true
+    lastCarBuildAt?: true
+    lastConstructionBuildAt?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -1763,6 +1773,8 @@ export namespace Prisma {
     taad?: true
     hq9?: true
     acash?: true
+    lastCarBuildAt?: true
+    lastConstructionBuildAt?: true
     _all?: true
   }
 
@@ -1908,6 +1920,8 @@ export namespace Prisma {
     taad: bigint
     hq9: bigint
     acash: bigint
+    lastCarBuildAt: Date | null
+    lastConstructionBuildAt: Date | null
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -1985,6 +1999,8 @@ export namespace Prisma {
     taad?: boolean
     hq9?: boolean
     acash?: boolean
+    lastCarBuildAt?: boolean
+    lastConstructionBuildAt?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -2043,6 +2059,8 @@ export namespace Prisma {
     taad?: boolean
     hq9?: boolean
     acash?: boolean
+    lastCarBuildAt?: boolean
+    lastConstructionBuildAt?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -2101,6 +2119,8 @@ export namespace Prisma {
     taad?: boolean
     hq9?: boolean
     acash?: boolean
+    lastCarBuildAt?: boolean
+    lastConstructionBuildAt?: boolean
   }
 
 
@@ -2163,6 +2183,8 @@ export namespace Prisma {
       taad: bigint
       hq9: bigint
       acash: bigint
+      lastCarBuildAt: Date | null
+      lastConstructionBuildAt: Date | null
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -2611,6 +2633,8 @@ export namespace Prisma {
     readonly taad: FieldRef<"User", 'BigInt'>
     readonly hq9: FieldRef<"User", 'BigInt'>
     readonly acash: FieldRef<"User", 'BigInt'>
+    readonly lastCarBuildAt: FieldRef<"User", 'DateTime'>
+    readonly lastConstructionBuildAt: FieldRef<"User", 'DateTime'>
   }
     
 
@@ -3957,6 +3981,8 @@ export namespace Prisma {
     dailyLimit: number | null
     setupCost: number | null
     profitPercent: number | null
+    adminMessageId: number | null
+    adminChatId: number | null
   }
 
   export type PendingProductionLineSumAggregateOutputType = {
@@ -3965,6 +3991,8 @@ export namespace Prisma {
     dailyLimit: number | null
     setupCost: bigint | null
     profitPercent: number | null
+    adminMessageId: number | null
+    adminChatId: bigint | null
   }
 
   export type PendingProductionLineMinAggregateOutputType = {
@@ -3980,6 +4008,9 @@ export namespace Prisma {
     country: string | null
     profitPercent: number | null
     createdAt: Date | null
+    expiresAt: Date | null
+    adminMessageId: number | null
+    adminChatId: bigint | null
   }
 
   export type PendingProductionLineMaxAggregateOutputType = {
@@ -3995,6 +4026,9 @@ export namespace Prisma {
     country: string | null
     profitPercent: number | null
     createdAt: Date | null
+    expiresAt: Date | null
+    adminMessageId: number | null
+    adminChatId: bigint | null
   }
 
   export type PendingProductionLineCountAggregateOutputType = {
@@ -4010,6 +4044,9 @@ export namespace Prisma {
     country: number
     profitPercent: number
     createdAt: number
+    expiresAt: number
+    adminMessageId: number
+    adminChatId: number
     _all: number
   }
 
@@ -4020,6 +4057,8 @@ export namespace Prisma {
     dailyLimit?: true
     setupCost?: true
     profitPercent?: true
+    adminMessageId?: true
+    adminChatId?: true
   }
 
   export type PendingProductionLineSumAggregateInputType = {
@@ -4028,6 +4067,8 @@ export namespace Prisma {
     dailyLimit?: true
     setupCost?: true
     profitPercent?: true
+    adminMessageId?: true
+    adminChatId?: true
   }
 
   export type PendingProductionLineMinAggregateInputType = {
@@ -4043,6 +4084,9 @@ export namespace Prisma {
     country?: true
     profitPercent?: true
     createdAt?: true
+    expiresAt?: true
+    adminMessageId?: true
+    adminChatId?: true
   }
 
   export type PendingProductionLineMaxAggregateInputType = {
@@ -4058,6 +4102,9 @@ export namespace Prisma {
     country?: true
     profitPercent?: true
     createdAt?: true
+    expiresAt?: true
+    adminMessageId?: true
+    adminChatId?: true
   }
 
   export type PendingProductionLineCountAggregateInputType = {
@@ -4073,6 +4120,9 @@ export namespace Prisma {
     country?: true
     profitPercent?: true
     createdAt?: true
+    expiresAt?: true
+    adminMessageId?: true
+    adminChatId?: true
     _all?: true
   }
 
@@ -4175,6 +4225,9 @@ export namespace Prisma {
     country: string
     profitPercent: number | null
     createdAt: Date
+    expiresAt: Date | null
+    adminMessageId: number | null
+    adminChatId: bigint | null
     _count: PendingProductionLineCountAggregateOutputType | null
     _avg: PendingProductionLineAvgAggregateOutputType | null
     _sum: PendingProductionLineSumAggregateOutputType | null
@@ -4209,6 +4262,9 @@ export namespace Prisma {
     country?: boolean
     profitPercent?: boolean
     createdAt?: boolean
+    expiresAt?: boolean
+    adminMessageId?: boolean
+    adminChatId?: boolean
   }, ExtArgs["result"]["pendingProductionLine"]>
 
   export type PendingProductionLineSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -4224,6 +4280,9 @@ export namespace Prisma {
     country?: boolean
     profitPercent?: boolean
     createdAt?: boolean
+    expiresAt?: boolean
+    adminMessageId?: boolean
+    adminChatId?: boolean
   }, ExtArgs["result"]["pendingProductionLine"]>
 
   export type PendingProductionLineSelectScalar = {
@@ -4239,6 +4298,9 @@ export namespace Prisma {
     country?: boolean
     profitPercent?: boolean
     createdAt?: boolean
+    expiresAt?: boolean
+    adminMessageId?: boolean
+    adminChatId?: boolean
   }
 
 
@@ -4258,6 +4320,9 @@ export namespace Prisma {
       country: string
       profitPercent: number | null
       createdAt: Date
+      expiresAt: Date | null
+      adminMessageId: number | null
+      adminChatId: bigint | null
     }, ExtArgs["result"]["pendingProductionLine"]>
     composites: {}
   }
@@ -4663,6 +4728,9 @@ export namespace Prisma {
     readonly country: FieldRef<"PendingProductionLine", 'String'>
     readonly profitPercent: FieldRef<"PendingProductionLine", 'Int'>
     readonly createdAt: FieldRef<"PendingProductionLine", 'DateTime'>
+    readonly expiresAt: FieldRef<"PendingProductionLine", 'DateTime'>
+    readonly adminMessageId: FieldRef<"PendingProductionLine", 'Int'>
+    readonly adminChatId: FieldRef<"PendingProductionLine", 'BigInt'>
   }
     
 
@@ -6891,7 +6959,9 @@ export namespace Prisma {
     s400: 's400',
     taad: 'taad',
     hq9: 'hq9',
-    acash: 'acash'
+    acash: 'acash',
+    lastCarBuildAt: 'lastCarBuildAt',
+    lastConstructionBuildAt: 'lastConstructionBuildAt'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -6929,7 +6999,10 @@ export namespace Prisma {
     setupCost: 'setupCost',
     country: 'country',
     profitPercent: 'profitPercent',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    expiresAt: 'expiresAt',
+    adminMessageId: 'adminMessageId',
+    adminChatId: 'adminChatId'
   };
 
   export type PendingProductionLineScalarFieldEnum = (typeof PendingProductionLineScalarFieldEnum)[keyof typeof PendingProductionLineScalarFieldEnum]
@@ -7078,6 +7151,8 @@ export namespace Prisma {
     taad?: BigIntFilter<"User"> | bigint | number
     hq9?: BigIntFilter<"User"> | bigint | number
     acash?: BigIntFilter<"User"> | bigint | number
+    lastCarBuildAt?: DateTimeNullableFilter<"User"> | Date | string | null
+    lastConstructionBuildAt?: DateTimeNullableFilter<"User"> | Date | string | null
   }
 
   export type UserOrderByWithRelationInput = {
@@ -7136,6 +7211,8 @@ export namespace Prisma {
     taad?: SortOrder
     hq9?: SortOrder
     acash?: SortOrder
+    lastCarBuildAt?: SortOrderInput | SortOrder
+    lastConstructionBuildAt?: SortOrderInput | SortOrder
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -7197,6 +7274,8 @@ export namespace Prisma {
     taad?: BigIntFilter<"User"> | bigint | number
     hq9?: BigIntFilter<"User"> | bigint | number
     acash?: BigIntFilter<"User"> | bigint | number
+    lastCarBuildAt?: DateTimeNullableFilter<"User"> | Date | string | null
+    lastConstructionBuildAt?: DateTimeNullableFilter<"User"> | Date | string | null
   }, "userid">
 
   export type UserOrderByWithAggregationInput = {
@@ -7255,6 +7334,8 @@ export namespace Prisma {
     taad?: SortOrder
     hq9?: SortOrder
     acash?: SortOrder
+    lastCarBuildAt?: SortOrderInput | SortOrder
+    lastConstructionBuildAt?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -7321,6 +7402,8 @@ export namespace Prisma {
     taad?: BigIntWithAggregatesFilter<"User"> | bigint | number
     hq9?: BigIntWithAggregatesFilter<"User"> | bigint | number
     acash?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    lastCarBuildAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+    lastConstructionBuildAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   }
 
   export type ProductionLineWhereInput = {
@@ -7438,6 +7521,9 @@ export namespace Prisma {
     country?: StringFilter<"PendingProductionLine"> | string
     profitPercent?: IntNullableFilter<"PendingProductionLine"> | number | null
     createdAt?: DateTimeFilter<"PendingProductionLine"> | Date | string
+    expiresAt?: DateTimeNullableFilter<"PendingProductionLine"> | Date | string | null
+    adminMessageId?: IntNullableFilter<"PendingProductionLine"> | number | null
+    adminChatId?: BigIntNullableFilter<"PendingProductionLine"> | bigint | number | null
   }
 
   export type PendingProductionLineOrderByWithRelationInput = {
@@ -7453,6 +7539,9 @@ export namespace Prisma {
     country?: SortOrder
     profitPercent?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    adminMessageId?: SortOrderInput | SortOrder
+    adminChatId?: SortOrderInput | SortOrder
   }
 
   export type PendingProductionLineWhereUniqueInput = Prisma.AtLeast<{
@@ -7471,6 +7560,9 @@ export namespace Prisma {
     country?: StringFilter<"PendingProductionLine"> | string
     profitPercent?: IntNullableFilter<"PendingProductionLine"> | number | null
     createdAt?: DateTimeFilter<"PendingProductionLine"> | Date | string
+    expiresAt?: DateTimeNullableFilter<"PendingProductionLine"> | Date | string | null
+    adminMessageId?: IntNullableFilter<"PendingProductionLine"> | number | null
+    adminChatId?: BigIntNullableFilter<"PendingProductionLine"> | bigint | number | null
   }, "id">
 
   export type PendingProductionLineOrderByWithAggregationInput = {
@@ -7486,6 +7578,9 @@ export namespace Prisma {
     country?: SortOrder
     profitPercent?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    adminMessageId?: SortOrderInput | SortOrder
+    adminChatId?: SortOrderInput | SortOrder
     _count?: PendingProductionLineCountOrderByAggregateInput
     _avg?: PendingProductionLineAvgOrderByAggregateInput
     _max?: PendingProductionLineMaxOrderByAggregateInput
@@ -7509,6 +7604,9 @@ export namespace Prisma {
     country?: StringWithAggregatesFilter<"PendingProductionLine"> | string
     profitPercent?: IntNullableWithAggregatesFilter<"PendingProductionLine"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"PendingProductionLine"> | Date | string
+    expiresAt?: DateTimeNullableWithAggregatesFilter<"PendingProductionLine"> | Date | string | null
+    adminMessageId?: IntNullableWithAggregatesFilter<"PendingProductionLine"> | number | null
+    adminChatId?: BigIntNullableWithAggregatesFilter<"PendingProductionLine"> | bigint | number | null
   }
 
   export type CarWhereInput = {
@@ -7690,6 +7788,8 @@ export namespace Prisma {
     taad?: bigint | number
     hq9?: bigint | number
     acash?: bigint | number
+    lastCarBuildAt?: Date | string | null
+    lastConstructionBuildAt?: Date | string | null
   }
 
   export type UserUncheckedCreateInput = {
@@ -7748,6 +7848,8 @@ export namespace Prisma {
     taad?: bigint | number
     hq9?: bigint | number
     acash?: bigint | number
+    lastCarBuildAt?: Date | string | null
+    lastConstructionBuildAt?: Date | string | null
   }
 
   export type UserUpdateInput = {
@@ -7806,6 +7908,8 @@ export namespace Prisma {
     taad?: BigIntFieldUpdateOperationsInput | bigint | number
     hq9?: BigIntFieldUpdateOperationsInput | bigint | number
     acash?: BigIntFieldUpdateOperationsInput | bigint | number
+    lastCarBuildAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastConstructionBuildAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserUncheckedUpdateInput = {
@@ -7864,6 +7968,8 @@ export namespace Prisma {
     taad?: BigIntFieldUpdateOperationsInput | bigint | number
     hq9?: BigIntFieldUpdateOperationsInput | bigint | number
     acash?: BigIntFieldUpdateOperationsInput | bigint | number
+    lastCarBuildAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastConstructionBuildAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserCreateManyInput = {
@@ -7922,6 +8028,8 @@ export namespace Prisma {
     taad?: bigint | number
     hq9?: bigint | number
     acash?: bigint | number
+    lastCarBuildAt?: Date | string | null
+    lastConstructionBuildAt?: Date | string | null
   }
 
   export type UserUpdateManyMutationInput = {
@@ -7980,6 +8088,8 @@ export namespace Prisma {
     taad?: BigIntFieldUpdateOperationsInput | bigint | number
     hq9?: BigIntFieldUpdateOperationsInput | bigint | number
     acash?: BigIntFieldUpdateOperationsInput | bigint | number
+    lastCarBuildAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastConstructionBuildAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -8038,6 +8148,8 @@ export namespace Prisma {
     taad?: BigIntFieldUpdateOperationsInput | bigint | number
     hq9?: BigIntFieldUpdateOperationsInput | bigint | number
     acash?: BigIntFieldUpdateOperationsInput | bigint | number
+    lastCarBuildAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastConstructionBuildAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type ProductionLineCreateInput = {
@@ -8168,6 +8280,9 @@ export namespace Prisma {
     country: string
     profitPercent?: number | null
     createdAt?: Date | string
+    expiresAt?: Date | string | null
+    adminMessageId?: number | null
+    adminChatId?: bigint | number | null
   }
 
   export type PendingProductionLineUncheckedCreateInput = {
@@ -8183,6 +8298,9 @@ export namespace Prisma {
     country: string
     profitPercent?: number | null
     createdAt?: Date | string
+    expiresAt?: Date | string | null
+    adminMessageId?: number | null
+    adminChatId?: bigint | number | null
   }
 
   export type PendingProductionLineUpdateInput = {
@@ -8197,6 +8315,9 @@ export namespace Prisma {
     country?: StringFieldUpdateOperationsInput | string
     profitPercent?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adminMessageId?: NullableIntFieldUpdateOperationsInput | number | null
+    adminChatId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   }
 
   export type PendingProductionLineUncheckedUpdateInput = {
@@ -8212,6 +8333,9 @@ export namespace Prisma {
     country?: StringFieldUpdateOperationsInput | string
     profitPercent?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adminMessageId?: NullableIntFieldUpdateOperationsInput | number | null
+    adminChatId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   }
 
   export type PendingProductionLineCreateManyInput = {
@@ -8227,6 +8351,9 @@ export namespace Prisma {
     country: string
     profitPercent?: number | null
     createdAt?: Date | string
+    expiresAt?: Date | string | null
+    adminMessageId?: number | null
+    adminChatId?: bigint | number | null
   }
 
   export type PendingProductionLineUpdateManyMutationInput = {
@@ -8241,6 +8368,9 @@ export namespace Prisma {
     country?: StringFieldUpdateOperationsInput | string
     profitPercent?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adminMessageId?: NullableIntFieldUpdateOperationsInput | number | null
+    adminChatId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   }
 
   export type PendingProductionLineUncheckedUpdateManyInput = {
@@ -8256,6 +8386,9 @@ export namespace Prisma {
     country?: StringFieldUpdateOperationsInput | string
     profitPercent?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    adminMessageId?: NullableIntFieldUpdateOperationsInput | number | null
+    adminChatId?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   }
 
   export type CarCreateInput = {
@@ -8421,6 +8554,22 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | null
+    notIn?: Date[] | string[] | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type SortOrderInput = {
+    sort: SortOrder
+    nulls?: NullsOrder
+  }
+
   export type UserCountOrderByAggregateInput = {
     userid?: SortOrder
     country?: SortOrder
@@ -8477,6 +8626,8 @@ export namespace Prisma {
     taad?: SortOrder
     hq9?: SortOrder
     acash?: SortOrder
+    lastCarBuildAt?: SortOrder
+    lastConstructionBuildAt?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
@@ -8589,6 +8740,8 @@ export namespace Prisma {
     taad?: SortOrder
     hq9?: SortOrder
     acash?: SortOrder
+    lastCarBuildAt?: SortOrder
+    lastConstructionBuildAt?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -8647,6 +8800,8 @@ export namespace Prisma {
     taad?: SortOrder
     hq9?: SortOrder
     acash?: SortOrder
+    lastCarBuildAt?: SortOrder
+    lastConstructionBuildAt?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
@@ -8752,6 +8907,20 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | null
+    notIn?: Date[] | string[] | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type DateTimeFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[]
@@ -8786,11 +8955,6 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
-  }
-
-  export type SortOrderInput = {
-    sort: SortOrder
-    nulls?: NullsOrder
   }
 
   export type ProductionLineCountOrderByAggregateInput = {
@@ -8911,6 +9075,17 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
+  export type BigIntNullableFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel> | null
+    in?: bigint[] | number[] | null
+    notIn?: bigint[] | number[] | null
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntNullableFilter<$PrismaModel> | bigint | number | null
+  }
+
   export type PendingProductionLineCountOrderByAggregateInput = {
     id?: SortOrder
     ownerId?: SortOrder
@@ -8924,6 +9099,9 @@ export namespace Prisma {
     country?: SortOrder
     profitPercent?: SortOrder
     createdAt?: SortOrder
+    expiresAt?: SortOrder
+    adminMessageId?: SortOrder
+    adminChatId?: SortOrder
   }
 
   export type PendingProductionLineAvgOrderByAggregateInput = {
@@ -8932,6 +9110,8 @@ export namespace Prisma {
     dailyLimit?: SortOrder
     setupCost?: SortOrder
     profitPercent?: SortOrder
+    adminMessageId?: SortOrder
+    adminChatId?: SortOrder
   }
 
   export type PendingProductionLineMaxOrderByAggregateInput = {
@@ -8947,6 +9127,9 @@ export namespace Prisma {
     country?: SortOrder
     profitPercent?: SortOrder
     createdAt?: SortOrder
+    expiresAt?: SortOrder
+    adminMessageId?: SortOrder
+    adminChatId?: SortOrder
   }
 
   export type PendingProductionLineMinOrderByAggregateInput = {
@@ -8962,6 +9145,9 @@ export namespace Prisma {
     country?: SortOrder
     profitPercent?: SortOrder
     createdAt?: SortOrder
+    expiresAt?: SortOrder
+    adminMessageId?: SortOrder
+    adminChatId?: SortOrder
   }
 
   export type PendingProductionLineSumOrderByAggregateInput = {
@@ -8970,6 +9156,24 @@ export namespace Prisma {
     dailyLimit?: SortOrder
     setupCost?: SortOrder
     profitPercent?: SortOrder
+    adminMessageId?: SortOrder
+    adminChatId?: SortOrder
+  }
+
+  export type BigIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel> | null
+    in?: bigint[] | number[] | null
+    notIn?: bigint[] | number[] | null
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntNullableWithAggregatesFilter<$PrismaModel> | bigint | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedBigIntNullableFilter<$PrismaModel>
+    _min?: NestedBigIntNullableFilter<$PrismaModel>
+    _max?: NestedBigIntNullableFilter<$PrismaModel>
   }
 
   export type CarCountOrderByAggregateInput = {
@@ -9075,6 +9279,10 @@ export namespace Prisma {
     divide?: number
   }
 
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
+  }
+
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string
   }
@@ -9089,6 +9297,14 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type NullableBigIntFieldUpdateOperationsInput = {
+    set?: bigint | number | null
+    increment?: bigint | number
+    decrement?: bigint | number
+    multiply?: bigint | number
+    divide?: bigint | number
   }
 
   export type NestedBigIntFilter<$PrismaModel = never> = {
@@ -9125,6 +9341,17 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | null
+    notIn?: Date[] | string[] | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
   export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -9187,6 +9414,31 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | null
+    notIn?: Date[] | string[] | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type NestedDateTimeFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[]
@@ -9210,17 +9462,6 @@ export namespace Prisma {
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
-  }
-
-  export type NestedIntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
@@ -9279,6 +9520,33 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedBigIntNullableFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel> | null
+    in?: bigint[] | number[] | null
+    notIn?: bigint[] | number[] | null
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntNullableFilter<$PrismaModel> | bigint | number | null
+  }
+
+  export type NestedBigIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel> | null
+    in?: bigint[] | number[] | null
+    notIn?: bigint[] | number[] | null
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntNullableWithAggregatesFilter<$PrismaModel> | bigint | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedBigIntNullableFilter<$PrismaModel>
+    _min?: NestedBigIntNullableFilter<$PrismaModel>
+    _max?: NestedBigIntNullableFilter<$PrismaModel>
   }
 
 

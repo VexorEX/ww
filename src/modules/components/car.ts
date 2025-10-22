@@ -9,6 +9,18 @@ const admins: number[] = config.manage.buildings.car.admins;
 const car = new Composer<CustomContext>();
 
 car.action('build_car', async (ctx) => {
+    const userId = BigInt(ctx.from.id);
+    const user = await prisma.user.findUnique({ where: { userid: userId } });
+    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+
+    const today = new Date().toDateString();
+    const last = user.lastCarBuildAt;
+    const isSameDay = last && new Date(last).toDateString() === today;
+
+    if (isSameDay) {
+        return ctx.reply('⛔ امروز قبلاً یک خودرو ساخته‌اید. فردا دوباره تلاش کنید.');
+    }
+
     ctx.session = {
         buildingType: 'car',
         setupCost: 250_000_000,
@@ -40,12 +52,12 @@ car.on('text', async (ctx, next) => {
         ctx.session.buildingStep = 'awaiting_admin_review';
 
         const preview = escapeMarkdownV2(
-            `🏭 پیش‌نمایش ساخت ${ctx.session.buildingType === 'car' ? 'خودرو' : `پروژه ${ctx.session.buildingType}`}\n\n` +
+            `🚗 پروژه ساخت خودرو\n\n` +
             `> کشور سازنده: *${ctx.user?.countryName}*\n` +
             `> محصول: *${ctx.session.buildingName}*\n` +
             `> توضیح: ${ctx.session.buildingDescription}\n\n` +
-            `بودجه راه‌اندازی: ${Math.floor(ctx.session.setupCost / 1_000_000)}M\n` +
-            (ctx.session.buildingType === 'car' ? 'ظرفیت تولید روزانه: 15 خودرو\n\n' : '') +
+            `💰 بودجه راه‌اندازی: ${Math.floor(ctx.session.setupCost / 1_000_000)}M\n` +
+            `🔄 ظرفیت تولید روزانه: 15 خودرو\n\n` +
             `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`
         );
 
@@ -96,9 +108,9 @@ car.action('submit_building', async (ctx) => {
     const result = await changeCapital(userId, 'subtract', setupCost);
     if (result !== 'ok') return ctx.reply('❌ خطا در کسر سرمایه.');
 
-    const profitPercent = buildingType === 'car' ? null : Math.floor(10 + Math.random() * 72);
+    const expiresAt = new Date(Date.now() + 3 * 60 * 60 * 1000); // 3 ساعت بعد
 
-    await prisma.pendingProductionLine.create({
+    const pending = await prisma.pendingProductionLine.create({
         data: {
             ownerId: userId,
             name: buildingName,
@@ -109,30 +121,37 @@ car.action('submit_building', async (ctx) => {
             dailyLimit: 15,
             setupCost: BigInt(setupCost),
             country,
-            profitPercent
+            expiresAt
         }
     });
 
     const caption = escapeMarkdownV2(
-        `📥 درخواست ساخت ${buildingType === 'car' ? 'خط تولید خودرو' : `پروژه ${buildingType}`}\n\n` +
+        `📥 درخواست ساخت خط تولید خودرو\n\n` +
         `> کشور: *${country}*\n` +
         `> نام: *${buildingName}*\n` +
         `> توضیح: ${buildingDescription}\n` +
-        `> بودجه: ${Math.floor(setupCost / 1_000_000)}M` +
-        (profitPercent !== null ? `\n> سوددهی: ${profitPercent}%` : '') +
-        (buildingType === 'car' ? `\nظرفیت تولید روزانه: 15 خودرو` : '')
+        `> بودجه: ${Math.floor(setupCost / 1_000_000)}M\n` +
+        `🔄 ظرفیت تولید روزانه: 15 خودرو`
     );
 
     const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('✅ تأیید ساخت', `admin_approve_building_${userId}`)],
-        [Markup.button.callback('❌ رد درخواست', `admin_reject_building_${userId}`)]
+        [Markup.button.callback('✅ تأیید ساخت', `admin_approve_building_${pending.id}`)],
+        [Markup.button.callback('❌ رد درخواست', `admin_reject_building_${pending.id}`)]
     ]);
 
     for (const admin of admins) {
-        await ctx.telegram.sendPhoto(admin, buildingImageFileId, {
+        const sent = await ctx.telegram.sendPhoto(admin, buildingImageFileId, {
             caption,
             parse_mode: 'MarkdownV2',
             reply_markup: keyboard.reply_markup
+        });
+
+        await prisma.pendingProductionLine.update({
+            where: { id: pending.id },
+            data: {
+                adminMessageId: sent.message_id,
+                adminChatId: BigInt(admin)
+            }
         });
     }
 
@@ -141,25 +160,30 @@ car.action('submit_building', async (ctx) => {
 });
 
 // تأیید نهایی توسط ادمین
-car.action(/admin_approve_building_(\d+)/, async (ctx) => {
-    const userId = BigInt(ctx.match[1]);
-    const user = await prisma.user.findUnique({ where: { userid: userId } });
-    const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
-    if (!user || !pending) return ctx.reply('❌ اطلاعات یافت نشد.');
-
-    // محاسبه سود روزانه برای پروژه‌های عمرانی
-    let addedProfit = 0;
-    if (pending.type !== 'car' && pending.profitPercent) {
-        const base = Number(pending.setupCost);
-        addedProfit = Math.floor(base * pending.profitPercent / 100);
-
-        await prisma.user.update({
-            where: { userid: userId },
-            data: {
-                dailyProfit: { increment: addedProfit }
-            }
-        });
+car.action(/^admin_approve_building_(\d+)$/, async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!admins.includes(adminId)) {
+        return ctx.answerCbQuery('⛔ فقط ادمین می‌تونه تأیید کنه.');
     }
+
+    const pendingId = Number(ctx.match[1]);
+    const pending = await prisma.pendingProductionLine.findUnique({ where: { id: pendingId } });
+    if (!pending) return ctx.reply('❌ اطلاعات یافت نشد.');
+    const now = new Date();
+    if (pending.expiresAt && pending.expiresAt < now) {
+        return ctx.reply('⛔ این پروژه منقضی شده و قابل تأیید نیست.');
+    }
+
+    const userId = pending.ownerId;
+    const user = await prisma.user.findUnique({ where: { userid: userId } });
+    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+
+    await prisma.user.update({
+        where: { userid: userId },
+        data: {
+            lastCarBuildAt: new Date()
+        }
+    });
 
     await prisma.productionLine.create({
         data: {
@@ -170,80 +194,83 @@ car.action(/admin_approve_building_(\d+)/, async (ctx) => {
             imageFileId: pending.imageFileId,
             dailyLimit: pending.dailyLimit,
             setupCost: pending.setupCost,
-            country: pending.country,
-            profitPercent: pending.profitPercent
+            country: pending.country
         }
     });
 
-    await prisma.pendingProductionLine.delete({ where: { id: pending.id } });
+    await prisma.pendingProductionLine.delete({ where: { id: pendingId } });
 
     await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
         caption: escapeMarkdownV2(
             `🏭 خط تولید جدید راه‌اندازی شد\n\n` +
             `> کشور سازنده: *${user.countryName}*\n` +
             `> محصول: *${pending.name}*\n\n` +
-            `بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()} ریال\n` +
-            `ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`
+            `💰 بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()} ریال\n` +
+            `🔄 ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`
         ),
         parse_mode: 'MarkdownV2'
     });
 
-    // پیام به کاربر درباره تأیید و سوددهی
-    try {
-        let message =
-            `✅ پروژه "${pending.name}" تأیید شد و خط تولید فعال شد.\n` +
-            `🏗 نوع پروژه: ${pending.type}\n` +
-            `💰 بودجه: ${Math.floor(Number(pending.setupCost) / 1_000_000)}M`;
+    await ctx.telegram.sendMessage(Number(userId),
+        `✅ پروژه "${pending.name}" تأیید شد و خط تولید فعال شد.\n` +
+        `🚗 نوع پروژه: خودرو\n` +
+        `💰 بودجه: ${Math.floor(Number(pending.setupCost) / 1_000_000)}M\n` +
+        `🔄 ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`
+    );
 
-        if (addedProfit > 0) {
-            message += `\n➕ سود روزانه: ${Math.floor(addedProfit / 1_000_000)}M به حساب سود شما اضافه شد.`;
+    // ویرایش پیام ادمین (در صورت وجود)
+    if (pending.adminChatId && pending.adminMessageId) {
+        try {
+            await ctx.telegram.editMessageText(
+                pending.adminChatId.toString(),
+                pending.adminMessageId,
+                undefined,
+                '✅ این پروژه تأیید شد و در سیستم ثبت گردید.'
+            );
+        } catch (err) {
+            console.warn('❌ خطا در ویرایش پیام ادمین:', err);
         }
-
-        await ctx.telegram.sendMessage(Number(userId), message);
-    } catch (err) {
-        console.warn('❌ ارسال پیام به کاربر ممکن نبود:', err);
     }
 
-    await ctx.reply('✅ خط تولید ثبت شد و به کانال ارسال شد.');
+    await ctx.answerCbQuery('✅ پروژه تأیید شد.');
+    await ctx.reply('✅ پروژه تأیید و ثبت شد.');
 });
-
-// رد درخواست توسط ادمین
-car.action(/admin_reject_building_(\d+)/, async (ctx) => {
-    const userId = BigInt(ctx.match[1]);
+car.action(/^admin_reject_building_(\d+)$/, async (ctx) => {
     const adminId = ctx.from.id;
-
     if (!admins.includes(adminId)) {
         return ctx.answerCbQuery('⛔ فقط ادمین می‌تونه رد کنه.');
     }
 
-    const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
-
-    if (!pending) {
-        return ctx.answerCbQuery('❌ درخواست یافت نشد.');
+    const pendingId = Number(ctx.match[1]);
+    const pending = await prisma.pendingProductionLine.findUnique({ where: { id: pendingId } });
+    if (!pending) return ctx.answerCbQuery('❌ پروژه یافت نشد.');
+    const now = new Date();
+    if (pending.expiresAt && pending.expiresAt < now) {
+        return ctx.reply('⛔ این پروژه منقضی شده و قابل تأیید نیست.');
     }
 
-    // برگرداندن پول
-    const result = await changeCapital(userId, 'add', Number(pending.setupCost));
-    if (result === 'not_found') {
-        return ctx.answerCbQuery('❌ کاربر یافت نشد.');
-    }
-    if (result === 'invalid' || result === 'error') {
-        return ctx.answerCbQuery('❌ خطا در برگرداندن پول.');
-    }
+    const refund = Number(pending.setupCost);
+    const result = await changeCapital(pending.ownerId, 'add', refund);
+    if (result !== 'ok') return ctx.answerCbQuery('❌ خطا در بازگرداندن سرمایه.');
 
-    // حذف درخواست
-    await prisma.pendingProductionLine.deleteMany({ where: { ownerId: userId } });
+    await prisma.pendingProductionLine.delete({ where: { id: pendingId } });
 
-    // اطلاع‌رسانی به کاربر
     try {
-        await ctx.telegram.sendMessage(Number(userId),
-            `❌ درخواست ساخت خط تولید شما رد شد.\n💰 مبلغ ${Number(pending.setupCost / BigInt(1_000_000)).toLocaleString()}M به حساب شما برگشت.`
+        await ctx.telegram.sendMessage(Number(pending.ownerId),
+            `❌ پروژه "${pending.name}" توسط ادمین رد شد.\n💸 مبلغ ${Math.floor(refund / 1_000_000)}M به حساب شما برگشت داده شد.`
         );
     } catch (err) {
-        console.warn('ارسال پیام به PV کاربر ممکن نبود:', err);
+        console.warn('❌ ارسال پیام به کاربر ممکن نبود:', err);
     }
 
-    await ctx.answerCbQuery('✅ درخواست رد شد و پول برگشت.');
-});
+    if (pending.adminChatId && pending.adminMessageId) {
+        await ctx.telegram.editMessageText(
+            pending.adminChatId.toString(),
+            pending.adminMessageId,
+            undefined,
+            '❌ این پروژه رد شد و بسته شد.'
+        );
+    }
 
-export default car;
+    await ctx.answerCbQuery('✅ پروژه رد شد.');
+});
