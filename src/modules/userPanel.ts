@@ -3,7 +3,7 @@ import { CustomContext } from "../middlewares/userAuth";
 import config from "../config/config.json";
 import management from './countryManagement'
 import shop from "./countryShop";
-import building from "./components/car";
+import car from "./components/car";
 import market from "./countryMarket";
 import state from "./countryState";
 import construction from "./components/construction";
@@ -63,7 +63,7 @@ export async function handleUserStart(ctx: CustomContext) {
 userPanel.use(management);
 userPanel.use(shop);
 userPanel.use(state);
-userPanel.use(building);
+userPanel.use(car);
 userPanel.use(market);
 userPanel.use(construction);
 userPanel.use(mines);

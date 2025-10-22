@@ -294,3 +294,5 @@ construction.action(/^admin_reject_construction_(\d+)$/, async (ctx) => {
 
     await ctx.answerCbQuery('✅ پروژه رد شد.');
 });
+
+export default construction;
