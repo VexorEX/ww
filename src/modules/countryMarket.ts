@@ -67,6 +67,14 @@ products.action(/^show_(\d+)$/, async (ctx) => {
     const unitPrice = line.type === 'car'
         ? (line.unitPrice ?? 0)
         : Math.floor(Number(line.setupCost) * (line.profitPercent ?? 0) / 100);
+    const totalCars = await prisma.car.count({
+        where: {
+            ownerId: userId,
+            lineId: line.id,
+            name: line.name,
+            imageUrl: line.imageUrl
+        }
+    });
 
     const totalPrice = unitPrice * line.dailyOutput;
 
@@ -75,7 +83,9 @@ products.action(/^show_(\d+)$/, async (ctx) => {
         `💰 قیمت واحد: ${Math.floor(unitPrice / 1_000_000)}M\n` +
         `💰 قیمت کل: ${Math.floor(totalPrice / 1_000_000)}M\n\n` +
         `🔄 عمر باقی‌مانده: ${line.dailyLimit} روز\n` +
-        `🚗 خروجی امروز: ${line.dailyOutput} واحد`
+        `🚗 خروجی امروز: ${line.dailyOutput} واحد\n` +
+        `🚗 موجودی انبار: ${totalCars} خودرو\n`
+
     );
 
     const keyboard = Markup.inlineKeyboard([
@@ -88,9 +98,9 @@ products.action(/^show_(\d+)$/, async (ctx) => {
             Markup.button.callback(`💵 ارزش کل: ${Math.floor(totalPrice / 1_000_000)}M`, 'noop')
         ],
         [
-            Markup.button.callback('🧾 فروش محصول', 'noop')
+            Markup.button.callback('🧾 انتخاب نوع فروش ↓', 'noop')
         ],
-            [Markup.button.callback('📤 فروش همه', `sell_all_${line.id}`),Markup.button.callback('📤 فروش تعداد', `sell_one_${line.id}`)],
+            [Markup.button.callback(`📤 فروش همه (${totalCars} عدد)`, `sell_all_${line.id}`),Markup.button.callback('📤 فروش تعداد', `sell_one_${line.id}`)],
         [
             Markup.button.callback('❌ بستن', 'delete'),
             Markup.button.callback('🔙 بازگشت', 'products')
@@ -152,7 +162,12 @@ products.on('text', async (ctx, next) => {
         ctx.session.sellStep = undefined;
         ctx.session.sellLineId = undefined;
 
-        await ctx.reply(`✅ ${count} واحد از "${line.name}" فروخته شد.\n💰 ${Math.floor(total / 1_000_000)}M به حساب شما اضافه شد.`);
+        await ctx.reply(`✅ ${count} واحد از "${line.name}" فروخته شد.\n💰 ${Math.floor(total / 1_000_000)}M به حساب شما اضافه شد.`, {
+            reply_markup: Markup.inlineKeyboard([
+                [Markup.button.callback('🔙 بازگشت به لیست محصولات', 'products')]
+            ]).reply_markup
+        });
+
         return;
     }
 
