@@ -1,277 +1,354 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client" // optional: client رو در src بساز برای import آسان
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userid       BigInt @id
+  country      String
+  countryName  String
+  level        Int    @default(0)
+  rank         Int    @default(0)
+  government   String
+  religion     String @default("islam")
+  crowd        BigInt @default(15000000)
+  capital      BigInt @default(150000000)
+  dailyProfit  BigInt @default(100000000)
+  satisfaction Int    @default(80)
+  security     Int    @default(80)
+  lottery      Int    @default(0)
+
+  // منابع
+  oil         BigInt @default(0)
+  iron        BigInt @default(0)
+  gold        BigInt @default(0)
+  uranium     BigInt @default(0)
+  goldMine    BigInt @default(0)
+  uraniumMine BigInt @default(0)
+  ironMine    BigInt @default(0)
+  refinery    BigInt @default(0)
+
+  // ارتش پایه
+  soldier   BigInt @default(0)
+  tank      BigInt @default(0)
+  heavyTank BigInt @default(0)
+
+  // جنگنده‌ها
+  su57 BigInt @default(0)
+  f47  BigInt @default(0)
+  f35  BigInt @default(0)
+  j20  BigInt @default(0)
+  f16  BigInt @default(0)
+  f22  BigInt @default(0)
+  am50 BigInt @default(0)
+  b2   BigInt @default(0)
+  tu16 BigInt @default(0)
+
+  // پهپادها
+  espionageDrone BigInt @default(0)
+  suicideDrone   BigInt @default(0)
+  crossDrone     BigInt @default(0)
+  witnessDrone   BigInt @default(0)
+
+  // موشک‌ها
+  simpleRocket      BigInt @default(0)
+  crossRocket       BigInt @default(0)
+  dotTargetRocket   BigInt @default(0)
+  continentalRocket BigInt @default(0)
+  ballisticRocket   BigInt @default(0)
+  chemicalRocket    BigInt @default(0)
+  hyperSonicRocket  BigInt @default(0)
+  clusterRocket     BigInt @default(0)
+
+  // کشتی‌های دریایی
+  battleship       BigInt @default(0)
+  marineShip       BigInt @default(0)
+  breakerShip      BigInt @default(0)
+  nuclearSubmarine BigInt @default(0)
+
+  // دفاع
+  antiRocket BigInt @default(0)
+  ironDome   BigInt @default(0)
+  s400       BigInt @default(0)
+  taad       BigInt @default(0)
+  hq9        BigInt @default(0)
+  acash      BigInt @default(0)
+
+  lastCarBuildAt          DateTime? // زمان آخرین ساخت خودرو
+  lastConstructionBuildAt DateTime? // زمان آخرین ساخت پروژه عمرانی
+
+  @@map("users")
+}
+
+model ProductionLine {
+  id            Int      @id @default(autoincrement())
+  ownerId       BigInt
+  country       String
+  name          String
+  type          String // مثل 'car', 'game', 'movie'
+  imageUrl      String
+  imageFileId   String   @default("")
+  dailyLimit    Int      @default(3)
+  dailyOutput   Int      @default(15)
+  setupCost     BigInt
+  createdAt     DateTime @default(now())
+  carName       String?
+  unitPrice     Int? // فقط برای خودرو
+  profitPercent Int? // فقط برای پروژه‌های عمرانی
+}
+
+model PendingProductionLine {
+  id            Int      @id @default(autoincrement())
+  ownerId       BigInt
+  name          String
+  type          String
+  imageUrl      String
+  imageFileId   String   @default("")
+  description   String   @default("")
+  dailyLimit    Int
+  setupCost     BigInt
+  country       String
+  profitPercent Int?
+  createdAt     DateTime @default(now()) // ← اضافه کن
+
+  @@map("PendingProductionLine")
+}
+
+model Car {
+  id        Int      @id @default(autoincrement())
+  ownerId   BigInt
+  name      String
+  imageUrl  String
+  price     Int
+  count     Int      @default(15) // 👈 تعداد خودرو تولید شده
+  lineId    Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model PendingBuilding {
+  id        Int      @id @default(autoincrement())
+  userId    BigInt
+  carName   String
+  imageUrl  String
+  createdAt DateTime @default(now())
+}
+
+
+dar karket ham moshkeli dar frosh hast:
+
+
 import { Composer, Markup } from 'telegraf';
-import type { CustomContext } from '../../middlewares/userAuth';
-import { escapeMarkdownV2 } from '../../utils/escape';
-import { prisma } from '../../prisma';
-import config from '../../config/config.json';
-import { changeCapital } from '../economy';
+import type { CustomContext } from '../middlewares/userAuth';
+import { prisma } from '../prisma';
+import { changeCapital } from './economy';
+import { escapeMarkdownV2 } from '../utils/escape';
 
-const admins: number[] = config.manage.buildings.admins;
-const car = new Composer<CustomContext>();
+const products = new Composer<CustomContext>();
 
-car.action('build_car', async (ctx) => {
-    ctx.session = {
-        buildingType: 'car',
-        setupCost: 250_000_000,
-        buildingStep: 'awaiting_name'
-    };
-    await ctx.reply('📌 نام پروژه خودرو را وارد کن:');
+// محاسبه قیمت فروش پروژه‌های عمرانی
+function calculateSellPrice(prod: {
+    type: string;
+    unitPrice?: number | null;
+    dailyOutput: number;
+    setupCost: bigint;
+    profitPercent?: number | null;
+}): number {
+    if (prod.type === 'car') {
+        return (prod.unitPrice ?? 0) * prod.dailyOutput;
+    }
+    const base = Number(prod.setupCost);
+    const profit = Math.floor(base * (prod.profitPercent ?? 0) / 100);
+    return base + profit;
+}
+
+// نمایش لیست خطوط تولید
+products.action('products', async (ctx) => {
+    const userId = BigInt(ctx.from.id);
+    const lines = await prisma.productionLine.findMany({ where: { ownerId: userId , type: 'car' } });
+
+    if (lines.length === 0) {
+        const keyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('🔙 بازگشت', 'back_main')]
+        ]);
+        await ctx.reply('❌ شما هیچ خط تولید فعالی ندارید.', keyboard);
+        return ctx.answerCbQuery();
+    }
+
+    const rows = lines.map((line) => {
+        const price = line.type === 'car'
+            ? (line.unitPrice ?? 0)
+            : Math.floor(Number(line.setupCost) * (line.profitPercent ?? 0) / 100);
+
+        return [
+            Markup.button.callback(`🏭 ${line.name}`, 'noop'),
+            Markup.button.callback(`💰 ${Math.floor(price / 1_000_000)}M`, 'noop'),
+            Markup.button.callback(`🔄 ${line.dailyLimit}`, 'noop'),
+            Markup.button.callback('👁 نمایش', `show_${line.id}`)
+        ];
+    });
+
+    rows.push([Markup.button.callback('🔙 بازگشت', 'back_main')]);
+
+    await ctx.reply('📦 لیست خطوط تولید فعال شما:', {
+        reply_markup: Markup.inlineKeyboard(rows).reply_markup
+    });
+
     ctx.answerCbQuery();
 });
 
-// دریافت نام پروژه
-car.on('text', async (ctx, next) => {
+// نمایش پنل جزئیات هر خط تولید
+products.action(/^show_(\d+)$/, async (ctx) => {
+    const lineId = Number(ctx.match[1]);
+    const userId = BigInt(ctx.from.id);
+    const line = await prisma.productionLine.findUnique({ where: { id: lineId } });
+    if (!line || line.ownerId !== userId) return ctx.answerCbQuery('❌ خط تولید یافت نشد.');
+
+    const unitPrice = line.type === 'car'
+        ? (line.unitPrice ?? 0)
+        : Math.floor(Number(line.setupCost) * (line.profitPercent ?? 0) / 100);
+
+    const totalPrice = unitPrice * line.dailyOutput;
+
+    const caption = escapeMarkdownV2(
+        `📦 ${line.name} (${line.type})\n\n` +
+        `💰 قیمت واحد: ${Math.floor(unitPrice / 1_000_000)}M\n` +
+        `💰 قیمت کل: ${Math.floor(totalPrice / 1_000_000)}M\n\n` +
+        `🔄 عمر باقی‌مانده: ${line.dailyLimit} روز\n` +
+        `🚗 خروجی امروز: ${line.dailyOutput} واحد`
+    );
+
+    const keyboard = Markup.inlineKeyboard([
+        [
+            Markup.button.callback(`🔄 عمر: ${line.dailyLimit} روز`, 'noop'),
+            Markup.button.callback(`🚗 خروجی: ${line.dailyOutput}`, 'noop')
+        ],
+        [
+            Markup.button.callback(`💵 ارزش واحد: ${Math.floor(unitPrice / 1_000_000)}M`, 'noop'),
+            Markup.button.callback(`💵 ارزش کل: ${Math.floor(totalPrice / 1_000_000)}M`, 'noop')
+        ],
+        [
+            Markup.button.callback('🧾 فروش محصول', 'noop')
+        ],
+            [Markup.button.callback('📤 فروش همه', `sell_all_${line.id}`),Markup.button.callback('📤 فروش تعداد', `sell_one_${line.id}`)],
+        [
+            Markup.button.callback('❌ بستن', 'delete'),
+            Markup.button.callback('🔙 بازگشت', 'products')
+        ]
+    ]);
+
+    await ctx.reply(caption, {
+        parse_mode: 'MarkdownV2',
+        reply_markup: keyboard.reply_markup
+    });
+
+    ctx.answerCbQuery();
+});
+
+// فروش پروژه‌های عمرانی به تعداد دلخواه
+products.action(/^sell_one_(\d+)$/, async (ctx) => {
+    const lineId = Number(ctx.match[1]);
+    const userId = BigInt(ctx.from.id);
+    const line = await prisma.productionLine.findUnique({ where: { id: lineId } });
+    if (!line || line.ownerId !== userId || line.type === 'car') return ctx.answerCbQuery('❌ خط تولید عمرانی یافت نشد.');
+
+    ctx.session ??= {};
+    ctx.session.sellLineId = lineId;
+    ctx.session.sellStep = 'awaiting_sell_count';
+
+    await ctx.reply(`📦 "${line.name}"\n🔢 چند واحد می‌خوای بفروشی؟ (حداکثر ${line.dailyLimit})`);
+    ctx.answerCbQuery();
+});
+
+// دریافت تعداد فروش از کاربر
+products.on('text', async (ctx, next) => {
     ctx.session ??= {};
 
-    if (ctx.session.buildingStep === 'awaiting_setup_cost') {
+    if (ctx.session.sellStep === 'awaiting_sell_count') {
         const raw = ctx.message.text?.trim();
-        const cost = Number(raw.replace(/[^\d]/g, ''));
-        if (isNaN(cost) || cost < 55_000_000 || cost > 750_000_000) {
-            return ctx.reply('❌ عدد معتبر نیست. لطفاً عددی بین 55 تا 750 میلیون وارد کن.');
-        }
+        const count = Number(raw.replace(/[^\d]/g, ''));
+        if (isNaN(count) || count <= 0) return ctx.reply('❌ عدد معتبر نیست.');
 
+        const lineId = ctx.session.sellLineId;
         const userId = BigInt(ctx.from.id);
-        const user = await prisma.user.findUnique({ where: { userid: userId } });
-        if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+        const line = await prisma.productionLine.findUnique({ where: { id: lineId } });
+        if (!line || line.ownerId !== userId || line.type === 'car') return ctx.reply('❌ خط تولید عمرانی یافت نشد.');
 
-        if (user.capital < BigInt(cost)) {
-            return ctx.reply(
-                `❌ بودجه کافی ندارید!\n` +
-                `💰 سرمایه مورد نیاز: ${(cost / 1_000_000).toLocaleString()}M\n` +
-                `💳 سرمایه فعلی شما: ${Number(user.capital / BigInt(1_000_000)).toLocaleString()}M`
-            );
+        if (count > line.dailyLimit) {
+            return ctx.reply(`❌ تعداد بیشتر از ظرفیت روزانه است.\n🔄 ظرفیت: ${line.dailyLimit}`);
         }
 
-        ctx.session.setupCost = cost;
-        ctx.session.buildingStep = 'awaiting_name';
-        await ctx.reply('📌 نام پروژه را وارد کن:');
-        return;
-    }
+        const unitPrice = Math.floor(Number(line.setupCost) * (line.profitPercent ?? 0) / 100);
+        const total = unitPrice * count;
 
-    if (ctx.session.buildingStep === 'awaiting_name') {
-        const name = ctx.message.text?.trim();
-        if (!name || name.length < 2) return ctx.reply('❌ نام محصول معتبر نیست.');
+        const result = await changeCapital(userId, 'add', total);
+        if (result !== 'ok') return ctx.reply('❌ خطا در انتقال سرمایه.');
 
-        ctx.session.buildingName = name;
-        ctx.session.buildingStep = 'awaiting_image';
-        await ctx.reply('🖼 حالا تصویر محصول را ارسال کن:');
-        return;
-    }
-
-    if (ctx.session.buildingStep === 'awaiting_build_description') {
-        const description = ctx.message.text?.trim();
-        if (!description || description.length < 5) return ctx.reply('❌ توضیح خیلی کوتاهه.');
-
-        ctx.session.buildingDescription = description;
-        ctx.session.buildingStep = 'awaiting_admin_review';
-
-        const preview = escapeMarkdownV2(
-            `🏭 پیش‌نمایش ساخت ${ctx.session.buildingType === 'car' ? 'خودرو' : `پروژه ${ctx.session.buildingType}`}\n\n` +
-            `> کشور سازنده: *${ctx.user?.countryName}*\n` +
-            `> محصول: *${ctx.session.buildingName}*\n` +
-            `> توضیح: ${ctx.session.buildingDescription}\n\n` +
-            `بودجه راه‌اندازی: ${Math.floor(ctx.session.setupCost / 1_000_000)}M\n` +
-            (ctx.session.buildingType === 'car' ? 'ظرفیت تولید روزانه: 15 خودرو\n\n' : '') +
-            `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`
-        );
-
-        const keyboard = Markup.inlineKeyboard([
-            [Markup.button.callback('✅ ارسال برای تأیید ادمین', 'submit_building')],
-            [Markup.button.callback('🔙 بازگشت', 'building')]
-        ]);
-
-        await ctx.replyWithPhoto(ctx.session.buildingImageFileId, {
-            caption: preview,
-            parse_mode: 'MarkdownV2',
-            reply_markup: keyboard.reply_markup
+        await prisma.productionLine.update({
+            where: { id: lineId },
+            data: { dailyLimit: { decrement: count } }
         });
+
+        ctx.session.sellStep = undefined;
+        ctx.session.sellLineId = undefined;
+
+        await ctx.reply(`✅ ${count} واحد از "${line.name}" فروخته شد.\n💰 ${Math.floor(total / 1_000_000)}M به حساب شما اضافه شد.`);
         return;
     }
 
     return next();
 });
 
-// دریافت تصویر
-car.on('photo', async (ctx, next) => {
-    ctx.session ??= {};
-    if (ctx.session.buildingStep !== 'awaiting_image') return next();
-
-    const photo = ctx.message.photo?.at(-1);
-    if (!photo) return ctx.reply('❌ تصویر معتبر ارسال نشده.');
-
-    const imageUrl = await ctx.telegram.getFileLink(photo.file_id);
-    ctx.session.buildingImage = imageUrl.href;
-    ctx.session.buildingImageFileId = photo.file_id;
-    ctx.session.buildingStep = 'awaiting_build_description';
-
-    await ctx.reply('📝 توضیحی درباره محصولت بنویس (مثلاً ویژگی‌ها یا هدف تولید):');
-});
-
-// ارسال درخواست به ادمین
-car.action('submit_building', async (ctx) => {
-    ctx.session ??= {};
-    const { buildingType, buildingName, buildingImageFileId, buildingDescription, setupCost } = ctx.session;
+// فروش همه خودروهای تولیدشده از جدول Car
+products.action(/^sell_all_(\d+)$/, async (ctx) => {
+    const lineId = Number(ctx.match[1]);
     const userId = BigInt(ctx.from.id);
-    const country = ctx.user?.countryName;
 
-    if (!buildingType || !buildingName || !buildingImageFileId || !buildingDescription || !country) {
-        return ctx.reply('❌ اطلاعات ناقص است.');
+    const line = await prisma.productionLine.findUnique({ where: { id: lineId } });
+    if (!line || line.ownerId !== userId || line.type !== 'car') {
+        return ctx.answerCbQuery('❌ خط تولید خودرو یافت نشد.');
     }
 
-    const imageUrl = await ctx.telegram.getFileLink(buildingImageFileId).then(link => link.href);
-    const result = await changeCapital(userId, 'subtract', setupCost);
-    if (result !== 'ok') return ctx.reply('❌ خطا در کسر سرمایه.');
-
-    const profitPercent = buildingType === 'car' ? null : Math.floor(10 + Math.random() * 72);
-
-    await prisma.pendingProductionLine.create({
-        data: {
+    const cars = await prisma.car.findMany({
+        where: {
             ownerId: userId,
-            name: buildingName,
-            type: buildingType,
-            imageUrl,
-            imageFileId: buildingImageFileId,
-            description: buildingDescription,
-            dailyLimit: 15,
-            setupCost: BigInt(setupCost),
-            country,
-            profitPercent
+            lineId: lineId,
+            name: line.name,
+            imageUrl: line.imageUrl
         }
     });
 
-    const caption = escapeMarkdownV2(
-        `📥 درخواست ساخت ${buildingType === 'car' ? 'خط تولید خودرو' : `پروژه ${buildingType}`}\n\n` +
-        `> کشور: *${country}*\n` +
-        `> نام: *${buildingName}*\n` +
-        `> توضیح: ${buildingDescription}\n` +
-        `> بودجه: ${Math.floor(setupCost / 1_000_000)}M` +
-        (profitPercent !== null ? `\n> سوددهی: ${profitPercent}%` : '') +
-        (buildingType === 'car' ? `\nظرفیت تولید روزانه: 15 خودرو` : '')
+    if (cars.length === 0) {
+        return ctx.answerCbQuery('❌ هیچ خودرویی برای فروش موجود نیست.');
+    }
+
+    const total = cars.reduce((sum, car) => sum + car.price, 0);
+
+    const result = await changeCapital(userId, 'add', total);
+    if (result !== 'ok') return ctx.answerCbQuery('❌ خطا در انتقال سرمایه.');
+
+    await prisma.car.deleteMany({
+        where: {
+            ownerId: userId,
+            name: line.name,
+            imageUrl: line.imageUrl,
+            lineId: lineId
+        }
+    });
+
+    await ctx.reply(
+        `✅ ${cars.length} خودرو از "${line.name}" فروخته شد.\n` +
+        `💰 مجموع دریافتی: ${Math.floor(total / 1_000_000)}M`
     );
 
-    const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('✅ تأیید ساخت', `admin_approve_building_${userId}`)],
-        [Markup.button.callback('❌ رد درخواست', `admin_reject_building_${userId}`)]
-    ]);
-
-    for (const admin of admins) {
-        await ctx.telegram.sendPhoto(admin, buildingImageFileId, {
-            caption,
-            parse_mode: 'MarkdownV2',
-            reply_markup: keyboard.reply_markup
-        });
-    }
-
-    await ctx.reply('📤 درخواست شما برای بررسی ادمین ارسال شد.');
-    ctx.session.buildingStep = undefined;
+    ctx.answerCbQuery();
 });
 
-// تأیید نهایی توسط ادمین
-car.action(/admin_approve_building_(\d+)/, async (ctx) => {
-    const userId = BigInt(ctx.match[1]);
-    const user = await prisma.user.findUnique({ where: { userid: userId } });
-    const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
-    if (!user || !pending) return ctx.reply('❌ اطلاعات یافت نشد.');
-
-    // محاسبه سود روزانه برای پروژه‌های عمرانی
-    let addedProfit = 0;
-    if (pending.type !== 'car' && pending.profitPercent) {
-        const base = Number(pending.setupCost);
-        addedProfit = Math.floor(base * pending.profitPercent / 100);
-
-        await prisma.user.update({
-            where: { userid: userId },
-            data: {
-                dailyProfit: { increment: addedProfit }
-            }
-        });
-    }
-
-    await prisma.productionLine.create({
-        data: {
-            ownerId: userId,
-            name: pending.name,
-            type: pending.type,
-            imageUrl: pending.imageUrl,
-            imageFileId: pending.imageFileId,
-            dailyLimit: pending.dailyLimit,
-            setupCost: pending.setupCost,
-            country: pending.country,
-            profitPercent: pending.profitPercent
-        }
-    });
-
-    await prisma.pendingProductionLine.delete({ where: { id: pending.id } });
-
-    await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
-        caption: escapeMarkdownV2(
-            `🏭 خط تولید جدید راه‌اندازی شد\n\n` +
-            `> کشور سازنده: *${user.countryName}*\n` +
-            `> محصول: *${pending.name}*\n\n` +
-            `بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()} ریال\n` +
-            `ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`
-        ),
-        parse_mode: 'MarkdownV2'
-    });
-
-    // پیام به کاربر درباره تأیید و سوددهی
-    try {
-        let message =
-            `✅ پروژه "${pending.name}" تأیید شد و خط تولید فعال شد.\n` +
-            `🏗 نوع پروژه: ${pending.type}\n` +
-            `💰 بودجه: ${Math.floor(Number(pending.setupCost) / 1_000_000)}M`;
-
-        if (addedProfit > 0) {
-            message += `\n➕ سود روزانه: ${Math.floor(addedProfit / 1_000_000)}M به حساب سود شما اضافه شد.`;
-        }
-
-        await ctx.telegram.sendMessage(Number(userId), message);
-    } catch (err) {
-        console.warn('❌ ارسال پیام به کاربر ممکن نبود:', err);
-    }
-
-    await ctx.reply('✅ خط تولید ثبت شد و به کانال ارسال شد.');
-});
-
-// رد درخواست توسط ادمین
-car.action(/admin_reject_building_(\d+)/, async (ctx) => {
-    const userId = BigInt(ctx.match[1]);
-    const adminId = ctx.from.id;
-
-    if (!admins.includes(adminId)) {
-        return ctx.answerCbQuery('⛔ فقط ادمین می‌تونه رد کنه.');
-    }
-
-    const pending = await prisma.pendingProductionLine.findFirst({ where: { ownerId: userId } });
-
-    if (!pending) {
-        return ctx.answerCbQuery('❌ درخواست یافت نشد.');
-    }
-
-    // برگرداندن پول
-    const result = await changeCapital(userId, 'add', Number(pending.setupCost));
-    if (result === 'not_found') {
-        return ctx.answerCbQuery('❌ کاربر یافت نشد.');
-    }
-    if (result === 'invalid' || result === 'error') {
-        return ctx.answerCbQuery('❌ خطا در برگرداندن پول.');
-    }
-
-    // حذف درخواست
-    await prisma.pendingProductionLine.deleteMany({ where: { ownerId: userId } });
-
-    // اطلاع‌رسانی به کاربر
-    try {
-        await ctx.telegram.sendMessage(Number(userId),
-            `❌ درخواست ساخت خط تولید شما رد شد.\n💰 مبلغ ${Number(pending.setupCost / BigInt(1_000_000)).toLocaleString()}M به حساب شما برگشت.`
-        );
-    } catch (err) {
-        console.warn('ارسال پیام به PV کاربر ممکن نبود:', err);
-    }
-
-    await ctx.answerCbQuery('✅ درخواست رد شد و پول برگشت.');
-});
-
-export default car;
-
-okay?
-marahel bayad in bashe : name > image > submit > admin submit
+export default products;

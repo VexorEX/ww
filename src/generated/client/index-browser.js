@@ -174,7 +174,9 @@ exports.Prisma.UserScalarFieldEnum = {
   s400: 's400',
   taad: 'taad',
   hq9: 'hq9',
-  acash: 'acash'
+  acash: 'acash',
+  lastCarBuildAt: 'lastCarBuildAt',
+  lastConstructionBuildAt: 'lastConstructionBuildAt'
 };
 
 exports.Prisma.ProductionLineScalarFieldEnum = {
@@ -206,7 +208,10 @@ exports.Prisma.PendingProductionLineScalarFieldEnum = {
   setupCost: 'setupCost',
   country: 'country',
   profitPercent: 'profitPercent',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt',
+  adminMessageId: 'adminMessageId',
+  adminChatId: 'adminChatId'
 };
 
 exports.Prisma.CarScalarFieldEnum = {

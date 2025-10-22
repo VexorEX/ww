@@ -82,6 +82,9 @@ model User {
   hq9        BigInt @default(0)
   acash      BigInt @default(0)
 
+  lastCarBuildAt          DateTime? // زمان آخرین ساخت خودرو
+  lastConstructionBuildAt DateTime? // زمان آخرین ساخت پروژه عمرانی
+
   @@map("users")
 }
 
@@ -103,18 +106,21 @@ model ProductionLine {
 }
 
 model PendingProductionLine {
-  id            Int      @id @default(autoincrement())
-  ownerId       BigInt
-  name          String
-  type          String
-  imageUrl      String
-  imageFileId   String   @default("")
-  description   String   @default("")
-  dailyLimit    Int
-  setupCost     BigInt
-  country       String
-  profitPercent Int?
-  createdAt     DateTime @default(now()) // ← اضافه کن
+  id             Int       @id @default(autoincrement())
+  ownerId        BigInt
+  name           String
+  type           String
+  imageUrl       String
+  imageFileId    String    @default("")
+  description    String    @default("")
+  dailyLimit     Int
+  setupCost      BigInt
+  country        String
+  profitPercent  Int?
+  createdAt      DateTime  @default(now())
+  expiresAt      DateTime? // زمان انقضا
+  adminMessageId Int? // پیام ادمین برای ویرایش
+  adminChatId    BigInt? // چت ادمین برای ویرایش
 
   @@map("PendingProductionLine")
 }

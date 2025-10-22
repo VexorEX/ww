@@ -4,6 +4,7 @@ import { Telegraf } from 'telegraf';
 import config from './config/config.json';
 import { runDailyTasks } from './modules/helper/runDailyTasks';
 import { applyDailyMineProfitForAllUsers } from './modules/components/mines';
+import { expirePendingRequests } from "./modules/helper/expirePendingRequests";
 
 const bot = new Telegraf(config.token);
 
@@ -18,6 +19,13 @@ const userStats: Record<string, UserStats> = {};
 // 🚗 تحویل خودروها
 export async function deliverDailyCars() {
     const lines = await prisma.productionLine.findMany({ where: { type: 'car' } });
+
+    await prisma.user.updateMany({
+        data: {
+            lastCarBuildAt: null,
+            lastConstructionBuildAt: null
+        }
+    });
 
     for (const line of lines) {
         const outputCount = 15;
@@ -124,3 +132,7 @@ export async function notifyChannelDaily() {
 //     await notifyChannelDaily();
 //     console.log('✅ همه وظایف روزانه با موفقیت انجام شدند.');
 // });
+cron.schedule('*/5 * * * *', async () => {
+    console.log('🚨 بررسی پروژه‌های منقضی‌شده...');
+    await expirePendingRequests(bot);
+});
