@@ -67,6 +67,7 @@ export async function deliverDailyCars() {
     console.log(`✅ ${lines.length} خط تولید خودرو پردازش شد.`);
 }
 
+
 // 💰 افزودن سود پروژه‌های عمرانی
 export async function deliverDailyProfit() {
     const users = await prisma.user.findMany({ select: { userid: true, dailyProfit: true } });
