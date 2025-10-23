@@ -90,12 +90,13 @@
         "canada": ["f47", "continentalRocket"],
         "brazil": ["continentalRocket", "hyperSonicRocket"],
         "pakistan": ["hq9", "hyperSonicRocket"],
-        "japan": ["breakerShip", "f22"],
+        "japan": ["breakerShip", "f22","s300"],
         "italy": ["f47", "hyperSonicRocket"],
         "algeria": [],
         "australia": ["f22", "chemicalRocket"],
         "turkey": ["f47", "s300"],
-        "germany": ["f47", "taad"]
+        "germany": ["f47", "taad"],
+        "switzerland": ["b2","s300","s400","chemicalRocket"]
       },
       "defaultItems": [
         "simpleRocket",
