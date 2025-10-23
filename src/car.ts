@@ -1,10 +1,9 @@
 import { prisma } from './prisma';
 
-async function mergeDuplicateCars() {
+async function fixDuplicateCars() {
     const duplicates = await prisma.car.groupBy({
         by: ['ownerId', 'name', 'imageUrl', 'lineId'],
         _count: { id: true },
-        _sum: { count: true },
         having: {
             id: {
                 _count: {
@@ -39,10 +38,12 @@ async function mergeDuplicateCars() {
             }
         });
 
-        // console.log(`✅ رکوردهای تکراری برای ${name} ادغام شدند.`);
+        // console.log(`✅ ${name} merged (${totalCount} units).`);
     }
 
-    // console.log('🎯 پاک‌سازی رکوردهای تکراری کامل شد.');
+    // console.log('🎯 All duplicates resolved.');
 }
 
-mergeDuplicateCars().catch();
+fixDuplicateCars()
+    .then(() => console.log('🎯 پاک‌سازی رکوردهای تکراری کامل شد.'))
+    .catch((err) => console.error('❌ خطا در اجرای اسکریپت:', err));

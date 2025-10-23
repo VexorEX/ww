@@ -131,9 +131,11 @@ model Car {
   name      String
   imageUrl  String
   price     Int
-  count     Int      @default(15) // 👈 تعداد خودرو تولید شده
+  count     Int      @default(15)
   lineId    Int      @default(0)
   createdAt DateTime @default(now())
+
+  @@unique([ownerId, name, imageUrl, lineId])
 }
 
 model PendingBuilding {
