@@ -58,6 +58,7 @@ products.action('products', async (ctx) => {
 });
 
 // نمایش پنل جزئیات هر خط تولید
+// نمایش پنل جزئیات هر خط تولید
 products.action(/^show_(\d+)$/, async (ctx) => {
     const lineId = Number(ctx.match[1]);
     const userId = BigInt(ctx.from.id);
@@ -67,15 +68,20 @@ products.action(/^show_(\d+)$/, async (ctx) => {
     const unitPrice = line.type === 'car'
         ? (line.unitPrice ?? 0)
         : Math.floor(Number(line.setupCost) * (line.profitPercent ?? 0) / 100);
-    const totalCars = await prisma.car.count({
+
+    const carCountAgg = await prisma.car.aggregate({
         where: {
             ownerId: userId,
             lineId: line.id,
             name: line.name,
             imageUrl: line.imageUrl
+        },
+        _sum: {
+            count: true
         }
     });
 
+    const totalCars = carCountAgg._sum.count ?? 0;
     const totalPrice = unitPrice * line.dailyOutput;
 
     const caption = escapeMarkdownV2(
@@ -85,7 +91,6 @@ products.action(/^show_(\d+)$/, async (ctx) => {
         `🔄 عمر باقی‌مانده: ${line.dailyLimit} روز\n` +
         `🚗 خروجی امروز: ${line.dailyOutput} واحد\n` +
         `🚗 موجودی انبار: ${totalCars} خودرو\n`
-
     );
 
     const keyboard = Markup.inlineKeyboard([
@@ -100,7 +105,10 @@ products.action(/^show_(\d+)$/, async (ctx) => {
         [
             Markup.button.callback('🧾 انتخاب نوع فروش ↓', 'noop')
         ],
-            [Markup.button.callback(`📤 فروش همه (${totalCars} عدد)`, `sell_all_${line.id}`),Markup.button.callback('📤 فروش تعداد', `sell_one_${line.id}`)],
+        [
+            Markup.button.callback(`📤 فروش همه (${totalCars} عدد)`, `sell_all_${line.id}`),
+            Markup.button.callback('📤 فروش تعداد', `sell_one_${line.id}`)
+        ],
         [
             Markup.button.callback('❌ بستن', 'delete'),
             Markup.button.callback('🔙 بازگشت', 'products')
@@ -175,6 +183,7 @@ products.on('text', async (ctx, next) => {
 });
 
 // فروش همه خودروهای تولیدشده از جدول Car
+// فروش همه خودروهای تولیدشده از جدول Car
 products.action(/^sell_all_(\d+)$/, async (ctx) => {
     const lineId = Number(ctx.match[1]);
     const userId = BigInt(ctx.from.id);
@@ -198,6 +207,7 @@ products.action(/^sell_all_(\d+)$/, async (ctx) => {
     }
 
     const total = cars.reduce((sum, car) => sum + car.price * car.count, 0);
+    const totalCount = cars.reduce((sum, car) => sum + car.count, 0);
 
     const result = await changeCapital(userId, 'add', total);
     if (result !== 'ok') return ctx.answerCbQuery('❌ خطا در انتقال سرمایه.');
@@ -212,7 +222,7 @@ products.action(/^sell_all_(\d+)$/, async (ctx) => {
     });
 
     await ctx.reply(
-        `✅ ${cars.length} خودرو از "${line.name}" فروخته شد.\n` +
+        `✅ ${totalCount} خودرو از "${line.name}" فروخته شد.\n` +
         `💰 مجموع دریافتی: ${Math.floor(total / 1_000_000)}M`
     );
 
