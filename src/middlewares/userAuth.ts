@@ -15,6 +15,7 @@ export interface SessionData {
     stateText?: string;
     laststateMessageId?: number;
     // Building-related session data
+    awaiting_image_project?: boolean;
     buildingType?: string;
     buildingStep?: string;
     buildingName?: string;
