@@ -197,7 +197,7 @@ products.action(/^sell_all_(\d+)$/, async (ctx) => {
         return ctx.answerCbQuery('❌ هیچ خودرویی برای فروش موجود نیست.');
     }
 
-    const total = cars.reduce((sum, car) => sum + car.price, 0);
+    const total = cars.reduce((sum, car) => sum + car.price * car.count, 0);
 
     const result = await changeCapital(userId, 'add', total);
     if (result !== 'ok') return ctx.answerCbQuery('❌ خطا در انتقال سرمایه.');
