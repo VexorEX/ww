@@ -55,19 +55,28 @@ const mineSpecs: Record<MineType, {
 // دکمه اصلی مدیریت معادن
 mines.action('manage_mines', async (ctx) => {
     const user = ctx.user;
+    const rows: any[] = [];
 
-    const rows = Object.entries(mineSpecs).map(([type, spec]) => {
-        const current = user[spec.field as keyof User] as number;
-        const label = `${spec.label} (${current}/${spec.maxCount})`;
-        return [Markup.button.callback(label, `mine_build_${type}`)];
-    });
+    for (const [type, spec] of Object.entries(mineSpecs) as [MineType, typeof mineSpecs[MineType]][]) {
+        const current = user[spec.field] as number;
+
+        rows.push([
+            Markup.button.callback(spec.label, 'noop'),
+            Markup.button.callback(`📦 ${spec.dailyOutput}/روز`, 'noop'),
+            Markup.button.callback(`💰 ${spec.cost / 1_000_000}M`, 'noop'),
+            Markup.button.callback(`🔢 ${current}/${spec.maxCount}`, 'noop'),
+            Markup.button.callback('🛠 احداث', `mine_build_${type}`)
+        ]);
+    }
 
     rows.push([Markup.button.callback('🔙 بازگشت', 'back_main')]);
 
-    await ctx.editMessageText('🏗 انتخاب نوع معدن یا پالایشگاه برای احداث:', {
+    await ctx.editMessageText('🏗 اطلاعات معادن و گزینه‌های احداث:', {
         reply_markup: Markup.inlineKeyboard(rows).reply_markup
     });
+
 });
+
 
 // احداث معدن با دکمه
 for (const type of Object.keys(mineSpecs) as MineType[]) {

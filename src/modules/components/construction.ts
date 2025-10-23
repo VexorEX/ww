@@ -95,7 +95,7 @@ construction.on('text', async (ctx, next) => {
         if (!name || name.length < 2) return ctx.reply('❌ نام محصول معتبر نیست.');
 
         ctx.session.buildingName = name;
-        ctx.session.buildingStep = 'awaiting_image';
+        ctx.session.buildingStep = 'awaiting_image_project';
         await ctx.reply('🖼 حالا تصویر محصول را ارسال کن:');
         return;
     }
@@ -106,7 +106,7 @@ construction.on('text', async (ctx, next) => {
 // دریافت تصویر و ارسال برای تأیید ادمین
 construction.on('photo', async (ctx, next) => {
     ctx.session ??= {};
-    if (ctx.session.buildingStep !== 'awaiting_image') return next();
+    if (ctx.session.buildingStep !== 'awaiting_image_project') return next();
 
     const photo = ctx.message.photo?.at(-1);
     if (!photo) return ctx.reply('❌ تصویر معتبر ارسال نشده.');
