@@ -7636,6 +7636,7 @@ export namespace Prisma {
 
   export type CarWhereUniqueInput = Prisma.AtLeast<{
     id?: number
+    ownerId_name_imageUrl_lineId?: CarOwnerIdNameImageUrlLineIdCompoundUniqueInput
     AND?: CarWhereInput | CarWhereInput[]
     OR?: CarWhereInput[]
     NOT?: CarWhereInput | CarWhereInput[]
@@ -7646,7 +7647,7 @@ export namespace Prisma {
     count?: IntFilter<"Car"> | number
     lineId?: IntFilter<"Car"> | number
     createdAt?: DateTimeFilter<"Car"> | Date | string
-  }, "id">
+  }, "id" | "ownerId_name_imageUrl_lineId">
 
   export type CarOrderByWithAggregationInput = {
     id?: SortOrder
@@ -9174,6 +9175,13 @@ export namespace Prisma {
     _sum?: NestedBigIntNullableFilter<$PrismaModel>
     _min?: NestedBigIntNullableFilter<$PrismaModel>
     _max?: NestedBigIntNullableFilter<$PrismaModel>
+  }
+
+  export type CarOwnerIdNameImageUrlLineIdCompoundUniqueInput = {
+    ownerId: bigint | number
+    name: string
+    imageUrl: string
+    lineId: number
   }
 
   export type CarCountOrderByAggregateInput = {
