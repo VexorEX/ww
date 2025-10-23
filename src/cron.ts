@@ -32,8 +32,20 @@ export async function deliverDailyCars() {
         const unitPrice = Math.floor(Math.random() * (18_000_000 - 10_000_000 + 1)) + 10_000_000;
         const ownerId = line.ownerId.toString();
 
-        await prisma.car.create({
-            data: {
+        await prisma.car.upsert({
+            where: {
+                ownerId_name_imageUrl_lineId: {
+                    ownerId: line.ownerId,
+                    name: line.name,
+                    imageUrl: line.imageUrl,
+                    lineId: line.id
+                }
+            },
+            update: {
+                count: { increment: outputCount },
+                price: unitPrice // می‌تونی اینو نگه‌داری یا فقط در create بزنی
+            },
+            create: {
                 ownerId: line.ownerId,
                 name: line.name,
                 imageUrl: line.imageUrl,

@@ -90,7 +90,7 @@
         "canada": ["f47", "continentalRocket"],
         "brazil": ["continentalRocket", "hyperSonicRocket"],
         "pakistan": ["hq9", "hyperSonicRocket"],
-        "japan": ["breakerShip", "f22"],
+        "japan": ["breakerShip", "f22","s400"],
         "italy": ["f47", "hyperSonicRocket"],
         "algeria": [],
         "australia": ["f22", "chemicalRocket"],
