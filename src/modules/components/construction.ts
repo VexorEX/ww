@@ -43,6 +43,16 @@ construction.action('construction', async (ctx) => {
 // شروع ساخت پروژه عمرانی
 for (const type of ['game', 'film', 'music'] as ProjectType[]) {
     construction.action(`construct_${type}`, async (ctx) => {
+        const userId = BigInt(ctx.from.id);
+        const user = await prisma.user.findUnique({ where: { userid: userId } });
+        if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+
+        const today = new Date().toDateString();
+        const last = user.lastConstructionBuildAt;
+        const isSameDay = last && new Date(last).toDateString() === today;
+        if (isSameDay) {
+            return ctx.reply('⛔ امروز قبلاً یک پروژه ساخته‌اید. فردا دوباره تلاش کنید.');
+        }
         ctx.session = {
             buildingType: type,
             buildingStep: 'awaiting_setup_cost'
