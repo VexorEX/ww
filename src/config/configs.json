@@ -79,7 +79,7 @@
       "countryPermissions": {
         "china": ["j20", "hq9", "hyperSonicRocket"],
         "usa": ["b2", "taad", "f35"],
-        "uk": ["breakerShip", "chemicalRocket", "f47"],
+        "gbr": ["breakerShip", "chemicalRocket", "f47"],
         "russia": ["su57", "tu16", "s400"],
         "iran": ["hyperSonicRocket", "chemicalRocket", "hq9"],
         "israel": ["ironDome", "chemicalRocket", "hyperSonicRocket"],
