@@ -121,6 +121,7 @@ construction.on('photo', async (ctx, next) => {
     if (result !== 'ok') return ctx.reply('❌ خطا در کسر سرمایه.');
 
     const profitPercent = Math.floor(10 + Math.random() * 72);
+
     const expiresAt = new Date(Date.now() + 3 * 60 * 60 * 1000); // 3 ساعت بعد
 
     const pending = await prisma.pendingProductionLine.create({
@@ -138,14 +139,14 @@ construction.on('photo', async (ctx, next) => {
             expiresAt
         }
     });
-
+    const profitAmount = Math.floor(Number(pending.setupCost) * (pending.profitPercent ?? 0) / 100);
     const emoji = emojiMap[buildingType];
     const preview = escapeMarkdownV2(
         `${emoji} پروژه جدید ساخته شد\n\n` +
         `کشور سازنده: *${country}*\n` +
         `محصول: *${buildingName}*\n\n` +
         `بودجه راه‌اندازی: ${setupCost.toLocaleString()} ریال\n` +
-        `سود روزانه: ${profitPercent}% کل بودجه`
+        `➕ سود روزانه: ${Math.floor(profitAmount / 1_000_000)}M`
     );
 
     const keyboard = Markup.inlineKeyboard([
@@ -167,15 +168,22 @@ construction.action(/^submit_construction_(\d+)$/, async (ctx) => {
     const pendingId = Number(ctx.match[1]);
     const pending = await prisma.pendingProductionLine.findUnique({ where: { id: pendingId } });
     if (!pending) return ctx.reply('❌ پروژه یافت نشد.');
+    const typeLabel = {
+        game: 'بازی‌سازی 🎮',
+        film: 'فیلم‌سازی 🎬',
+        music: 'موزیک‌سازی 🎼'
+    }[pending.type as ProjectType];
 
-    const emoji = emojiMap[pending.type as ProjectType];
-    const caption = escapeMarkdownV2(
-        `${emoji} پروژه جدید ساخته شد\n\n` +
-        `کشور سازنده: *${pending.country}*\n` +
-        `محصول: *${pending.name}*\n\n` +
-        `بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()} ریال\n` +
-        `سود روزانه: ${pending.profitPercent}% کل بودجه`
+    const profitAmount = Math.floor(Number(pending.setupCost) * (pending.profitPercent ?? 0) / 100);
+
+    const quotedText = escapeMarkdownV2(
+        `> کشور سازنده: ${pending.country}\n` +
+        `> محصول: ${pending.name}\n` +
+        `> 💰 بودجه راه‌اندازی: ${Math.floor(Number(pending.setupCost) / 1_000_000)}M\n` +
+        `> ➕ سود روزانه: ${Math.floor(profitAmount / 1_000_000)}M`
     );
+
+    const caption = escapeMarkdownV2(`📥 پروژه عمرانی جدید: *${typeLabel}*\n\n`) + quotedText;
 
     const keyboard = Markup.inlineKeyboard([
         [Markup.button.callback('✅ تأیید ساخت', `admin_approve_construction_${pendingId}`)],
@@ -216,13 +224,17 @@ construction.action(/^admin_approve_construction_(\d+)$/, async (ctx) => {
     if (pending.expiresAt && pending.expiresAt < now) {
         return ctx.reply('⛔ این پروژه منقضی شده و قابل تأیید نیست.');
     }
+    if (!pending.profitPercent || pending.profitPercent <= 0) {
+        return ctx.reply('❌ مقدار سود پروژه معتبر نیست.');
+    }
+
 
     const profitAmount = Math.floor(Number(pending.setupCost) * (pending.profitPercent ?? 0) / 100);
 
     await prisma.user.update({
         where: { userid: pending.ownerId },
         data: {
-            dailyProfit: { increment: profitAmount },
+            dailyProfit: { increment: BigInt(profitAmount) },
             lastConstructionBuildAt: new Date()
         }
     });

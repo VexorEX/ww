@@ -13,6 +13,15 @@ car.action('build_car', async (ctx) => {
     const user = await prisma.user.findUnique({ where: { userid: userId } });
     if (!user) return ctx.reply('❌ کاربر یافت نشد.');
 
+    const requiredCapital = 250_000_000;
+    if (user.capital < BigInt(requiredCapital)) {
+        return ctx.reply(
+            `❌ سرمایه کافی برای ساخت خودرو ندارید.\n` +
+            `💰 مورد نیاز: ${Math.floor(requiredCapital / 1_000_000)}M\n` +
+            `💳 موجودی فعلی: ${Math.floor(Number(user.capital) / 1_000_000)}M`
+        );
+    }
+
     const today = new Date().toDateString();
     const last = user.lastCarBuildAt;
     const isSameDay = last && new Date(last).toDateString() === today;
