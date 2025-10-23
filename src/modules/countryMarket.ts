@@ -128,13 +128,32 @@ products.action(/^sell_one_(\d+)$/, async (ctx) => {
     const lineId = Number(ctx.match[1]);
     const userId = BigInt(ctx.from.id);
     const line = await prisma.productionLine.findUnique({ where: { id: lineId } });
-    if (!line || line.ownerId !== userId || line.type === 'car') return ctx.answerCbQuery('❌ خط تولید عمرانی یافت نشد.');
+    if (!line || line.ownerId !== userId) return ctx.answerCbQuery('❌ خط تولید یافت نشد.');
 
     ctx.session ??= {};
     ctx.session.sellLineId = lineId;
     ctx.session.sellStep = 'awaiting_sell_count';
+    ctx.session.sellType = line.type;
 
-    await ctx.reply(`📦 "${line.name}"\n🔢 چند واحد می‌خوای بفروشی؟ (حداکثر ${line.dailyLimit})`);
+    if (line.type === 'car') {
+        const carCountAgg = await prisma.car.aggregate({
+            where: {
+                ownerId: userId,
+                lineId: line.id,
+                name: line.name,
+                imageUrl: line.imageUrl
+            },
+            _sum: { count: true }
+        });
+
+        const totalCars = carCountAgg._sum.count ?? 0;
+        if (totalCars === 0) return ctx.answerCbQuery('❌ هیچ خودرویی برای فروش موجود نیست.');
+
+        await ctx.reply(`🚗 "${line.name}"\n🔢 چند خودرو می‌خوای بفروشی؟ (حداکثر ${totalCars})`);
+    } else {
+        await ctx.reply(`📦 "${line.name}"\n🔢 چند واحد می‌خوای بفروشی؟ (حداکثر ${line.dailyLimit})`);
+    }
+
     ctx.answerCbQuery();
 });
 
@@ -182,7 +201,6 @@ products.on('text', async (ctx, next) => {
     return next();
 });
 
-// فروش همه خودروهای تولیدشده از جدول Car
 // فروش همه خودروهای تولیدشده از جدول Car
 products.action(/^sell_all_(\d+)$/, async (ctx) => {
     const lineId = Number(ctx.match[1]);
