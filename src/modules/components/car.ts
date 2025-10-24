@@ -136,8 +136,8 @@ car.action('submit_building', async (ctx) => {
 
     const caption = escapeMarkdownV2(
         `📥 درخواست ساخت خط تولید خودرو\n\n` +
-        `> کشور: *${country}*\n` +
-        `> نام: *${buildingName}*\n` +
+        `> کشور: **${country}**\n` +
+        `> نام: **${buildingName}**\n` +
         `> توضیح: ${buildingDescription}\n` +
         `> بودجه: ${Math.floor(setupCost / 1_000_000)}M\n` +
         `🔄 ظرفیت تولید روزانه: 15 خودرو`
@@ -212,8 +212,8 @@ car.action(/^admin_approve_building_(\d+)$/, async (ctx) => {
     await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
         caption: escapeMarkdownV2(
             `🏭 خط تولید جدید راه‌اندازی شد\n\n` +
-            `> کشور سازنده: *${user.countryName}*\n` +
-            `> محصول: *${pending.name}*\n\n` +
+            `> کشور سازنده: **${user.countryName}**\n` +
+            `> محصول: **${pending.name}**\n\n` +
             `💰 بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()} ریال\n` +
             `🔄 ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`
         ),

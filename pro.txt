@@ -1,60 +1,511 @@
-r
-    ~/LimoEX/text-generation-webui    main ?2  ls models/                                                                                                                                            1 ✘ 
-Qwen3-Chat-1.7B
-    ~/LimoEX/text-generation-webui    main ?2  ls models/*                                                                                                                                             ✔ 
-Qwen3-1.7B-Q8_0.gguf
-    ~/LimoEX/text-generation-webui    main ?2  ls *                                                                                                                                                    ✔ 
-cmd_linux.sh  cmd_windows.bat          download-model.py  one_click.py  server.py  start_linux.sh  start_windows.bat       update_wizard_macos.sh
-cmd_macos.sh  Colab-TextGen-GPU.ipynb  LICENSE            README.md     setup.cfg  start_macos.sh  update_wizard_linux.sh  update_wizard_windows.bat
 
-css:
-chat_style-cai-chat.css         chat_style-Dark.css       chat_style-TheEncrypted777.css  highlightjs              html_readable_style.css  katex     NotoSans
-chat_style-cai-chat-square.css  chat_style-messenger.css  chat_style-wpp.css              html_instruct_style.css  Inter                    main.css
+11:21:15-157543 INFO     Starting Text Generation Web UI                                                                                                                                                          
 
-docker:
-amd  cpu  intel  nvidia  TensorRT-LLM
+Running on local URL:  http://127.0.0.1:7860
 
-docs:
-'01 - Chat Tab.md'                   '03 - Parameters Tab.md'  '05 - Training Tab.md'  '07 - Extensions.md'       '09 - Docker.md'     '12 - OpenAI API.md'          'Multimodal Tutorial.md'  'What Works.md'
-'02 - Default and Notebook Tabs.md'  '04 - Model Tab.md'       '06 - Session Tab.md'   '08 - Additional Tips.md'  '11 - AMD Setup.md'  '13 - Keyboard Shortcuts.md'   README.md
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/applications.py", line 1134, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/trustedhost.py", line 51, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/route_utils.py", line 714, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 124, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 110, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 390, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 291, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2485, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 976, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/routes.py", line 403, in main
+    gradio_api_info = api_info(False)
+                      ^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/routes.py", line 432, in api_info
+    app.api_info = app.get_blocks().get_api_info()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/blocks.py", line 2743, in get_api_info
+    python_type = client_utils.json_schema_to_python_type(info)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 893, in json_schema_to_python_type
+    type_ = _json_schema_to_python_type(schema, schema.get("$defs"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 947, in _json_schema_to_python_type
+    des = [
+          ^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 948, in <listcomp>
+    f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 938, in _json_schema_to_python_type
+    elements = _json_schema_to_python_type(items, defs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 908, in _json_schema_to_python_type
+    return _json_schema_to_python_type(defs[schema["$ref"].split("/")[-1]], defs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 947, in _json_schema_to_python_type
+    des = [
+          ^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 948, in <listcomp>
+    f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 955, in _json_schema_to_python_type
+    f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 901, in _json_schema_to_python_type
+    type_ = get_type(schema)
+            ^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 863, in get_type
+    if "const" in schema:
+       ^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'bool' is not iterable
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/applications.py", line 1134, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/trustedhost.py", line 51, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/route_utils.py", line 714, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 124, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 110, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 390, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 291, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2485, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 976, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/routes.py", line 403, in main
+    gradio_api_info = api_info(False)
+                      ^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/routes.py", line 432, in api_info
+    app.api_info = app.get_blocks().get_api_info()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/blocks.py", line 2743, in get_api_info
+    python_type = client_utils.json_schema_to_python_type(info)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 893, in json_schema_to_python_type
+    type_ = _json_schema_to_python_type(schema, schema.get("$defs"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 947, in _json_schema_to_python_type
+    des = [
+          ^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 948, in <listcomp>
+    f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 938, in _json_schema_to_python_type
+    elements = _json_schema_to_python_type(items, defs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 908, in _json_schema_to_python_type
+    return _json_schema_to_python_type(defs[schema["$ref"].split("/")[-1]], defs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 947, in _json_schema_to_python_type
+    des = [
+          ^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 948, in <listcomp>
+    f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 955, in _json_schema_to_python_type
+    f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 901, in _json_schema_to_python_type
+    type_ = get_type(schema)
+            ^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 863, in get_type
+    if "const" in schema:
+       ^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'bool' is not iterable
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/applications.py", line 1134, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/trustedhost.py", line 51, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/route_utils.py", line 714, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 124, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 110, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 390, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 291, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2485, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 976, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/routes.py", line 403, in main
+    gradio_api_info = api_info(False)
+                      ^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/routes.py", line 432, in api_info
+    app.api_info = app.get_blocks().get_api_info()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/blocks.py", line 2743, in get_api_info
+    python_type = client_utils.json_schema_to_python_type(info)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 893, in json_schema_to_python_type
+    type_ = _json_schema_to_python_type(schema, schema.get("$defs"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 947, in _json_schema_to_python_type
+    des = [
+          ^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 948, in <listcomp>
+    f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 938, in _json_schema_to_python_type
+    elements = _json_schema_to_python_type(items, defs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 908, in _json_schema_to_python_type
+    return _json_schema_to_python_type(defs[schema["$ref"].split("/")[-1]], defs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 947, in _json_schema_to_python_type
+    des = [
+          ^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 948, in <listcomp>
+    f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 955, in _json_schema_to_python_type
+    f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 901, in _json_schema_to_python_type
+    type_ = get_type(schema)
+            ^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 863, in get_type
+    if "const" in schema:
+       ^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'bool' is not iterable
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/applications.py", line 1134, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/trustedhost.py", line 51, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/route_utils.py", line 714, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 124, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 110, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 390, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 291, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2485, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 976, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/routes.py", line 403, in main
+    gradio_api_info = api_info(False)
+                      ^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/routes.py", line 432, in api_info
+    app.api_info = app.get_blocks().get_api_info()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/blocks.py", line 2743, in get_api_info
+    python_type = client_utils.json_schema_to_python_type(info)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 893, in json_schema_to_python_type
+    type_ = _json_schema_to_python_type(schema, schema.get("$defs"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 947, in _json_schema_to_python_type
+    des = [
+          ^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 948, in <listcomp>
+    f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 938, in _json_schema_to_python_type
+    elements = _json_schema_to_python_type(items, defs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 908, in _json_schema_to_python_type
+    return _json_schema_to_python_type(defs[schema["$ref"].split("/")[-1]], defs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 947, in _json_schema_to_python_type
+    des = [
+          ^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 948, in <listcomp>
+    f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 955, in _json_schema_to_python_type
+    f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 901, in _json_schema_to_python_type
+    type_ = get_type(schema)
+            ^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 863, in get_type
+    if "const" in schema:
+       ^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'bool' is not iterable
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/applications.py", line 1134, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/trustedhost.py", line 51, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/route_utils.py", line 714, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 124, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 110, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 390, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/fastapi/routing.py", line 291, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/starlette/concurrency.py", line 38, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2485, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 976, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/routes.py", line 403, in main
+    gradio_api_info = api_info(False)
+                      ^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/routes.py", line 432, in api_info
+    app.api_info = app.get_blocks().get_api_info()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio/blocks.py", line 2743, in get_api_info
+    python_type = client_utils.json_schema_to_python_type(info)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 893, in json_schema_to_python_type
+    type_ = _json_schema_to_python_type(schema, schema.get("$defs"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 947, in _json_schema_to_python_type
+    des = [
+          ^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 948, in <listcomp>
+    f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 938, in _json_schema_to_python_type
+    elements = _json_schema_to_python_type(items, defs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 908, in _json_schema_to_python_type
+    return _json_schema_to_python_type(defs[schema["$ref"].split("/")[-1]], defs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 947, in _json_schema_to_python_type
+    des = [
+          ^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 948, in <listcomp>
+    f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 955, in _json_schema_to_python_type
+    f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 901, in _json_schema_to_python_type
+    type_ = get_type(schema)
+            ^^^^^^^^^^^^^^^^
+  File "/home/vexorex/LimoEX/text-generation-webui/installer_files/env/lib/python3.11/site-packages/gradio_client/utils.py", line 863, in get_type
+    if "const" in schema:
+       ^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'bool' is not iterable
 
-extensions:
-character_bias  coqui_tts  example  gallery  google_translate  long_replies  ngrok  openai  perplexity_colors  sd_api_pictures  send_pictures  silero_tts  superbooga  superboogav2  Training_PRO  whisper_stt
-
-js:
-dark_theme.js  global_scope_js.js  highlightjs  katex  main.js  morphdom  save_files.js  show_controls.js  switch_tabs.js  update_big_picture.js
-
-models:
-Qwen3-Chat-1.7B
-
-modules:
-block_requests.py        exllamav2_hf.py  gradio_hijack.py     loaders.py         models.py           Qwen3-1.7B-Q8_0         text_generation.py      ui_default.py      ui.py
-callbacks.py             exllamav2.py     grammar              logging_colors.py  models_settings.py  sampler_hijack.py       torch_utils.py          ui_file_saving.py  ui_session.py
-chat.py                  exllamav3_hf.py  html_generator.py    logits.py          presets.py          sane_markdown_lists.py  training.py             ui_model_menu.py   utils.py
-deepspeed_parameters.py  exllamav3.py     image_utils.py       LoRA.py            prompts.py          shared.py               transformers_loader.py  ui_notebook.py     web_search.py
-evaluate.py              extensions.py    llama_cpp_server.py  metadata_gguf.py   __pycache__         tensorrt_llm.py         ui_chat.py              ui_parameters.py
-
-requirements:
-full  portable
-
-user_data:
-cache  characters  CMD_FLAGS.txt  extensions  grammars  instruction-templates  loras  mmproj  models  presets  training
-    ~/LimoEX/text-generation-webui    main ?2  python3 server.py --model Qwen3-Chat-1.7B                                                                                                               ✔ 
-03:17:10-993544 INFO     Starting Text Generation Web UI                                                                                                                                                          
-03:17:11-001201 INFO     Loading "Qwen3-Chat-1.7B"                                                                                                                                                                
-03:17:11-002959 ERROR    The path to the model does not exist. Exiting.                                                                                                                                           
-╭────────────────────────────────────────────────────────────────────────────────────── Traceback (most recent call last) ───────────────────────────────────────────────────────────────────────────────────────╮
-│ /home/vexorex/LimoEX/text-generation-webui/server.py:312 in <module>                                                                                                                                           │
-│                                                                                                                                                                                                                │
-│   311         # Load the model                                                                                                                                                                                 │
-│ ❱ 312         shared.model, shared.tokenizer = load_model(shared.model_name)                                                                                                                                   │
-│   313         if shared.args.lora:                                                                                                                                                                             │
-│                                                                                                                                                                                                                │
-│ /home/vexorex/LimoEX/text-generation-webui/modules/models.py:36 in load_model                                                                                                                                  │
-│                                                                                                                                                                                                                │
-│    35                 logger.error('The path to the model does not exist. Exiting.')                                                                                                                           │
-│ ❱  36                 raise ValueError                                                                                                                                                                         │
-│    37                                                                                                                                                                                                          │
-╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-ValueError
-    ~/LimoEX/text-generation-webui    main ?2     

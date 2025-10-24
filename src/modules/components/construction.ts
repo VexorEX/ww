@@ -227,8 +227,11 @@ construction.action(/^admin_approve_construction_(\d+)$/, async (ctx) => {
     if (!pending.profitPercent || pending.profitPercent <= 0) {
         return ctx.reply('❌ مقدار سود پروژه معتبر نیست.');
     }
-
-
+    const typeLabel = {
+        game: 'بازی‌سازی 🎮',
+        film: 'فیلم‌سازی 🎬',
+        music: 'موزیک‌سازی 🎼'
+    }[pending.type as ProjectType];
     const profitAmount = Math.floor(Number(pending.setupCost) * (pending.profitPercent ?? 0) / 100);
 
     await prisma.user.update({
@@ -273,7 +276,18 @@ construction.action(/^admin_approve_construction_(\d+)$/, async (ctx) => {
             '✅ این پروژه تأیید شد و در سیستم ثبت گردید.'
         );
     }
+    const channelCaption = escapeMarkdownV2(
+        `📥 پروژه عمرانی جدید: **${typeLabel}**\n\n` +
+        `> کشور سازنده: ${pending.country}\n` +
+        `> محصول: **${pending.name}**\n` +
+        `> 💰 بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()} ریال\n` +
+        `> ➕ سود روزانه: ${profitAmount.toLocaleString()} ریال`
+    );
 
+    await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
+        caption: channelCaption,
+        parse_mode: 'MarkdownV2'
+    });
     await ctx.reply('✅ پروژه تأیید و ثبت شد.');
 });
 construction.action(/^admin_reject_construction_(\d+)$/, async (ctx) => {
