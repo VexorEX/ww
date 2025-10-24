@@ -120,7 +120,7 @@ construction.on('photo', async (ctx, next) => {
     const result = await changeCapital(userId, 'subtract', setupCost);
     if (result !== 'ok') return ctx.reply('❌ خطا در کسر سرمایه.');
 
-    const profitPercent = Math.floor(10 + Math.random() * 72);
+    const profitPercent = Math.floor(Math.random() * (72 - 50 + 1)) + 50;
 
     const expiresAt = new Date(Date.now() + 3 * 60 * 60 * 1000); // 3 ساعت بعد
 
