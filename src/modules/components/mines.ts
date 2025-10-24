@@ -3,6 +3,7 @@ import type { CustomContext } from '../../middlewares/userAuth';
 import { changeCapital, changeUserField } from '../economy';
 import { prisma } from '../../prisma';
 import type { Prisma } from '../../generated/client';
+import config from '../../config/config.json';
 
 type User = Prisma.UserGetPayload<{}>;
 
@@ -126,7 +127,10 @@ export async function applyDailyMineProfit(userid: bigint): Promise<'ok' | 'erro
             const total = count * spec.dailyOutput;
 
             if (total > 0) {
-                await changeUserField(user.userid, spec.resource as string, 'add', total);
+                const result = await changeUserField(user.userid, spec.resource as string, 'add', total);
+                if (result !== 'ok') {
+                    console.warn(`❌ خطا در واریز ${spec.resource} برای کاربر ${user.userid}`);
+                }
             }
         }
 
@@ -150,6 +154,60 @@ export async function applyDailyMineProfitForAllUsers(): Promise<'ok' | 'error'>
         return 'error';
     }
 }
+mines.command('mineprofit', async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!config.manage.buildings.mines.admins.includes(adminId)) {
+        return ctx.reply('⛔ فقط ادمین‌ها می‌تونن این دستور رو اجرا کنن.');
+    }
+
+    const args = ctx.message.text.split(' ');
+    const targetId = args[1] ? BigInt(args[1]) : BigInt(ctx.from.id);
+
+    const user = await prisma.user.findUnique({ where: { userid: targetId } });
+    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+
+    let report: string[] = [];
+
+    for (const [type, spec] of Object.entries(mineSpecs) as [MineType, typeof mineSpecs[MineType]][]) {
+        const count = user[spec.field] as number;
+        const total = count * spec.dailyOutput;
+
+        if (total > 0) {
+            const result = await changeUserField(user.userid, spec.resource as string, 'add', total);
+            if (result === 'ok') {
+                report.push(`✅ ${spec.label}: ${count} معدن × ${spec.dailyOutput} → +${total} ${spec.resource}`);
+            } else {
+                report.push(`❌ خطا در واریز ${spec.resource}`);
+            }
+        } else {
+            report.push(`➖ ${spec.label}: هیچ معدنی ندارید`);
+        }
+    }
+
+    await ctx.reply(`📦 سود معادن برای کاربر ${targetId} اعمال شد:\n` + report.join('\n'));
+});
+mines.command('mineprofit_all', async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!config.manage.buildings.mines.admins.includes(adminId)) {
+        return ctx.reply('⛔ فقط ادمین‌ها می‌تونن این دستور رو اجرا کنن.');
+    }
+
+    const users = await prisma.user.findMany({ select: { userid: true } });
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const user of users) {
+        const result = await applyDailyMineProfit(user.userid);
+        if (result === 'ok') successCount++;
+        else errorCount++;
+    }
+
+    await ctx.reply(
+        `📊 سود معادن برای همه کاربران اعمال شد.\n` +
+        `✅ موفق: ${successCount} کاربر\n` +
+        `❌ خطا: ${errorCount} کاربر`
+    );
+});
 
 
 export default mines;

@@ -120,7 +120,7 @@ construction.on('photo', async (ctx, next) => {
     const result = await changeCapital(userId, 'subtract', setupCost);
     if (result !== 'ok') return ctx.reply('❌ خطا در کسر سرمایه.');
 
-    const profitPercent = Math.floor(10 + Math.random() * 72);
+    const profitPercent = Math.floor(50 + Math.random() * 72);
 
     const expiresAt = new Date(Date.now() + 3 * 60 * 60 * 1000); // 3 ساعت بعد
 
@@ -139,15 +139,12 @@ construction.on('photo', async (ctx, next) => {
             expiresAt
         }
     });
-    const profitAmount = Math.floor(Number(pending.setupCost) * (pending.profitPercent ?? 0) / 100);
     const emoji = emojiMap[buildingType];
-    const preview = escapeMarkdownV2(
+    const preview =
         `${emoji} پروژه جدید ساخته شد\n\n` +
-        `کشور سازنده: *${country}*\n` +
-        `محصول: *${buildingName}*\n\n` +
-        `بودجه راه‌اندازی: ${setupCost.toLocaleString()} ریال\n` +
-        `➕ سود روزانه: ${Math.floor(profitAmount / 1_000_000)}M`
-    );
+        `کشور سازنده: _${escapeMarkdownV2(country)}_\n` +
+        `محصول: _${escapeMarkdownV2(buildingName)}_\n\n` +
+        `بودجه راه‌اندازی: ${setupCost.toLocaleString()} ریال\n`;
 
     const keyboard = Markup.inlineKeyboard([
         [Markup.button.callback('✅ ارسال برای تأیید ادمین', `submit_construction_${pending.id}`)],
@@ -183,7 +180,7 @@ construction.action(/^submit_construction_(\d+)$/, async (ctx) => {
         `> ➕ سود روزانه: ${Math.floor(profitAmount / 1_000_000)}M`
     );
 
-    const caption = escapeMarkdownV2(`📥 پروژه عمرانی جدید: *${typeLabel}*\n\n`) + quotedText;
+    const caption = `📥 پروژه عمرانی جدید: *${escapeMarkdownV2(typeLabel)}*` + escapeMarkdownV2(`\n\n`) + quotedText;
 
     const keyboard = Markup.inlineKeyboard([
         [Markup.button.callback('✅ تأیید ساخت', `admin_approve_construction_${pendingId}`)],
@@ -276,13 +273,12 @@ construction.action(/^admin_approve_construction_(\d+)$/, async (ctx) => {
             '✅ این پروژه تأیید شد و در سیستم ثبت گردید.'
         );
     }
-    const channelCaption = escapeMarkdownV2(
-        `📥 پروژه عمرانی جدید: **${typeLabel}**\n\n` +
-        `> کشور سازنده: ${pending.country}\n` +
-        `> محصول: **${pending.name}**\n` +
+    const channelCaption =
+        `📥 پروژه عمرانی جدید: _${escapeMarkdownV2(typeLabel)}_\n\n` +
+        `> کشور سازنده: ${escapeMarkdownV2(pending.country)}\n` +
+        `> محصول: _${escapeMarkdownV2(pending.name)}_\n` +
         `> 💰 بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()} ریال\n` +
-        `> ➕ سود روزانه: ${profitAmount.toLocaleString()} ریال`
-    );
+        `> ➕ سود روزانه: ${profitAmount.toLocaleString()} ریال`;
 
     await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
         caption: channelCaption,
