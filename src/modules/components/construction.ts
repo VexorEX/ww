@@ -316,7 +316,7 @@ construction.action(/^admin_reject_construction_(\d+)$/, async (ctx) => {
     }
 
     if (pending.adminChatId && pending.adminMessageId) {
-        await ctx.telegram.editMessageText(
+        await ctx.telegram.editMessageCaption(
             pending.adminChatId.toString(),
             pending.adminMessageId,
             undefined,
