@@ -1,6 +1,6 @@
 import { Composer, Markup } from 'telegraf';
 import type { CustomContext } from '../../middlewares/userAuth';
-import { escapeMarkdownV2,md } from '../../utils/escape';
+import { escapeMarkdownV2 } from '../../utils/escape';
 import { prisma } from '../../prisma';
 import config from '../../config/config.json';
 import { changeCapital } from '../economy';
@@ -62,9 +62,9 @@ car.on('text', async (ctx, next) => {
 
         const preview =
             `🚗 پروژه ساخت خودرو\n\n` +
-            `> کشور سازنده: _${md(ctx.user?.countryName)}_\n` +
-            `> محصول: _${md(ctx.session.buildingName)}_\n` +
-            `> توضیح: ${md(ctx.session.buildingDescription)}\n\n` +
+            `> کشور سازنده: _${ctx.user?.countryName}_\n` +
+            `> محصول: _${ctx.session.buildingName}_\n` +
+            `> توضیح: ${ctx.session.buildingDescription}\n\n` +
             `💰 بودجه راه‌اندازی: ${Math.floor(ctx.session.setupCost / 1_000_000)}M\n` +
             `🔄 ظرفیت تولید روزانه: 15 خودرو\n\n` +
             `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`;
@@ -146,9 +146,9 @@ car.action('submit_building', async (ctx) => {
 
     const caption =
         `📥 درخواست ساخت خط تولید خودرو\n\n` +
-        `> کشور: _${md(country)}_\n` +
-        `> نام: _${md(buildingName)}_\n` +
-        `> توضیح: ${md(buildingDescription)}\n` +
+        `> کشور: _${country}_\n` +
+        `> نام: _${buildingName}_\n` +
+        `> توضیح: ${buildingDescription}\n` +
         `> بودجه: ${Math.floor(setupCost / 1_000_000)}M\n` +
         `🔄 ظرفیت تولید روزانه: 15 خودرو`;
 
