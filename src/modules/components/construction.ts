@@ -144,7 +144,7 @@ construction.on('photo', async (ctx, next) => {
         `${emoji} پروژه جدید ساخته شد\n\n` +
         `کشور سازنده: _${escapeMarkdownV2(country)}_\n` +
         `محصول: _${escapeMarkdownV2(buildingName)}_\n\n` +
-        `بودجه راه‌اندازی: ${setupCost.toLocaleString()} ریال\n`;
+        `بودجه راه‌اندازی: ${setupCost.toLocaleString()}\n`;
 
     const keyboard = Markup.inlineKeyboard([
         [Markup.button.callback('✅ ارسال برای تأیید ادمین', `submit_construction_${pending.id}`)],
@@ -277,8 +277,8 @@ construction.action(/^admin_approve_construction_(\d+)$/, async (ctx) => {
         `📥 پروژه عمرانی جدید: _${escapeMarkdownV2(typeLabel)}_\n\n` +
         `> کشور سازنده: ${escapeMarkdownV2(pending.country)}\n` +
         `> محصول: _${escapeMarkdownV2(pending.name)}_\n` +
-        `> 💰 بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()} ریال\n` +
-        `> ➕ سود روزانه: ${profitAmount.toLocaleString()} ریال`;
+        `> 💰 بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()}\n` +
+        `> ➕ سود روزانه: ${profitAmount.toLocaleString()}`;
 
     await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
         caption: channelCaption,
