@@ -266,7 +266,7 @@ construction.action(/^admin_approve_construction_(\d+)$/, async (ctx) => {
         console.warn('❌ ارسال پیام به کاربر ممکن نبود:', err);
     }
     if (pending.adminChatId && pending.adminMessageId) {
-        await ctx.telegram.editMessageText(
+        await ctx.telegram.editMessageCaption(
             pending.adminChatId.toString(),
             pending.adminMessageId,
             undefined,
