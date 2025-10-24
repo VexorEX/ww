@@ -223,7 +223,7 @@ car.action(/^admin_approve_building_(\d+)$/, async (ctx) => {
             `🏭 خط تولید جدید راه‌اندازی شد\n\n` +
             `> کشور سازنده: _${escapeMarkdownV2(user.countryName)}_\n` +
             `> محصول: _${escapeMarkdownV2(pending.name)}_\n\n` +
-            `💰 بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()} ریال\n` +
+            `💰 بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()}\n` +
             `🔄 ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`,
         parse_mode: 'MarkdownV2'
     });
