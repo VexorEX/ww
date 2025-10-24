@@ -19,4 +19,4 @@ export function escapeMarkdownV2(text: string): string {
         .replace(/!/g, '\\!');
 }
 
-export const md = (text?: string | null) => escapeMarkdownV2(text || '');
+export const mdv2 = (text?: string | null) => escapeMarkdownV2(text || '');
