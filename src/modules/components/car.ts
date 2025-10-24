@@ -60,14 +60,14 @@ car.on('text', async (ctx, next) => {
         ctx.session.buildingDescription = description;
         ctx.session.buildingStep = 'awaiting_admin_review';
 
-        const preview =
+        const preview = escapeMarkdownV2(
             `🚗 پروژه ساخت خودرو\n\n` +
             `> کشور سازنده: _${ctx.user?.countryName}_\n` +
             `> محصول: _${ctx.session.buildingName}_\n` +
             `> توضیح: ${ctx.session.buildingDescription}\n\n` +
             `💰 بودجه راه‌اندازی: ${Math.floor(ctx.session.setupCost / 1_000_000)}M\n` +
             `🔄 ظرفیت تولید روزانه: 15 خودرو\n\n` +
-            `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`;
+            `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`);
 
         const keyboard = Markup.inlineKeyboard([
             [Markup.button.callback('✅ ارسال برای تأیید ادمین', 'submit_building')],
