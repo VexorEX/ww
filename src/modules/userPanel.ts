@@ -8,6 +8,7 @@ import market from "./countryMarket";
 import state from "./countryState";
 import construction from "./components/construction";
 import mines from "./components/mines";
+import business from "./countryBusiness";
 
 const userPanel = new Composer<CustomContext>();
 
@@ -48,7 +49,7 @@ const userMainKeyboard = config.manage.status
                 ? [Markup.button.callback('⚓ تجارت', 'business')]
                 : []),
             ...(config.manage?.lottery?.status
-                ? [Markup.button.callback('🎟️ لاتاری', 'lottery')]
+                ? [Markup.button.callback('🎟️ لاتاری', 'buy_ticket')]
                 : [])
         ]
     ].filter((row) => row.length > 0))
@@ -70,6 +71,7 @@ userPanel.use(car);
 userPanel.use(market);
 userPanel.use(construction);
 userPanel.use(mines);
+userPanel.use(business)
 
 userPanel.action('back_main', async (ctx) => {
     const name = ctx.from.first_name;

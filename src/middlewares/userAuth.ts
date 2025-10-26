@@ -29,6 +29,7 @@ export interface SessionData {
     awaiting_user_id?: boolean;
     awaiting_value?: boolean;
     awaiting_value_all?: boolean;
+    awaiting_ticket_count?: any;
     [key: string]: any;
 }
 
