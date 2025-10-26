@@ -1,6 +1,5 @@
 import { Composer, Markup } from 'telegraf';
 import type { CustomContext } from '../../middlewares/userAuth';
-import { escapeMarkdownV2 } from '../../utils/escape';
 import { prisma } from '../../prisma';
 import config from '../../config/config.json';
 import { changeCapital } from '../economy';
@@ -60,14 +59,14 @@ car.on('text', async (ctx, next) => {
         ctx.session.buildingDescription = description;
         ctx.session.buildingStep = 'awaiting_admin_review';
 
-        const preview = escapeMarkdownV2(
+        const preview =
             `🚗 پروژه ساخت خودرو\n\n` +
-            `> کشور سازنده: _${ctx.user?.countryName}_\n` +
-            `> محصول: _${ctx.session.buildingName}_\n` +
+            `> کشور سازنده: ${ctx.user?.countryName}\n` +
+            `> محصول: ${ctx.session.buildingName}\n` +
             `> توضیح: ${ctx.session.buildingDescription}\n\n` +
             `💰 بودجه راه‌اندازی: ${Math.floor(ctx.session.setupCost / 1_000_000)}M\n` +
             `🔄 ظرفیت تولید روزانه: 15 خودرو\n\n` +
-            `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`);
+            `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`;
 
         const keyboard = Markup.inlineKeyboard([
             [Markup.button.callback('✅ ارسال برای تأیید ادمین', 'submit_building')],
@@ -146,8 +145,8 @@ car.action('submit_building', async (ctx) => {
 
     const caption =
         `📥 درخواست ساخت خط تولید خودرو\n\n` +
-        `> کشور: _${country}_\n` +
-        `> نام: _${buildingName}_\n` +
+        `> کشور: ${country}\n` +
+        `> نام: ${buildingName}\n` +
         `> توضیح: ${buildingDescription}\n` +
         `> بودجه: ${Math.floor(setupCost / 1_000_000)}M\n` +
         `🔄 ظرفیت تولید روزانه: 15 خودرو`;
@@ -221,8 +220,8 @@ car.action(/^admin_approve_building_(\d+)$/, async (ctx) => {
     await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
         caption:
             `🏭 خط تولید جدید راه‌اندازی شد\n\n` +
-            `> کشور سازنده: _${escapeMarkdownV2(user.countryName)}_\n` +
-            `> محصول: _${escapeMarkdownV2(pending.name)}_\n\n` +
+            `> کشور سازنده: ${user.countryName}\n` +
+            `> محصول: ${pending.name}\n\n` +
             `💰 بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()}\n` +
             `🔄 ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`,
         parse_mode: 'MarkdownV2'
