@@ -9,7 +9,7 @@ const business = new Composer<CustomContext>();
 
 const transferableFields = ['iron', 'gold', 'oil', 'uranium', 'capital'];
 
-business.action('start_trade', async (ctx) => {
+business.action('business', async (ctx) => {
     const user = ctx.user;
     const requiredOil = Math.floor(Math.random() * (60 - 35 + 1)) + 35;
 

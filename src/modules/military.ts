@@ -76,21 +76,21 @@ military.command('buysu57', async (ctx) => {
 // برای بقیه fighter ها مشابه بنویس (f47, f35, etc.) - کپی کن و unitKey و هزینه‌ها رو تغییر بده
 
 // /train - آموزش/تولید واحدها (مثلاً +10% به soldier بر اساس satisfaction)
-military.command('train', async (ctx) => {
-    const { userid, satisfaction, soldier, tank /* etc. */ } = ctx.user;
-    if (satisfaction < 50) return ctx.reply('❌ رضایت کمه! حداقل 50% نیازه.');
-
-    const boost = Math.floor(satisfaction / 10); // مثلاً 8% boost per 10 satisfaction
-    await prisma.user.update({
-        where: { userid },
-        data: {
-            soldier: { increment: soldier * boost / 100 },
-            tank: { increment: tank * boost / 100 },
-            // برای بقیه واحدها اضافه کن
-        },
-    });
-    ctx.reply(`🏋️ آموزش: +${boost}% به واحدها (بر اساس رضایت ${satisfaction}%)`);
-});
+// military.command('train', async (ctx) => {
+//     const { userid, satisfaction, soldier, tank /* etc. */ } = ctx.user;
+//     if (satisfaction < 50) return ctx.reply('❌ رضایت کمه! حداقل 50% نیازه.');
+//
+//     const boost = Math.floor(satisfaction / 10); // مثلاً 8% boost per 10 satisfaction
+//     await prisma.user.update({
+//         where: { userid },
+//         data: {
+//             soldier: { increment: soldier * boost / 100 },
+//             tank: { increment: tank * boost / 100 },
+//             // برای بقیه واحدها اضافه کن
+//         },
+//     });
+//     ctx.reply(`🏋️ آموزش: +${boost}% به واحدها (بر اساس رضایت ${satisfaction}%)`);
+// });
 
 // برای پهپاد، موشک، دریایی، دفاع: handler های مشابه buyUnit بساز، اما با هزینه‌های متفاوت (مثل gold برای پیشرفته‌ها)
 

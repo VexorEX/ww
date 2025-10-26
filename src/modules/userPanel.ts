@@ -46,6 +46,9 @@ const userMainKeyboard = config.manage.status
                 : []),
             ...(config.manage?.business?.status
                 ? [Markup.button.callback('⚓ تجارت', 'business')]
+                : []),
+            ...(config.manage?.lottery?.status
+                ? [Markup.button.callback('🎟️ لاتاری', 'lottery')]
                 : [])
         ]
     ].filter((row) => row.length > 0))
