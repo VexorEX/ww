@@ -1,299 +1,396 @@
-import { Composer, Markup } from 'telegraf';
-import type { CustomContext } from '../../middlewares/userAuth';
-import { escapeMarkdownV2 } from '../../utils/escape';
-import { prisma } from '../../prisma';
-import config from '../../config/config.json';
-import { changeCapital } from '../economy';
+import {Composer, Markup} from "telegraf";
+import type {CustomContext} from "../../middlewares/userAuth";
+import config from '../../config/config.json'
+import { changeUserField } from "../economy";
+import { prisma } from "../../prisma";
 
-const admins: number[] = config.manage.buildings.car.admins;
-const car = new Composer<CustomContext>();
+const lottery = new Composer<CustomContext>();
+const globalLotteryState = {
+    active: false,
+    price: 0,
+    unit: 'capital'
+};
 
-car.action('build_car', async (ctx) => {
-    const userId = BigInt(ctx.from.id);
-    const user = await prisma.user.findUnique({ where: { userid: userId } });
-    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
-
-    const requiredCapital = 250_000_000;
-    if (user.capital < BigInt(requiredCapital)) {
-        return ctx.reply(
-            `❌ سرمایه کافی برای ساخت خودرو ندارید.\n` +
-            `💰 مورد نیاز: ${Math.floor(requiredCapital / 1_000_000)}M\n` +
-            `💳 موجودی فعلی: ${Math.floor(Number(user.capital) / 1_000_000)}M`
-        );
+// Debug command for lottery tickets
+lottery.command('cticket', async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!config.manage.lottery.admins.includes(adminId)) {
+        return ctx.reply('⛔ فقط ادمین‌ها می‌تونن از این دستور استفاده کنن.');
     }
 
-    const today = new Date().toDateString();
-    const last = user.lastCarBuildAt;
-    const isSameDay = last && new Date(last).toDateString() === today;
+    const args = ctx.message.text.split(' ').slice(1);
+    const price = parseInt(args[0]);
 
-    if (isSameDay) {
-        return ctx.reply('⛔ امروز قبلاً یک خودرو ساخته‌اید. فردا دوباره تلاش کنید.');
+    if (!price || price <= 0) {
+        return ctx.reply('❌ فرمت صحیح: /cticket <قیمت>');
     }
 
-    ctx.session = {
-        buildingType: 'car',
-        setupCost: 250_000_000,
-        buildingStep: 'awaiting_name_car'
-    };
-    await ctx.reply('📌 نام پروژه خودرو را وارد کن:');
-    ctx.answerCbQuery();
+    if (globalLotteryState.active) {
+        return ctx.reply('⚠️ لاتاری فعال هست. ابتدا باید لاتاری قبلی رو ببندی.');
+    }
+
+    globalLotteryState.active = true;
+    globalLotteryState.price = price;
+    globalLotteryState.unit = 'capital';
+
+    await ctx.telegram.sendMessage(config.channels.lottery,
+        `🎉 لاتاری جدید آغاز شد!\n` +
+        `💸 قیمت هر بلیط: ${price} ${config.manage.lottery.utils.capital}\n` +
+        `🎟️ برای خرید بلیط روی دکمه زیر کلیک کنید و به ربات پیام دهید.`,
+        {
+            reply_markup: Markup.inlineKeyboard([
+                [Markup.button.url('🎟️ شروع خرید بلیط', `https://t.me/${ctx.botInfo?.username}?start=lottery`)]
+            ]).reply_markup,
+            parse_mode: 'HTML'
+        }
+    );
+
+    await ctx.reply('✅ لاتاری با قیمت سفارشی شروع شد.');
 });
 
-// دریافت نام پروژه
-car.on('text', async (ctx, next) => {
-    ctx.session ??= {};
-
-    if (ctx.session.buildingStep === 'awaiting_name_car') {
-        const name = ctx.message.text?.trim();
-        if (!name || name.length < 2) return ctx.reply('❌ نام محصول معتبر نیست.');
-
-        ctx.session.buildingName = name;
-        ctx.session.buildingStep = 'awaiting_image';
-        await ctx.reply('🖼 حالا تصویر محصول را ارسال کن:');
-        return;
+lottery.action('admin_lottery', async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!config.manage.lottery.admins.includes(adminId)) {
+        return ctx.answerCbQuery('⛔ فقط ادمین‌ها می‌تونن لاتاری رو مدیریت کنن.');
     }
 
-    if (ctx.session.buildingStep === 'awaiting_car_description') {
-        const description = ctx.message.text?.trim();
-        if (!description || description.length < 5) return ctx.reply('❌ توضیح خیلی کوتاهه.');
+    // Get lottery statistics
+    const users = await prisma.user.findMany({ select: { lottery: true } });
+    const totalTickets = users.reduce((sum, user) => sum + (user.lottery || 0), 0);
+    const activeUsers = users.filter(user => (user.lottery || 0) > 0).length;
 
-        ctx.session.buildingDescription = description;
-        ctx.session.buildingStep = 'awaiting_admin_review';
+    const lotteryStatus = ctx.session?.lotteryActive ? '🟢 فعال' : '🔴 غیرفعال';
+    const currentPrice = ctx.session?.ticketPrice ? `${globalLotteryState.price} ${config.manage.lottery.utils[globalLotteryState.unit]}` : 'تنظیم نشده';
 
-        const preview = escapeMarkdownV2(
-            `🚗 پروژه ساخت خودرو\n\n` +
-            `> کشور سازنده: _${ctx.user?.countryName}_\n` +
-            `> محصول: _${ctx.session.buildingName}_\n` +
-            `> توضیح: ${ctx.session.buildingDescription}\n\n` +
-            `💰 بودجه راه‌اندازی: ${Math.floor(ctx.session.setupCost / 1_000_000)}M\n` +
-            `🔄 ظرفیت تولید روزانه: 15 خودرو\n\n` +
-            `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`);
+    const lotteryKeyboard = Markup.inlineKeyboard([
+        [Markup.button.callback('🎯 شروع لاتاری جدید', 'admin_start_lottery')],
+        [Markup.button.callback('🏁 پایان لاتاری', 'admin_end_lottery')],
+        [Markup.button.callback('📊 آمار لاتاری', 'admin_lottery_stats')],
+        [Markup.button.callback('🔙 بازگشت', 'admin_back')]
+    ]);
 
-        const keyboard = Markup.inlineKeyboard([
-            [Markup.button.callback('✅ ارسال برای تأیید ادمین', 'submit_building')],
-            [Markup.button.callback('🔙 بازگشت', 'building')]
-        ]);
+    await ctx.editMessageText(
+        `<b>🎟️ مدیریت لاتاری</b>\n\n` +
+        `<b>وضعیت:</b> ${lotteryStatus}\n` +
+        `<b>قیمت فعلی:</b> ${currentPrice}\n` +
+        `<b>کل بلیط‌ها:</b> ${totalTickets}\n` +
+        `<b>کاربران فعال:</b> ${activeUsers}\n\n` +
+        `انتخاب عملیات:`,
+        {
+            reply_markup: lotteryKeyboard.reply_markup,
+            parse_mode: 'HTML'
+        }
+    );
+});
 
-        await ctx.replyWithPhoto(ctx.session.buildingImageFileId, {
-            caption: preview,
-            parse_mode: 'MarkdownV2',
-            reply_markup: keyboard.reply_markup
-        });
-        return;
+// Combined text handler for all lottery steps
+lottery.on('text', async (ctx, next) => {
+    if (ctx.session?.lotteryStep === 'awaiting_ticket_price') {
+        const input = ctx.message.text.trim();
+        const match = input.match(/^(\d+)(?:\((\w+)\))?$/);
+
+        if (!match) return ctx.reply('❌ فرمت قیمت معتبر نیست. مثال: `25000`');
+
+        const amount = Number(match[1]);
+        const unit = match[2] ?? 'capital';
+
+        if (!config.manage.lottery.utils[unit]) {
+            return ctx.reply('❌ واحد وارد شده معتبر نیست.');
+        }
+
+        globalLotteryState.active = true;
+        globalLotteryState.price = amount;
+        globalLotteryState.unit = unit;
+        ctx.session.lotteryStep = undefined;
+
+        await ctx.telegram.sendMessage(
+            config.channels.lottery,
+            `🎉 لاتاری جدید آغاز شد!\n` +
+            `💸 قیمت هر بلیط: ${amount} ${config.manage.lottery.utils[unit]}\n` +
+            `🎟️ برای خرید بلیط روی دکمه زیر کلیک کنید و به ربات پیام دهید.`,
+            {
+                reply_markup: Markup.inlineKeyboard([
+                    [Markup.button.url('🎟️ شروع خرید بلیط', `https://t.me/${ctx.botInfo?.username}?start=lottery`)]
+                ]).reply_markup,
+                parse_mode: 'HTML'
+            }
+        );
+
+        return ctx.reply('✅ لاتاری با موفقیت شروع شد.');
+    }
+
+    if (ctx.session?.lotteryStep === 'awaiting_ticket_count') {
+        const count = Number(ctx.message.text);
+        if (!count || count <= 0) return ctx.reply('❌ تعداد معتبر نیست.');
+
+        const { ticketPrice, ticketUnit } = ctx.session;
+        const totalCost = count * ticketPrice;
+        const user = ctx.user;
+        const currentBalance = user[ticketUnit as keyof typeof user] as number;
+
+        if (currentBalance < totalCost) {
+            return ctx.reply(`❌ موجودی کافی ندارید.\n💰 مورد نیاز: ${totalCost} ${config.manage.lottery.utils[ticketUnit]}`);
+        }
+
+        ctx.session.pendingTicketCount = count;
+        ctx.session.lotteryStep = 'confirm_ticket_purchase';
+
+        return ctx.reply(
+            `✅ می‌خوای ${count} بلیط بخری به قیمت ${totalCost} ${config.manage.lottery.utils[ticketUnit]}؟`,
+            {
+                reply_markup: Markup.inlineKeyboard([
+                    [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket')],
+                    [Markup.button.callback('❌ انصراف', 'cancel_ticket')]
+                ]).reply_markup,
+                parse_mode: 'HTML'
+            }
+        );
     }
 
     return next();
 });
 
-// دریافت تصویر
-car.on('photo', async (ctx, next) => {
-    ctx.session ??= {};
-    if (ctx.session.buildingStep !== 'awaiting_image') return next();
-
-    const photo = ctx.message.photo?.at(-1);
-    if (!photo) return ctx.reply('❌ تصویر معتبر ارسال نشده.');
-
-    const imageUrl = await ctx.telegram.getFileLink(photo.file_id);
-    ctx.session.buildingImage = imageUrl.href;
-    ctx.session.buildingImageFileId = photo.file_id;
-    ctx.session.buildingStep = 'awaiting_car_description';
-
-    await ctx.reply('📝 توضیحی درباره محصولت بنویس (مثلاً ویژگی‌ها یا هدف تولید):');
-});
-
-// ارسال درخواست به ادمین
-car.action('submit_building', async (ctx) => {
-    ctx.session ??= {};
-    const { buildingType, buildingName, buildingImageFileId, buildingDescription, setupCost } = ctx.session;
-    const userId = BigInt(ctx.from.id);
-    const country = ctx.user?.countryName;
-
-    const user = await prisma.user.findUnique({ where: { userid: userId } });
-    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
-
-    if (!buildingType || !buildingName || !buildingImageFileId || !buildingDescription || !country) {
-        return ctx.reply('❌ اطلاعات ناقص است.');
+lottery.action('buy_ticket', async (ctx) => {
+    if (!globalLotteryState.active) {
+        return ctx.answerCbQuery('⛔ لاتاری فعالی وجود ندارد.');
     }
 
-    const requiredCapital = 250_000_000;
-    if (user.capital < BigInt(requiredCapital)) {
-        return ctx.reply(
-            `❌ سرمایه کافی برای ساخت خودرو ندارید.\n` +
-            `💰 مورد نیاز: ${Math.floor(requiredCapital / 1_000_000)}M\n` +
-            `💳 موجودی فعلی: ${Math.floor(Number(user.capital) / 1_000_000)}M`
-        );
-    }
-    const imageUrl = await ctx.telegram.getFileLink(buildingImageFileId).then(link => link.href);
-    const result = await changeCapital(userId, 'subtract', setupCost);
-    if (result !== 'ok') return ctx.reply('❌ خطا در کسر سرمایه.');
-
-    const expiresAt = new Date(Date.now() + 3 * 60 * 60 * 1000); // 3 ساعت بعد
-
-    const pending = await prisma.pendingProductionLine.create({
-        data: {
-            ownerId: userId,
-            name: buildingName,
-            type: buildingType,
-            imageUrl,
-            imageFileId: buildingImageFileId,
-            description: buildingDescription,
-            dailyLimit: 15,
-            setupCost: BigInt(setupCost),
-            country,
-            expiresAt
-        }
+    const userTickets = ctx.user.lottery || 0;
+    ctx.session.lotteryStep = 'awaiting_ticket_count';
+    await ctx.reply(`🎟️ چند بلیط می‌خوای بخری؟\n\n📊 تعداد بلیط‌های فعلی شما: ${userTickets}`, {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('1 بلیط', 'buy_ticket_1'), Markup.button.callback('5 بلیط', 'buy_ticket_5')],
+            [Markup.button.callback('10 بلیط', 'buy_ticket_10'), Markup.button.callback('20 بلیط', 'buy_ticket_20')]
+        ]).reply_markup
     });
-
-    const caption =
-        `📥 درخواست ساخت خط تولید خودرو\n\n` +
-        `> کشور: _${country}_\n` +
-        `> نام: _${buildingName}_\n` +
-        `> توضیح: ${buildingDescription}\n` +
-        `> بودجه: ${Math.floor(setupCost / 1_000_000)}M\n` +
-        `🔄 ظرفیت تولید روزانه: 15 خودرو`;
-
-    const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('✅ تأیید ساخت', `admin_approve_building_${pending.id}`)],
-        [Markup.button.callback('❌ رد درخواست', `admin_reject_building_${pending.id}`)]
-    ]);
-
-    for (const admin of admins) {
-        const sent = await ctx.telegram.sendPhoto(admin, buildingImageFileId, {
-            caption,
-            parse_mode: 'MarkdownV2',
-            reply_markup: keyboard.reply_markup
-        });
-
-        await prisma.pendingProductionLine.update({
-            where: { id: pending.id },
-            data: {
-                adminMessageId: sent.message_id,
-                adminChatId: BigInt(admin)
-            }
-        });
-    }
-
-    await ctx.reply('📤 درخواست شما برای بررسی ادمین ارسال شد.');
-    ctx.session = {};
 });
 
-// تأیید نهایی توسط ادمین
-car.action(/^admin_approve_building_(\d+)$/, async (ctx) => {
+lottery.action('buy_ticket_1', async (ctx) => {
+    ctx.session.pendingTicketCount = 1;
+    await ctx.reply('✅ می‌خوای 1 بلیط بخری به قیمت ' + globalLotteryState.price + ' ' + config.manage.lottery.utils[globalLotteryState.unit] + '?', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket'), Markup.button.callback('❌ انصراف', 'cancel_ticket')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+lottery.action('buy_ticket_5', async (ctx) => {
+    ctx.session.pendingTicketCount = 5;
+    await ctx.reply('✅ می‌خوای 5 بلیط بخری به قیمت ' + globalLotteryState.price * 5 + ' ' + config.manage.lottery.utils[globalLotteryState.unit] + '?', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket'), Markup.button.callback('❌ انصراف', 'cancel_ticket')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+lottery.action('buy_ticket_10', async (ctx) => {
+    ctx.session.pendingTicketCount = 10;
+    await ctx.reply('✅ می‌خوای 10 بلیط بخری به قیمت ' + globalLotteryState.price * 10 + ' ' + config.manage.lottery.utils[globalLotteryState.unit] + '?', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket'), Markup.button.callback('❌ انصراف', 'cancel_ticket')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+lottery.action('buy_ticket_20', async (ctx) => {
+    ctx.session.pendingTicketCount = 20;
+    await ctx.reply('✅ می‌خوای 20 بلیط بخری به قیمت ' + globalLotteryState.price * 20 + ' ' + config.manage.lottery.utils[globalLotteryState.unit] + '?', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket'), Markup.button.callback('❌ انصراف', 'cancel_ticket')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+
+lottery.action('confirm_ticket', async (ctx) => {
+    const count = ctx.session.pendingTicketCount;
+    const { ticketUnit } = ctx.session;
+    const totalCost = count * globalLotteryState.price;
+
+    const result = await changeUserField(ctx.user.userid, ticketUnit, 'subtract', totalCost);
+    const ticketResult = await changeUserField(ctx.user.userid, 'lottery', 'add', count);
+
+    if (result !== 'ok' || ticketResult !== 'ok') {
+        return ctx.reply('❌ خطا در خرید بلیط.');
+    }
+
+    await ctx.telegram.sendMessage(config.channels.lottery,
+        `<b>🎟️ خرید بلیط لاتاری! 🎟️</b>\n` +
+        `<blockquote>کشور ${ctx.user.countryName} با خرید ${count} بلیط جدید، شانس خود را در لاتاری بزرگ جهانی افزایش داد!</blockquote>`
+    ,{ parse_mode: 'HTML' });
+
+    ctx.session.pendingTicketCount = undefined;
+    ctx.session.lotteryStep = undefined;
+    await ctx.reply('✅ خرید بلیط با موفقیت انجام شد.');
+});
+lottery.action('cancel_ticket', async (ctx) => {
+    ctx.session.pendingTicketCount = undefined;
+    ctx.session.lotteryStep = undefined;
+    await ctx.reply('❌ خرید بلیط لغو شد.');
+});
+
+lottery.action('check_tickets', async (ctx) => {
+    const userTickets = ctx.user.lottery || 0;
+    await ctx.reply(`🎟️ تعداد بلیط‌های شما: ${userTickets}`, { parse_mode: 'HTML' });
+});
+
+/**
+ * Admin action to end lottery
+ */
+lottery.action('admin_end_lottery', async (ctx) => {
     const adminId = ctx.from.id;
-    if (!admins.includes(adminId)) {
-        return ctx.answerCbQuery('⛔ فقط ادمین می‌تونه تأیید کنه.');
+    if (!config.manage.lottery.admins.includes(adminId)) {
+        return ctx.answerCbQuery('⛔ فقط ادمین می‌تونه لاتاری رو ببنده.');
     }
 
-    const pendingId = Number(ctx.match[1]);
-    const pending = await prisma.pendingProductionLine.findUnique({ where: { id: pendingId } });
-    if (!pending) return ctx.reply('❌ اطلاعات یافت نشد.');
-    const now = new Date();
-    if (pending.expiresAt && pending.expiresAt < now) {
-        return ctx.reply('⛔ این پروژه منقضی شده و قابل تأیید نیست.');
+    await endLottery(ctx);
+    // After ending lottery, return to admin lottery menu
+    await ctx.answerCbQuery('✅ لاتاری پایان یافت و به منوی مدیریت بازگشت.');
+});
+/**
+ * Admin action to start lottery
+ */
+lottery.action('admin_start_lottery', async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!config.manage.lottery.admins.includes(adminId)) {
+        return ctx.answerCbQuery('⛔ فقط ادمین‌ها می‌تونن لاتاری رو شروع کنن.');
     }
 
-    const userId = pending.ownerId;
-    const user = await prisma.user.findUnique({ where: { userid: userId } });
-    if (!user) return ctx.reply('❌ کاربر یافت نشد.');
+    if (globalLotteryState.active) {
+        return ctx.editMessageText('⚠️ لاتاری فعال هست. ابتدا باید لاتاری قبلی رو ببندی.', {
+            reply_markup: Markup.inlineKeyboard([
+                [Markup.button.callback('🏁 پایان لاتاری فعلی', 'admin_end_lottery')],
+                [Markup.button.callback('🔙 بازگشت', 'admin_lottery')]
+            ]).reply_markup,
+            parse_mode: 'HTML'
+        });
+    }
 
-    await prisma.user.update({
-        where: { userid: userId },
-        data: {
-            lastCarBuildAt: new Date()
+    ctx.session.lotteryStep = 'awaiting_ticket_price';
+    await ctx.editMessageText('🎫 لطفاً قیمت هر بلیط را وارد کنید.\nمثال: `25000` یا `25(iron)`', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('❌ لغو عملیات', 'admin_cancel_lottery')],
+            [Markup.button.callback('🔙 بازگشت', 'admin_lottery')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+/**
+ * Admin action to show lottery statistics
+ */
+lottery.action('admin_lottery_stats', async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!config.manage.lottery.admins.includes(adminId)) {
+        return ctx.answerCbQuery('⛔ فقط ادمین‌ها می‌تونن آمار رو ببینن.');
+    }
+
+    const users = await prisma.user.findMany({ select: { lottery: true, countryName: true } });
+    const totalTickets = users.reduce((sum, user) => sum + (user.lottery || 0), 0);
+    const activeUsers = users.filter(user => (user.lottery || 0) > 0).length;
+
+    // Get top 5 users with most tickets
+    const topUsers = users
+        .filter(user => (user.lottery || 0) > 0)
+        .sort((a, b) => (b.lottery || 0) - (a.lottery || 0))
+        .slice(0, 5);
+
+    let statsText = `<b>📊 آمار لاتاری</b>\n\n`;
+    statsText += `<b>مجموع بلیط‌ها:</b> ${totalTickets}\n`;
+    statsText += `<b>کاربران فعال:</b> ${activeUsers}\n\n`;
+
+    if (topUsers.length > 0) {
+        statsText += `<b>🏆 برترین خریداران:</b>\n`;
+        topUsers.forEach((user, index) => {
+            statsText += `${index + 1}. ${user.countryName}: ${user.lottery} بلیط\n`;
+        });
+    }
+
+    await ctx.editMessageText(statsText, {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('🔄 بروزرسانی', 'admin_lottery_stats')],
+            [Markup.button.callback('🔙 بازگشت', 'admin_lottery')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+/**
+ * Admin back action to return to admin panel
+ */
+
+lottery.action('admin_cancel_lottery', async (ctx) => {
+    ctx.session.lotteryStep = undefined;
+    await ctx.editMessageText('❌ عملیات شروع لاتاری لغو شد.', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('🔙 بازگشت', 'admin_lottery')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+
+
+async function endLottery(ctx: CustomContext) {
+    if (!ctx.session?.lotteryActive) {
+        return ctx.reply('⚠️ لاتاری فعالی وجود ندارد.');
+    }
+
+    const users = await prisma.user.findMany({ select: { userid: true, countryName: true, lottery: true } });
+    const pool: { userid: bigint; country: string }[] = [];
+
+    for (const user of users) {
+        for (let i = 0; i < user.lottery; i++) {
+            pool.push({ userid: user.userid, country: user.countryName });
         }
-    });
+    }
 
-    await prisma.productionLine.create({
-        data: {
-            ownerId: userId,
-            name: pending.name,
-            type: pending.type,
-            imageUrl: pending.imageUrl,
-            imageFileId: pending.imageFileId,
-            dailyLimit: pending.dailyLimit,
-            setupCost: pending.setupCost,
-            country: pending.country
-        }
-    });
+    if (pool.length === 0) return ctx.reply('❌ هیچ بلیطی فروخته نشده.');
 
-    await prisma.pendingProductionLine.delete({ where: { id: pendingId } });
+    const winner = pool[Math.floor(Math.random() * pool.length)];
+    const winnerTickets = users.find(u => u.userid === winner.userid)?.lottery || 0;
 
-    await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
-        caption:
-            `🏭 خط تولید جدید راه‌اندازی شد\n\n` +
-            `> کشور سازنده: _${escapeMarkdownV2(user.countryName)}_\n` +
-            `> محصول: _${escapeMarkdownV2(pending.name)}_\n\n` +
-            `💰 بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()}\n` +
-            `🔄 ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`,
-        parse_mode: 'MarkdownV2'
-    });
+    if (!globalLotteryState.price || !globalLotteryState.unit) {
+        return ctx.reply('❌ اطلاعات لاتاری ناقص است.');
+    }
 
-    await ctx.telegram.sendMessage(Number(userId),
-        `✅ پروژه "${pending.name}" تأیید شد و خط تولید فعال شد.\n` +
-        `🚗 نوع پروژه: خودرو\n` +
-        `💰 بودجه: ${Math.floor(Number(pending.setupCost) / 1_000_000)}M\n` +
-        `🔄 ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`
+    const prize = pool.length * globalLotteryState.price;
+
+    // Add prize to winner's balance
+    const prizeResult = await changeUserField(winner.userid, 'capital', 'add', prize);
+
+    if (prizeResult !== 'ok') {
+        console.error('Failed to add prize to winner:', winner.userid);
+        return ctx.reply('❌ خطا در انتقال جایزه به برنده.');
+    }
+
+    await ctx.telegram.sendMessage(config.channels.lottery,
+        `<b>🎊 برنده لاتاری بزرگ جهانی مشخص شد! 🎊</b>\n` +
+        `پس از فروش ${pool.length} بلیط، قرعه‌کشی انجام شد و برنده خوش‌شانس این دوره مشخص گردید!\n` +
+        `<blockquote>🏆 برنده: کشور ${winner.country} 🎟️ تعداد بلیط‌های برنده: ${winnerTickets}\n` +
+        `💰 مبلغ جایزه: ${prize.toLocaleString()} دلار</blockquote>\n` +
+        `تبریک به برنده بزرگ این دوره! منتظر دور بعدی لاتاری باشید.`,
+        { parse_mode: 'HTML' }
     );
 
-    // ویرایش پیام ادمین (در صورت وجود)
-    if (pending.adminChatId && pending.adminMessageId) {
-        try {
-            await ctx.telegram.editMessageCaption(
-                pending.adminChatId.toString(),
-                pending.adminMessageId,
-                undefined,
-                '✅ این پروژه تأیید شد و در سیستم ثبت گردید.'
-            );
-        } catch (err) {
-            console.warn('❌ خطا در ویرایش پیام ادمین:', err);
-        }
-    }
-
-    await ctx.answerCbQuery('✅ پروژه تأیید شد.');
-    await ctx.reply('✅ پروژه تأیید و ثبت شد.');
-});
-car.action(/^admin_reject_building_(\d+)$/, async (ctx) => {
-    const adminId = ctx.from.id;
-    if (!admins.includes(adminId)) {
-        return ctx.answerCbQuery('⛔ فقط ادمین می‌تونه رد کنه.');
-    }
-
-    const pendingId = Number(ctx.match[1]);
-    const pending = await prisma.pendingProductionLine.findUnique({ where: { id: pendingId } });
-    if (!pending) return ctx.answerCbQuery('❌ پروژه یافت نشد.');
-    const now = new Date();
-    if (pending.expiresAt && pending.expiresAt < now) {
-        return ctx.reply('⛔ این پروژه منقضی شده و قابل تأیید نیست.');
-    }
-
-    const refund = Number(pending.setupCost);
-    const result = await changeCapital(pending.ownerId, 'add', refund);
-    if (result !== 'ok') return ctx.answerCbQuery('❌ خطا در بازگرداندن سرمایه.');
-
-    await prisma.pendingProductionLine.delete({ where: { id: pendingId } });
-
+    // Send private message to winner
     try {
-        await ctx.telegram.sendMessage(Number(pending.ownerId),
-            `❌ پروژه "${pending.name}" توسط ادمین رد شد.\n💸 مبلغ ${Math.floor(refund / 1_000_000)}M به حساب شما برگشت داده شد.`
+        await ctx.telegram.sendMessage(Number(winner.userid),
+            `<b>🎉 تبریک! شما برنده لاتاری شدید! 🎉</b>\n\n` +
+            `<b>💰 مبلغ جایزه:</b> ${prize.toLocaleString()} دلار\n` +
+            `<b>🎟️ تعداد بلیط‌های شما:</b> ${winnerTickets}\n\n` +
+            `جایزه به حساب شما اضافه شد. از قسمت مدیریت کشور می‌تونید موجودی خود رو چک کنید.\n\n` +
+            `🎊 منتظر دور بعدی لاتاری باشید!`,
+            { parse_mode: 'HTML' }
         );
-    } catch (err) {
-        console.warn('❌ ارسال پیام به کاربر ممکن نبود:', err);
+    } catch (error) {
+        console.log('Failed to send winner notification:', error);
+        // Don't fail the lottery if PM fails
     }
 
-    if (pending.adminChatId && pending.adminMessageId) {
-        await ctx.telegram.editMessageCaption(
-            pending.adminChatId.toString(),
-            pending.adminMessageId,
-            undefined,
-            '❌ این پروژه رد شد و بسته شد.'
-        );
-    }
+    await prisma.user.updateMany({ data: { lottery: 0 } });
+    ctx.session = {};
 
-    await ctx.answerCbQuery('✅ پروژه رد شد.');
-});
+    await ctx.reply('✅ لاتاری با موفقیت پایان یافت و جایزه به برنده پرداخت شد.');
+}
 
-export default car;
+export default lottery;
 
 
-in okaye?
-mikham italic ro remove koni ke niyazi be escope abashe

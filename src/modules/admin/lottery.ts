@@ -5,6 +5,11 @@ import { changeUserField } from "../economy";
 import { prisma } from "../../prisma";
 
 const lottery = new Composer<CustomContext>();
+const globalLotteryState = {
+    active: false,
+    price: 0,
+    unit: 'capital'
+};
 
 // Debug command for lottery tickets
 lottery.command('cticket', async (ctx) => {
@@ -20,13 +25,13 @@ lottery.command('cticket', async (ctx) => {
         return ctx.reply('❌ فرمت صحیح: /cticket <قیمت>');
     }
 
-    if (ctx.session.lotteryActive) {
+    if (globalLotteryState.active) {
         return ctx.reply('⚠️ لاتاری فعال هست. ابتدا باید لاتاری قبلی رو ببندی.');
     }
 
-    ctx.session.lotteryActive = true;
-    ctx.session.ticketPrice = price;
-    ctx.session.ticketUnit = 'capital';
+    globalLotteryState.active = true;
+    globalLotteryState.price = price;
+    globalLotteryState.unit = 'capital';
 
     await ctx.telegram.sendMessage(config.channels.lottery,
         `🎉 لاتاری جدید آغاز شد!\n` +
@@ -55,7 +60,7 @@ lottery.action('admin_lottery', async (ctx) => {
     const activeUsers = users.filter(user => (user.lottery || 0) > 0).length;
 
     const lotteryStatus = ctx.session?.lotteryActive ? '🟢 فعال' : '🔴 غیرفعال';
-    const currentPrice = ctx.session?.ticketPrice ? `${ctx.session.ticketPrice} ${config.manage.lottery.utils[ctx.session.ticketUnit]}` : 'تنظیم نشده';
+    const currentPrice = ctx.session?.ticketPrice ? `${globalLotteryState.price} ${config.manage.lottery.utils[globalLotteryState.unit]}` : 'تنظیم نشده';
 
     const lotteryKeyboard = Markup.inlineKeyboard([
         [Markup.button.callback('🎯 شروع لاتاری جدید', 'admin_start_lottery')],
@@ -93,9 +98,9 @@ lottery.on('text', async (ctx, next) => {
             return ctx.reply('❌ واحد وارد شده معتبر نیست.');
         }
 
-        ctx.session.lotteryActive = true;
-        ctx.session.ticketPrice = amount;
-        ctx.session.ticketUnit = unit;
+        globalLotteryState.active = true;
+        globalLotteryState.price = amount;
+        globalLotteryState.unit = unit;
         ctx.session.lotteryStep = undefined;
 
         await ctx.telegram.sendMessage(
@@ -146,7 +151,7 @@ lottery.on('text', async (ctx, next) => {
 });
 
 lottery.action('buy_ticket', async (ctx) => {
-    if (!ctx.session?.lotteryActive) {
+    if (!globalLotteryState.active) {
         return ctx.answerCbQuery('⛔ لاتاری فعالی وجود ندارد.');
     }
 
@@ -162,7 +167,7 @@ lottery.action('buy_ticket', async (ctx) => {
 
 lottery.action('buy_ticket_1', async (ctx) => {
     ctx.session.pendingTicketCount = 1;
-    await ctx.reply('✅ می‌خوای 1 بلیط بخری به قیمت ' + ctx.session.ticketPrice + ' ' + config.manage.lottery.utils[ctx.session.ticketUnit] + '?', {
+    await ctx.reply('✅ می‌خوای 1 بلیط بخری به قیمت ' + globalLotteryState.price + ' ' + config.manage.lottery.utils[globalLotteryState.unit] + '?', {
         reply_markup: Markup.inlineKeyboard([
             [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket'), Markup.button.callback('❌ انصراف', 'cancel_ticket')]
         ]).reply_markup,
@@ -171,7 +176,7 @@ lottery.action('buy_ticket_1', async (ctx) => {
 });
 lottery.action('buy_ticket_5', async (ctx) => {
     ctx.session.pendingTicketCount = 5;
-    await ctx.reply('✅ می‌خوای 5 بلیط بخری به قیمت ' + ctx.session.ticketPrice * 5 + ' ' + config.manage.lottery.utils[ctx.session.ticketUnit] + '?', {
+    await ctx.reply('✅ می‌خوای 5 بلیط بخری به قیمت ' + globalLotteryState.price * 5 + ' ' + config.manage.lottery.utils[globalLotteryState.unit] + '?', {
         reply_markup: Markup.inlineKeyboard([
             [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket'), Markup.button.callback('❌ انصراف', 'cancel_ticket')]
         ]).reply_markup,
@@ -180,7 +185,7 @@ lottery.action('buy_ticket_5', async (ctx) => {
 });
 lottery.action('buy_ticket_10', async (ctx) => {
     ctx.session.pendingTicketCount = 10;
-    await ctx.reply('✅ می‌خوای 10 بلیط بخری به قیمت ' + ctx.session.ticketPrice * 10 + ' ' + config.manage.lottery.utils[ctx.session.ticketUnit] + '?', {
+    await ctx.reply('✅ می‌خوای 10 بلیط بخری به قیمت ' + globalLotteryState.price * 10 + ' ' + config.manage.lottery.utils[globalLotteryState.unit] + '?', {
         reply_markup: Markup.inlineKeyboard([
             [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket'), Markup.button.callback('❌ انصراف', 'cancel_ticket')]
         ]).reply_markup,
@@ -189,7 +194,7 @@ lottery.action('buy_ticket_10', async (ctx) => {
 });
 lottery.action('buy_ticket_20', async (ctx) => {
     ctx.session.pendingTicketCount = 20;
-    await ctx.reply('✅ می‌خوای 20 بلیط بخری به قیمت ' + ctx.session.ticketPrice * 20 + ' ' + config.manage.lottery.utils[ctx.session.ticketUnit] + '?', {
+    await ctx.reply('✅ می‌خوای 20 بلیط بخری به قیمت ' + globalLotteryState.price * 20 + ' ' + config.manage.lottery.utils[globalLotteryState.unit] + '?', {
         reply_markup: Markup.inlineKeyboard([
             [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket'), Markup.button.callback('❌ انصراف', 'cancel_ticket')]
         ]).reply_markup,
@@ -199,8 +204,8 @@ lottery.action('buy_ticket_20', async (ctx) => {
 
 lottery.action('confirm_ticket', async (ctx) => {
     const count = ctx.session.pendingTicketCount;
-    const { ticketPrice, ticketUnit } = ctx.session;
-    const totalCost = count * ticketPrice;
+    const { ticketUnit } = ctx.session;
+    const totalCost = count * globalLotteryState.price;
 
     const result = await changeUserField(ctx.user.userid, ticketUnit, 'subtract', totalCost);
     const ticketResult = await changeUserField(ctx.user.userid, 'lottery', 'add', count);
@@ -251,7 +256,7 @@ lottery.action('admin_start_lottery', async (ctx) => {
         return ctx.answerCbQuery('⛔ فقط ادمین‌ها می‌تونن لاتاری رو شروع کنن.');
     }
 
-    if (ctx.session.lotteryActive) {
+    if (globalLotteryState.active) {
         return ctx.editMessageText('⚠️ لاتاری فعال هست. ابتدا باید لاتاری قبلی رو ببندی.', {
             reply_markup: Markup.inlineKeyboard([
                 [Markup.button.callback('🏁 پایان لاتاری فعلی', 'admin_end_lottery')],
@@ -264,6 +269,7 @@ lottery.action('admin_start_lottery', async (ctx) => {
     ctx.session.lotteryStep = 'awaiting_ticket_price';
     await ctx.editMessageText('🎫 لطفاً قیمت هر بلیط را وارد کنید.\nمثال: `25000` یا `25(iron)`', {
         reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('❌ لغو عملیات', 'admin_cancel_lottery')],
             [Markup.button.callback('🔙 بازگشت', 'admin_lottery')]
         ]).reply_markup,
         parse_mode: 'HTML'
@@ -311,6 +317,17 @@ lottery.action('admin_lottery_stats', async (ctx) => {
  * Admin back action to return to admin panel
  */
 
+lottery.action('admin_cancel_lottery', async (ctx) => {
+    ctx.session.lotteryStep = undefined;
+    await ctx.editMessageText('❌ عملیات شروع لاتاری لغو شد.', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('🔙 بازگشت', 'admin_lottery')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+
+
 async function endLottery(ctx: CustomContext) {
     if (!ctx.session?.lotteryActive) {
         return ctx.reply('⚠️ لاتاری فعالی وجود ندارد.');
@@ -330,11 +347,11 @@ async function endLottery(ctx: CustomContext) {
     const winner = pool[Math.floor(Math.random() * pool.length)];
     const winnerTickets = users.find(u => u.userid === winner.userid)?.lottery || 0;
 
-    if (!ctx.session.ticketPrice || !ctx.session.ticketUnit) {
+    if (!globalLotteryState.price || !globalLotteryState.unit) {
         return ctx.reply('❌ اطلاعات لاتاری ناقص است.');
     }
 
-    const prize = pool.length * ctx.session.ticketPrice;
+    const prize = pool.length * globalLotteryState.price;
 
     // Add prize to winner's balance
     const prizeResult = await changeUserField(winner.userid, 'capital', 'add', prize);
