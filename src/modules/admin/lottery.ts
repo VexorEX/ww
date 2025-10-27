@@ -86,6 +86,61 @@ lottery.on('text', async (ctx, next) => {
 
     return next();
 });
+
+lottery.action('buy_ticket', async (ctx) => {
+    if (!ctx.session?.lotteryActive) {
+        return ctx.answerCbQuery('⛔ لاتاری فعالی وجود ندارد.');
+    }
+
+    ctx.session.lotteryStep = 'awaiting_ticket_count';
+    await ctx.reply('🎟️ چند بلیط می‌خوای بخری؟', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('1 بلیط', 'buy_ticket_1'), Markup.button.callback('5 بلیط', 'buy_ticket_5')],
+            [Markup.button.callback('10 بلیط', 'buy_ticket_10'), Markup.button.callback('20 بلیط', 'buy_ticket_20')]
+        ]).reply_markup
+    });
+});
+
+lottery.action('buy_ticket_1', async (ctx) => {
+    ctx.session.pendingTicketCount = 1;
+    await ctx.reply('✅ می‌خوای 1 بلیط بخری به قیمت ' + ctx.session.ticketPrice + ' ' + config.manage.lottery.utils[ctx.session.ticketUnit] + '?', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket'), Markup.button.callback('❌ انصراف', 'cancel_ticket')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+
+lottery.action('buy_ticket_5', async (ctx) => {
+    ctx.session.pendingTicketCount = 5;
+    await ctx.reply('✅ می‌خوای 5 بلیط بخری به قیمت ' + ctx.session.ticketPrice * 5 + ' ' + config.manage.lottery.utils[ctx.session.ticketUnit] + '?', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket'), Markup.button.callback('❌ انصراف', 'cancel_ticket')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+
+lottery.action('buy_ticket_10', async (ctx) => {
+    ctx.session.pendingTicketCount = 10;
+    await ctx.reply('✅ می‌خوای 10 بلیط بخری به قیمت ' + ctx.session.ticketPrice * 10 + ' ' + config.manage.lottery.utils[ctx.session.ticketUnit] + '?', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket'), Markup.button.callback('❌ انصراف', 'cancel_ticket')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+
+lottery.action('buy_ticket_20', async (ctx) => {
+    ctx.session.pendingTicketCount = 20;
+    await ctx.reply('✅ می‌خوای 20 بلیط بخری به قیمت ' + ctx.session.ticketPrice * 20 + ' ' + config.manage.lottery.utils[ctx.session.ticketUnit] + '?', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket'), Markup.button.callback('❌ انصراف', 'cancel_ticket')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+
 lottery.action('confirm_ticket', async (ctx) => {
     const count = ctx.session.pendingTicketCount;
     const { ticketPrice, ticketUnit } = ctx.session;
