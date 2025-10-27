@@ -212,7 +212,7 @@ lottery.action('confirm_ticket', async (ctx) => {
     await ctx.telegram.sendMessage(config.channels.lottery,
         `<b>🎟️ خرید بلیط لاتاری! 🎟️</b>\n` +
         `<blockquote>کشور ${ctx.user.countryName} با خرید ${count} بلیط جدید، شانس خود را در لاتاری بزرگ جهانی افزایش داد!</blockquote>`
-    );
+    ,{ parse_mode: 'HTML' });
 
     ctx.session.pendingTicketCount = undefined;
     ctx.session.lotteryStep = undefined;
@@ -334,7 +334,7 @@ async function endLottery(ctx: CustomContext) {
         return ctx.reply('❌ اطلاعات لاتاری ناقص است.');
     }
 
-    const prize = pool.length * ctx.session.ticketPrice * 1000;
+    const prize = pool.length * ctx.session.ticketPrice;
 
     // Add prize to winner's balance
     const prizeResult = await changeUserField(winner.userid, 'capital', 'add', prize);
