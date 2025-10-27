@@ -46,15 +46,36 @@ lottery.command('cticket', async (ctx) => {
 lottery.action('admin_lottery', async (ctx) => {
     const adminId = ctx.from.id;
     if (!config.manage.lottery.admins.includes(adminId)) {
-        return ctx.answerCbQuery('⛔ فقط ادمین‌ها می‌تونن لاتاری رو شروع کنن.');
+        return ctx.answerCbQuery('⛔ فقط ادمین‌ها می‌تونن لاتاری رو مدیریت کنن.');
     }
 
-    if (ctx.session.lotteryActive) {
-        return ctx.reply('⚠️ لاتاری فعال هست. ابتدا باید لاتاری قبلی رو ببندی.');
-    }
+    // Get lottery statistics
+    const users = await prisma.user.findMany({ select: { lottery: true } });
+    const totalTickets = users.reduce((sum, user) => sum + (user.lottery || 0), 0);
+    const activeUsers = users.filter(user => (user.lottery || 0) > 0).length;
 
-    ctx.session.lotteryStep = 'awaiting_ticket_price';
-    await ctx.reply('🎫 لطفاً قیمت هر بلیط را وارد کنید.\nمثال: `25000` یا `25(iron)`');
+    const lotteryStatus = ctx.session?.lotteryActive ? '🟢 فعال' : '🔴 غیرفعال';
+    const currentPrice = ctx.session?.ticketPrice ? `${ctx.session.ticketPrice} ${config.manage.lottery.utils[ctx.session.ticketUnit]}` : 'تنظیم نشده';
+
+    const lotteryKeyboard = Markup.inlineKeyboard([
+        [Markup.button.callback('🎯 شروع لاتاری جدید', 'admin_start_lottery')],
+        [Markup.button.callback('🏁 پایان لاتاری', 'admin_end_lottery')],
+        [Markup.button.callback('📊 آمار لاتاری', 'admin_lottery_stats')],
+        [Markup.button.callback('🔙 بازگشت', 'admin_back')]
+    ]);
+
+    await ctx.editMessageText(
+        `<b>🎟️ مدیریت لاتاری</b>\n\n` +
+        `<b>وضعیت:</b> ${lotteryStatus}\n` +
+        `<b>قیمت فعلی:</b> ${currentPrice}\n` +
+        `<b>کل بلیط‌ها:</b> ${totalTickets}\n` +
+        `<b>کاربران فعال:</b> ${activeUsers}\n\n` +
+        `انتخاب عملیات:`,
+        {
+            reply_markup: lotteryKeyboard.reply_markup,
+            parse_mode: 'HTML'
+        }
+    );
 });
 
 // Combined text handler for all lottery steps
@@ -219,6 +240,94 @@ lottery.action('admin_end_lottery', async (ctx) => {
     if (!config.manage.lottery.admins.includes(adminId)) {
         return ctx.answerCbQuery('⛔ فقط ادمین می‌تونه لاتاری رو ببنده.');
     }
+
+    await endLottery(ctx);
+    // After ending lottery, return to admin lottery menu
+    await ctx.answerCbQuery('✅ لاتاری پایان یافت و به منوی مدیریت بازگشت.');
+});
+
+/**
+ * Admin action to start lottery
+ */
+lottery.action('admin_start_lottery', async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!config.manage.lottery.admins.includes(adminId)) {
+        return ctx.answerCbQuery('⛔ فقط ادمین‌ها می‌تونن لاتاری رو شروع کنن.');
+    }
+
+    if (ctx.session.lotteryActive) {
+        return ctx.editMessageText('⚠️ لاتاری فعال هست. ابتدا باید لاتاری قبلی رو ببندی.', {
+            reply_markup: Markup.inlineKeyboard([
+                [Markup.button.callback('🏁 پایان لاتاری فعلی', 'admin_end_lottery')],
+                [Markup.button.callback('🔙 بازگشت', 'admin_lottery')]
+            ]).reply_markup,
+            parse_mode: 'HTML'
+        });
+    }
+
+    ctx.session.lotteryStep = 'awaiting_ticket_price';
+    await ctx.editMessageText('🎫 لطفاً قیمت هر بلیط را وارد کنید.\nمثال: `25000` یا `25(iron)`', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('🔙 بازگشت', 'admin_lottery')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+
+/**
+ * Admin action to show lottery statistics
+ */
+lottery.action('admin_lottery_stats', async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!config.manage.lottery.admins.includes(adminId)) {
+        return ctx.answerCbQuery('⛔ فقط ادمین‌ها می‌تونن آمار رو ببینن.');
+    }
+
+    const users = await prisma.user.findMany({ select: { lottery: true, countryName: true } });
+    const totalTickets = users.reduce((sum, user) => sum + (user.lottery || 0), 0);
+    const activeUsers = users.filter(user => (user.lottery || 0) > 0).length;
+
+    // Get top 5 users with most tickets
+    const topUsers = users
+        .filter(user => (user.lottery || 0) > 0)
+        .sort((a, b) => (b.lottery || 0) - (a.lottery || 0))
+        .slice(0, 5);
+
+    let statsText = `<b>📊 آمار لاتاری</b>\n\n`;
+    statsText += `<b>مجموع بلیط‌ها:</b> ${totalTickets}\n`;
+    statsText += `<b>کاربران فعال:</b> ${activeUsers}\n\n`;
+
+    if (topUsers.length > 0) {
+        statsText += `<b>🏆 برترین خریداران:</b>\n`;
+        topUsers.forEach((user, index) => {
+            statsText += `${index + 1}. ${user.countryName}: ${user.lottery} بلیط\n`;
+        });
+    }
+
+    await ctx.editMessageText(statsText, {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('🔄 بروزرسانی', 'admin_lottery_stats')],
+            [Markup.button.callback('🔙 بازگشت', 'admin_lottery')]
+        ]).reply_markup,
+        parse_mode: 'HTML'
+    });
+});
+
+/**
+ * Admin back action to return to admin panel
+ */
+lottery.action('admin_back', async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!config.manage.admins.includes(adminId)) {
+        return ctx.answerCbQuery('⛔ شما ادمین نیستید.');
+    }
+
+    // Return to admin panel by triggering the panel command
+    await ctx.editMessageText('🎛 پنل مدیریت بازگشت...', {
+        reply_markup: Markup.inlineKeyboard([
+            [Markup.button.callback('بازگشت به پنل', 'admin_panel_return')]
+        ]).reply_markup
+    });
 });
 
 async function endLottery(ctx: CustomContext) {

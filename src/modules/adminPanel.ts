@@ -6,6 +6,7 @@ import config from '../config/config.json'
 import showUser from "./admin/showUser";
 import toggleMenu from "./admin/toggleMenu";
 import { runDailyTasks } from "./helper/runDailyTasks";
+import lottery from "./admin/lottery";
 
 
 const adminPanel = new Composer<CustomContext>();
@@ -32,17 +33,14 @@ adminPanel.use(commands)
 adminPanel.use(editAsset)
 adminPanel.use(showUser)
 adminPanel.use(toggleMenu)
-adminPanel.action('admin_dailyReward', async (ctx) => {
+adminPanel.use(lottery)
+adminPanel.action('admin_panel_return', async (ctx) => {
     const adminId = ctx.from.id;
     if (!config.manage.admins.includes(adminId)) {
-        return ctx.reply('⛔ فقط ادمین‌ها می‌تونن این عملیات رو اجرا کنن.');
+        return ctx.reply('⛔ شما ادمین نیستید.');
     }
 
-    await ctx.reply('⏳ در حال اجرای وظایف روزانه...');
-    const result = await runDailyTasks(true);
-    await ctx.reply(result);
-    ctx.answerCbQuery();
+    await ctx.editMessageText('🎛 پنل مدیریت:', adminPanelKeyboard);
 });
-
 
 export default adminPanel;
