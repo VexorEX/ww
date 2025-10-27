@@ -6,7 +6,6 @@ import config from '../config/config.json'
 import showUser from "./admin/showUser";
 import toggleMenu from "./admin/toggleMenu";
 import { runDailyTasks } from "./helper/runDailyTasks";
-import lottery from "./admin/lottery";
 
 
 const adminPanel = new Composer<CustomContext>();
@@ -33,7 +32,6 @@ adminPanel.use(commands)
 adminPanel.use(editAsset)
 adminPanel.use(showUser)
 adminPanel.use(toggleMenu)
-adminPanel.use(lottery)
 adminPanel.action('admin_dailyReward', async (ctx) => {
     const adminId = ctx.from.id;
     if (!config.manage.admins.includes(adminId)) {

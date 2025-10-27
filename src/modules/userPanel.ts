@@ -9,6 +9,8 @@ import state from "./countryState";
 import construction from "./components/construction";
 import mines from "./components/mines";
 import business from "./countryBusiness";
+import adminPanel from "./adminPanel";
+import lottery from "./admin/lottery";
 
 const userPanel = new Composer<CustomContext>();
 
@@ -59,10 +61,6 @@ const userMainKeyboard = config.manage.status
 
 export async function handleUserStart(ctx: CustomContext) {
     await ctx.reply(`🎮 خوش آمدی ${ctx.from.first_name}! کشور شما: ${ctx.user?.countryName}`, userMainKeyboard);
-    // await ctx.reply('> این یک بیانdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddیه رسمی است\n> صادر شده از سوی دولت ایران', {
-    //     parse_mode: 'MarkdownV2'
-    // });
-
 }
 userPanel.use(management);
 userPanel.use(shop);
@@ -71,7 +69,8 @@ userPanel.use(car);
 userPanel.use(market);
 userPanel.use(construction);
 userPanel.use(mines);
-userPanel.use(business)
+// userPanel.use(business) // Disabled for now
+userPanel.use(lottery)
 
 userPanel.action('back_main', async (ctx) => {
     const name = ctx.from.first_name;
