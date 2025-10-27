@@ -84,7 +84,7 @@ lottery.on('text', async (ctx, next) => {
         const input = ctx.message.text.trim();
         const match = input.match(/^(\d+)(?:\((\w+)\))?$/);
 
-        if (!match) return ctx.reply('❌ فرمت قیمت معتبر نیست. مثال: `25000` یا `25(iron)`');
+        if (!match) return ctx.reply('❌ فرمت قیمت معتبر نیست. مثال: `25000`');
 
         const amount = Number(match[1]);
         const unit = match[2] ?? 'capital';
@@ -169,7 +169,6 @@ lottery.action('buy_ticket_1', async (ctx) => {
         parse_mode: 'HTML'
     });
 });
-
 lottery.action('buy_ticket_5', async (ctx) => {
     ctx.session.pendingTicketCount = 5;
     await ctx.reply('✅ می‌خوای 5 بلیط بخری به قیمت ' + ctx.session.ticketPrice * 5 + ' ' + config.manage.lottery.utils[ctx.session.ticketUnit] + '?', {
@@ -179,7 +178,6 @@ lottery.action('buy_ticket_5', async (ctx) => {
         parse_mode: 'HTML'
     });
 });
-
 lottery.action('buy_ticket_10', async (ctx) => {
     ctx.session.pendingTicketCount = 10;
     await ctx.reply('✅ می‌خوای 10 بلیط بخری به قیمت ' + ctx.session.ticketPrice * 10 + ' ' + config.manage.lottery.utils[ctx.session.ticketUnit] + '?', {
@@ -189,7 +187,6 @@ lottery.action('buy_ticket_10', async (ctx) => {
         parse_mode: 'HTML'
     });
 });
-
 lottery.action('buy_ticket_20', async (ctx) => {
     ctx.session.pendingTicketCount = 20;
     await ctx.reply('✅ می‌خوای 20 بلیط بخری به قیمت ' + ctx.session.ticketPrice * 20 + ' ' + config.manage.lottery.utils[ctx.session.ticketUnit] + '?', {
@@ -245,7 +242,6 @@ lottery.action('admin_end_lottery', async (ctx) => {
     // After ending lottery, return to admin lottery menu
     await ctx.answerCbQuery('✅ لاتاری پایان یافت و به منوی مدیریت بازگشت.');
 });
-
 /**
  * Admin action to start lottery
  */
@@ -273,7 +269,6 @@ lottery.action('admin_start_lottery', async (ctx) => {
         parse_mode: 'HTML'
     });
 });
-
 /**
  * Admin action to show lottery statistics
  */
@@ -312,23 +307,9 @@ lottery.action('admin_lottery_stats', async (ctx) => {
         parse_mode: 'HTML'
     });
 });
-
 /**
  * Admin back action to return to admin panel
  */
-lottery.action('admin_back', async (ctx) => {
-    const adminId = ctx.from.id;
-    if (!config.manage.admins.includes(adminId)) {
-        return ctx.answerCbQuery('⛔ شما ادمین نیستید.');
-    }
-
-    // Return to admin panel by triggering the panel command
-    await ctx.editMessageText('🎛 پنل مدیریت بازگشت...', {
-        reply_markup: Markup.inlineKeyboard([
-            [Markup.button.callback('بازگشت به پنل', 'admin_panel_return')]
-        ]).reply_markup
-    });
-});
 
 async function endLottery(ctx: CustomContext) {
     if (!ctx.session?.lotteryActive) {
@@ -355,6 +336,14 @@ async function endLottery(ctx: CustomContext) {
 
     const prize = pool.length * ctx.session.ticketPrice * 1000;
 
+    // Add prize to winner's balance
+    const prizeResult = await changeUserField(winner.userid, 'capital', 'add', prize);
+
+    if (prizeResult !== 'ok') {
+        console.error('Failed to add prize to winner:', winner.userid);
+        return ctx.reply('❌ خطا در انتقال جایزه به برنده.');
+    }
+
     await ctx.telegram.sendMessage(config.channels.lottery,
         `<b>🎊 برنده لاتاری بزرگ جهانی مشخص شد! 🎊</b>\n` +
         `پس از فروش ${pool.length} بلیط، قرعه‌کشی انجام شد و برنده خوش‌شانس این دوره مشخص گردید!\n` +
@@ -364,10 +353,25 @@ async function endLottery(ctx: CustomContext) {
         { parse_mode: 'HTML' }
     );
 
+    // Send private message to winner
+    try {
+        await ctx.telegram.sendMessage(Number(winner.userid),
+            `<b>🎉 تبریک! شما برنده لاتاری شدید! 🎉</b>\n\n` +
+            `<b>💰 مبلغ جایزه:</b> ${prize.toLocaleString()} دلار\n` +
+            `<b>🎟️ تعداد بلیط‌های شما:</b> ${winnerTickets}\n\n` +
+            `جایزه به حساب شما اضافه شد. از قسمت مدیریت کشور می‌تونید موجودی خود رو چک کنید.\n\n` +
+            `🎊 منتظر دور بعدی لاتاری باشید!`,
+            { parse_mode: 'HTML' }
+        );
+    } catch (error) {
+        console.log('Failed to send winner notification:', error);
+        // Don't fail the lottery if PM fails
+    }
+
     await prisma.user.updateMany({ data: { lottery: 0 } });
     ctx.session = {};
 
-    await ctx.reply('✅ لاتاری با موفقیت پایان یافت.');
+    await ctx.reply('✅ لاتاری با موفقیت پایان یافت و جایزه به برنده پرداخت شد.');
 }
 
 export default lottery;

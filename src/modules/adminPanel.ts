@@ -42,5 +42,25 @@ adminPanel.action('admin_panel_return', async (ctx) => {
 
     await ctx.editMessageText('🎛 پنل مدیریت:', adminPanelKeyboard);
 });
+adminPanel.action('admin_dailyReward', async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!config.manage.admins.includes(adminId)) {
+        return ctx.reply('⛔ فقط ادمین‌ها می‌تونن این عملیات رو اجرا کنن.');
+    }
+
+    await ctx.reply('⏳ در حال اجرای وظایف روزانه...');
+    const result = await runDailyTasks(true);
+    await ctx.reply(result);
+    ctx.answerCbQuery();
+});
+adminPanel.action('admin_back', async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!config.manage.admins.includes(adminId)) {
+        return ctx.answerCbQuery('⛔ شما ادمین نیستید.');
+    }
+
+    // Return to admin panel by triggering the panel command
+    await ctx.editMessageText('🎛 پنل مدیریت:', adminPanelKeyboard);
+});
 
 export default adminPanel;
