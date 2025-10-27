@@ -19,50 +19,8 @@ lottery.action('admin_lottery', async (ctx) => {
     ctx.session.lotteryStep = 'awaiting_ticket_price';
     await ctx.reply('🎫 لطفاً قیمت هر بلیط را وارد کنید.\nمثال: `25000` یا `25(iron)`');
 });
-lottery.on('text', async (ctx, next) => {
-    if (ctx.session?.lotteryStep !== 'awaiting_ticket_price') return next();
 
-    const input = ctx.message.text.trim();
-
-    const match = input.match(/^(\d+)(?:\((\w+)\))?$/);
-
-    if (!match) return ctx.reply('❌ فرمت قیمت معتبر نیست. مثال: `25000` یا `25(iron)`');
-
-    const amount = Number(match[1]);
-    const unit = match[2] ?? 'capital';
-
-    if (!config.manage.lottery.utils[unit]) {
-        return ctx.reply('❌ واحد وارد شده معتبر نیست.');
-    }
-
-    ctx.session.lotteryActive = true;
-    ctx.session.ticketPrice = amount;
-    ctx.session.ticketUnit = unit;
-    ctx.session.lotteryStep = undefined;
-
-    await ctx.telegram.sendMessage(config.channels.lottery,
-        `🎉 لاتاری جدید آغاز شد!\n` +
-        `💸 قیمت هر بلیط: ${amount} ${config.manage.lottery.utils[unit]}\n` +
-        `🎟️ برای خرید بلیط از دکمه زیر استفاده کنید.`,
-        {
-            reply_markup: Markup.inlineKeyboard([
-                [Markup.button.callback('🎟️ خرید بلیط', 'buy_ticket')]
-            ]).reply_markup
-        }
-    );
-
-    await ctx.reply('✅ لاتاری با موفقیت شروع شد.');
-});
-
-lottery.action('buy_ticket', async (ctx) => {
-    if (!ctx.session?.lotteryActive) {
-        return ctx.answerCbQuery('⛔ لاتاری فعالی وجود ندارد.');
-    }
-
-    ctx.session.lotteryStep = 'awaiting_ticket_count';
-    await ctx.reply('🎟️ چند بلیط می‌خوای بخری؟');
-});
-// این تکه کد را جایگزین دو تکه کد موجود lottery.on('text') کنید
+// Combined text handler for all lottery steps
 lottery.on('text', async (ctx, next) => {
     if (ctx.session?.lotteryStep === 'awaiting_ticket_price') {
         const input = ctx.message.text.trim();
@@ -141,8 +99,8 @@ lottery.action('confirm_ticket', async (ctx) => {
     }
 
     await ctx.telegram.sendMessage(config.channels.lottery,
-        `🎟️ خرید بلیط لاتاری! 🎟️\n` +
-        `> کشور ${ctx.user.countryName} با خرید ${count} بلیط جدید، شانس خود را در لاتاری بزرگ جهانی افزایش داد!`
+        `<b>🎟️ خرید بلیط لاتاری! 🎟️</b>\n` +
+        `<blockquote>کشور ${ctx.user.countryName} با خرید ${count} بلیط جدید، شانس خود را در لاتاری بزرگ جهانی افزایش داد!</blockquote>`
     );
 
     ctx.session.pendingTicketCount = undefined;
@@ -186,10 +144,10 @@ lottery.action('end_lottery', async (ctx) => {
     const prize = pool.length * ctx.session.ticketPrice * 1000;
 
     await ctx.telegram.sendMessage(config.channels.lottery,
-        `🎊 برنده لاتاری بزرگ جهانی مشخص شد! 🎊\n` +
+        `<b>🎊 برنده لاتاری بزرگ جهانی مشخص شد! 🎊</b>\n` +
         `پس از فروش ${pool.length} بلیط، قرعه‌کشی انجام شد و برنده خوش‌شانس این دوره مشخص گردید!\n` +
-        `> 🏆 برنده: کشور ${winner.country} 🎟️ تعداد بلیط‌های برنده: ${winnerTickets}\n` +
-        `💰 مبلغ جایزه: ${prize.toLocaleString()} دلار\n` +
+        `<blockquote>🏆 برنده: کشور ${winner.country} 🎟️ تعداد بلیط‌های برنده: ${winnerTickets}\n` +
+        `💰 مبلغ جایزه: ${prize.toLocaleString()} دلار</blockquote>\n` +
         `تبریک به برنده بزرگ این دوره! منتظر دور بعدی لاتاری باشید.`
     );
 

@@ -21,12 +21,15 @@ business.action('business', async (ctx) => {
     ctx.session.tradeStep = 'select_items';
     ctx.session.tradeItems = [];
 
-    const handlePhotos = ['photo_handle_1_file_id', 'photo_handle_2_file_id'];
-    const selectedHandle = handlePhotos[Math.floor(Math.random() * handlePhotos.length)];
+    // Remove photo sending for now to avoid file ID errors
+    // const handlePhotos = ['photo_handle_1_file_id', 'photo_handle_2_file_id'];
+    // const selectedHandle = handlePhotos[Math.floor(Math.random() * handlePhotos.length)];
 
-    await ctx.replyWithPhoto(selectedHandle, {
-        caption: 'نکات مهم تجارت 👇\nهر آیتم ۱ محموله است و زمان رسیدن بین ۲ تا ۳ دقیقه خواهد بود.'
-    });
+    // await ctx.replyWithPhoto(selectedHandle, {
+    //     caption: 'نکات مهم تجارت 👇\nهر آیتم ۱ محموله است و زمان رسیدن بین ۲ تا ۳ دقیقه خواهد بود.'
+    // });
+
+    await ctx.reply('نکات مهم تجارت 👇\nهر آیتم ۱ محموله است و زمان رسیدن بین ۲ تا ۳ دقیقه خواهد بود.');
 
     const buttons = transferableFields
         .filter(field => user[field] > 0)

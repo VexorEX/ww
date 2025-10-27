@@ -60,12 +60,12 @@ car.on('text', async (ctx, next) => {
         ctx.session.buildingStep = 'awaiting_admin_review';
 
         const preview =
-            `🚗 *پروژه ساخت خودرو*\n\n` +
-            `> کشور سازنده: ${escape(ctx.user?.countryName || '')}\n` +
-            `> محصول: ${escape(ctx.session.buildingName)}\n` +
-            `> توضیح: ${escape(ctx.session.buildingDescription)}\n\n` +
+            `<b>🚗 پروژه ساخت خودرو</b>\n\n` +
+            `<blockquote>کشور سازنده: ${escape(ctx.user?.countryName || '')}\n` +
+            `محصول: ${escape(ctx.session.buildingName)}\n` +
+            `توضیح: ${escape(ctx.session.buildingDescription)}</blockquote>\n\n` +
             `💰 بودجه راه‌اندازی: ${Math.floor(ctx.session.setupCost / 1_000_000)}M\n` +
-            `🔄 ظرفیت تولید روزانه: 15 خودرو` +
+            `🔄 ظرفیت تولید روزانه: 15 خودرو\n\n` +
             `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`;
 
         const keyboard = Markup.inlineKeyboard([
@@ -143,11 +143,11 @@ car.action('submit_building', async (ctx) => {
     });
 
     const caption =
-        `📥 *درخواست ساخت خط تولید خودرو*\n\n` +
-        `> کشور: ${escape(country)}\n` +
-        `> نام: ${escape(buildingName)}\n` +
-        `> توضیح: ${escape(buildingDescription)}\n` +
-        `> بودجه: ${Math.floor(setupCost / 1_000_000)}M\n` +
+        `<b>📥 درخواست ساخت خط تولید خودرو</b>\n\n` +
+        `<blockquote>کشور: ${escape(country)}\n` +
+        `نام: ${escape(buildingName)}\n` +
+        `توضیح: ${escape(buildingDescription)}\n` +
+        `بودجه: ${Math.floor(setupCost / 1_000_000)}M</blockquote>\n` +
         `🔄 ظرفیت تولید روزانه: 15 خودرو`;
 
     const keyboard = Markup.inlineKeyboard([
