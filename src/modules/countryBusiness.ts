@@ -3,21 +3,29 @@ import type { CustomContext } from '../middlewares/userAuth';
 import { changeUserField } from './economy';
 import { escapeMarkdownV2 } from '../utils/escape';
 import { getCountryByName, getAvailableCountriesList } from '../utils/countryUtils';
+import { prisma } from '../prisma';
 import config from '../config/config.json';
 
 const business = new Composer<CustomContext>();
 
-const transferableFields = ['iron', 'gold', 'oil', 'uranium', 'capital'];
+const transferableFields = ['iron', 'gold', 'oil', 'uranium', 'capital', 'soldier', 'tank', 'plane', 'ship', 'missile', 'nuclear', 'satellite', 'spies', 'agents'];
 
 // لیست کشورها برای انتخاب مقصد
-let availableCountries: string[] = [];
-
 function loadAvailableCountries() {
-    if (availableCountries.length === 0) {
-        // لیست کشورهایی که در بازی فعال هستند
-        availableCountries = ['ایران 🇮🇷', 'چین 🇨🇳', 'روسیه 🇷🇺', 'آمریکا 🇺🇸', 'انگلیس 🇬🇧', 'فرانسه 🇫🇷', 'آلمان 🇩🇪', 'ژاپن 🇯🇵', 'هند 🇮🇳', 'ترکیه 🇹🇷'];
+    try {
+        // استفاده از لیست کشور‌های موجود در بازی
+        const availableCountries = getAvailableCountriesList('').map(country => country.name);
+        return availableCountries.length > 0 ? availableCountries : [
+            'ایران 🇮🇷', 'چین 🇨🇳', 'روسیه 🇷🇺', 'آمریکا 🇺🇸', 'انگلیس 🇬🇧',
+            'فرانسه 🇫🇷', 'آلمان 🇩🇪', 'ژاپن 🇯🇵', 'هند 🇮🇳', 'ترکیه 🇹🇷'
+        ];
+    } catch (error) {
+        // fallback به لیست ثابت
+        return [
+            'ایران 🇮🇷', 'چین 🇨🇳', 'روسیه 🇷🇺', 'آمریکا 🇺🇸', 'انگلیس 🇬🇧',
+            'فرانسه 🇫🇷', 'آلمان 🇩🇪', 'ژاپن 🇯🇵', 'هند 🇮🇳', 'ترکیه 🇹🇷'
+        ];
     }
-    return availableCountries;
 }
 
 business.action('business', async (ctx) => {
@@ -134,49 +142,182 @@ business.action('confirm_trade', async (ctx) => {
         return ctx.reply(`❌ نفت کافی برای پردازش تجارت ندارید. نیاز: ${oilCost} نفت`);
     }
 
-    // نمایش خلاصه تجارت برای تأیید نهایی
-    let summary = `<b>📋 خلاصه تجارت</b>\n\n`;
-    summary += `<b>مقصد:</b> ${destination}\n`;
-    summary += `<b>هزینه پردازش:</b> ${oilCost} نفت\n\n`;
-    summary += `<b>محموله‌ها:</b>\n`;
+    // ذخیره هزینه نفت برای استفاده بعد
+    ctx.session.tradeOilCost = oilCost;
+    ctx.session.tradeStep = 'awaiting_trade_cost';
 
-    items.forEach((item, index) => {
-        summary += `${index + 1}. ${item.amount} واحد ${item.type}\n`;
-    });
-
-    summary += `\n<b>⚠️ آیا مطمئن هستید؟ پس از تأیید، منابع کسر خواهند شد.</b>`;
-
-    await ctx.reply(summary, {
+    // پرسیدن هزینه تجارت از کاربر
+    await ctx.reply(`💰 چه هزینه‌ای می‌خواهید از کشور ${destination} دریافت کنید؟\n\n📦 محموله‌های شما:\n${items.map((item, index) => `${index + 1}. ${item.amount} واحد ${item.type}`).join('\n')}\n\n💸 هزینه پردازش: ${oilCost} نفت`, {
         reply_markup: Markup.inlineKeyboard([
-            [Markup.button.callback('✅ تأیید نهایی', 'final_confirm_trade')],
+            [Markup.button.callback('💰 رایگان', 'set_trade_cost_0')],
+            [Markup.button.callback('💎 1000 طلا', 'set_trade_cost_1000_gold')],
+            [Markup.button.callback('💵 50000 پول', 'set_trade_cost_50000_capital')],
             [Markup.button.callback('❌ انصراف', 'cancel_trade')]
         ]).reply_markup,
         parse_mode: 'HTML'
     });
 });
 
-// هندلر تأیید نهایی و اجرای تجارت
-business.action('final_confirm_trade', async (ctx) => {
+// هندلر تنظیم هزینه تجارت
+business.action(/^set_trade_cost_(\d+)_(\w+)$/, async (ctx) => {
+    const match = ctx.match;
+    const amount = parseInt(match[1]);
+    const unit = match[2];
+
+    ctx.session.tradeCost = { amount, unit };
+    ctx.session.tradeStep = 'send_confirmation_to_destination';
+
+    await sendTradeConfirmationToDestination(ctx);
+});
+
+business.action('set_trade_cost_0', async (ctx) => {
+    ctx.session.tradeCost = { amount: 0, unit: 'free' };
+    ctx.session.tradeStep = 'send_confirmation_to_destination';
+
+    await sendTradeConfirmationToDestination(ctx);
+});
+
+// تابع ارسال تأیید به کشور مقصد
+async function sendTradeConfirmationToDestination(ctx: CustomContext) {
     const user = ctx.user;
     const items = ctx.session.tradeItems;
     const destination = ctx.session.destinationCountry;
-    const oilCost = Math.floor(Math.random() * (60 - 35 + 1)) + 35;
+    const tradeCost = ctx.session.tradeCost;
+    const oilCost = ctx.session.tradeOilCost;
 
-    // کسر منابع
-    for (const item of items) {
-        await changeUserField(user.userid, item.type, 'subtract', item.amount);
-    }
-    await changeUserField(user.userid, 'oil', 'subtract', oilCost);
-
-    await ctx.reply('🚚 ارسال محموله‌ها آغاز شد...', {
-        parse_mode: 'HTML'
+    // پیدا کردن کاربران کشور مقصد
+    const destinationUsers = await prisma.user.findMany({
+        where: { countryName: destination },
+        select: { userid: true, countryName: true }
     });
 
+    if (destinationUsers.length === 0) {
+        return ctx.reply('❌ کشور مقصد یافت نشد یا کاربرانی ندارد.');
+    }
+
+    // ارسال درخواست به همه کاربران کشور مقصد
+    let confirmationsSent = 0;
+    for (const destUser of destinationUsers) {
+        try {
+            const tradeId = `trade_${user.userid}_${destUser.userid}_${Date.now()}`;
+
+            let costText = '';
+            if (tradeCost.amount === 0) {
+                costText = 'رایگان';
+            } else {
+                costText = `${tradeCost.amount} ${tradeCost.unit}`;
+            }
+
+            const message = `<b>📦 درخواست تجارت دریافتی</b>\n\n` +
+                `<b>از کشور:</b> ${user.countryName}\n` +
+                `<b>هزینه پیشنهادی:</b> ${costText}\n\n` +
+                `<b>محموله‌ها:</b>\n${items.map((item, index) => `${index + 1}. ${item.amount} واحد ${item.type}`).join('\n')}\n\n` +
+                `<b>⚠️ آیا این تجارت را قبول دارید؟</b>`;
+
+            await ctx.telegram.sendMessage(Number(destUser.userid), message, {
+                reply_markup: Markup.inlineKeyboard([
+                    [Markup.button.callback(`✅ قبول - ${tradeId}`, `accept_trade_${tradeId}`)],
+                    [Markup.button.callback(`❌ رد - ${tradeId}`, `reject_trade_${tradeId}`)]
+                ]).reply_markup,
+                parse_mode: 'HTML'
+            });
+
+            confirmationsSent++;
+        } catch (error) {
+            console.log(`Failed to send to user ${destUser.userid}:`, error);
+        }
+    }
+
+    if (confirmationsSent > 0) {
+        await ctx.reply(`✅ درخواست تجارت به ${confirmationsSent} کاربر از کشور ${destination} ارسال شد.\n\n⏳ منتظر پاسخ آنها باشید...`, {
+            parse_mode: 'HTML'
+        });
+    } else {
+        await ctx.reply('❌ نتوانستم درخواست را ارسال کنم.');
+    }
+}
+
+// هندلر قبول تجارت توسط کشور مقصد
+business.action(/^accept_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
+    const tradeId = ctx.match[1];
+    const accepterId = ctx.from.id;
+
+    // استخراج اطلاعات از tradeId
+    const parts = tradeId.split('_');
+    const senderId = BigInt(parts[1]);
+    const receiverId = BigInt(parts[2]);
+
+    // بررسی اینکه آیا این کاربر مجاز به قبول است
+    if (receiverId !== BigInt(accepterId)) {
+        return ctx.reply('❌ شما مجاز به قبول این تجارت نیستید.');
+    }
+
+    // پیدا کردن اطلاعات تجارت از دیتابیس یا session (اینجا از session فرض می‌کنیم)
+    // در عمل باید از دیتابیس استفاده کنید
+    const senderUser = await prisma.user.findUnique({ where: { userid: senderId } });
+    if (!senderUser) return ctx.reply('❌ کاربر ارسال‌کننده یافت نشد.');
+
+    try {
+        // ارسال تأیید به ارسال‌کننده
+        await ctx.telegram.sendMessage(Number(senderId), `✅ کشور ${ctx.user.countryName} تجارت شما را قبول کرد!\n\n🚚 ارسال محموله‌ها آغاز می‌شود...`);
+
+        // اجرای تجارت
+        await executeTrade(ctx, senderId, receiverId);
+    } catch (error) {
+        console.log('Trade execution error:', error);
+        await ctx.reply('❌ خطا در اجرای تجارت.');
+    }
+});
+
+// هندلر رد تجارت
+business.action(/^reject_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
+    const tradeId = ctx.match[1];
+    const rejecterId = ctx.from.id;
+
+    const parts = tradeId.split('_');
+    const senderId = BigInt(parts[1]);
+
+    try {
+        await ctx.telegram.sendMessage(Number(senderId), `❌ کشور ${ctx.user.countryName} تجارت شما را رد کرد.`);
+        await ctx.reply('❌ تجارت رد شد.');
+    } catch (error) {
+        console.log('Trade rejection error:', error);
+    }
+});
+
+// تابع اجرای تجارت
+async function executeTrade(ctx: CustomContext, senderId: bigint, receiverId: bigint) {
+    const items = ctx.session.tradeItems;
+    const tradeCost = ctx.session.tradeCost;
+    const oilCost = ctx.session.tradeOilCost;
+
+    // کسر منابع از ارسال‌کننده
+    for (const item of items) {
+        await changeUserField(senderId, item.type, 'subtract', item.amount);
+    }
+    await changeUserField(senderId, 'oil', 'subtract', oilCost);
+
+    // اضافه کردن منابع به دریافت‌کننده
+    for (const item of items) {
+        await changeUserField(receiverId, item.type, 'add', item.amount);
+    }
+
+    // اگر هزینه وجود دارد، کسر از دریافت‌کننده و اضافه به ارسال‌کننده
+    if (tradeCost.amount > 0) {
+        await changeUserField(receiverId, tradeCost.unit, 'subtract', tradeCost.amount);
+        await changeUserField(senderId, tradeCost.unit, 'add', tradeCost.amount);
+    }
+
+    // ارسال محموله‌ها
     await deliverTradeItems(ctx);
+
+    // پاک کردن session
     ctx.session.tradeStep = null;
     ctx.session.tradeItems = [];
     ctx.session.destinationCountry = null;
-});
+    ctx.session.tradeCost = null;
+    ctx.session.tradeOilCost = 0;
+}
 
 // هندلر انصراف (فقط ریست session، کیبورد می‌مونه برای استفاده مجدد)
 business.action('cancel_trade', async (ctx) => {

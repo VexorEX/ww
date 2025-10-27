@@ -6,6 +6,43 @@ import { prisma } from "../../prisma";
 
 const lottery = new Composer<CustomContext>();
 
+// Debug command for lottery tickets
+lottery.command('cticket', async (ctx) => {
+    const adminId = ctx.from.id;
+    if (!config.manage.lottery.admins.includes(adminId)) {
+        return ctx.reply('⛔ فقط ادمین‌ها می‌تونن از این دستور استفاده کنن.');
+    }
+
+    const args = ctx.message.text.split(' ').slice(1);
+    const price = parseInt(args[0]);
+
+    if (!price || price <= 0) {
+        return ctx.reply('❌ فرمت صحیح: /cticket <قیمت>');
+    }
+
+    if (ctx.session.lotteryActive) {
+        return ctx.reply('⚠️ لاتاری فعال هست. ابتدا باید لاتاری قبلی رو ببندی.');
+    }
+
+    ctx.session.lotteryActive = true;
+    ctx.session.ticketPrice = price;
+    ctx.session.ticketUnit = 'capital';
+
+    await ctx.telegram.sendMessage(config.channels.lottery,
+        `🎉 لاتاری جدید آغاز شد!\n` +
+        `💸 قیمت هر بلیط: ${price} ${config.manage.lottery.utils.capital}\n` +
+        `🎟️ برای خرید بلیط از دکمه زیر استفاده کنید.`,
+        {
+            reply_markup: Markup.inlineKeyboard([
+                [Markup.button.callback('🎟️ خرید بلیط', 'buy_ticket')]
+            ]).reply_markup,
+            parse_mode: 'HTML'
+        }
+    );
+
+    await ctx.reply('✅ لاتاری با قیمت سفارشی شروع شد.');
+});
+
 lottery.action('admin_lottery', async (ctx) => {
     const adminId = ctx.from.id;
     if (!config.manage.lottery.admins.includes(adminId)) {
