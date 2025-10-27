@@ -31,10 +31,10 @@ lottery.command('cticket', async (ctx) => {
     await ctx.telegram.sendMessage(config.channels.lottery,
         `🎉 لاتاری جدید آغاز شد!\n` +
         `💸 قیمت هر بلیط: ${price} ${config.manage.lottery.utils.capital}\n` +
-        `🎟️ برای خرید بلیط از دکمه زیر استفاده کنید.`,
+        `🎟️ برای خرید بلیط روی دکمه زیر کلیک کنید و به ربات پیام دهید.`,
         {
             reply_markup: Markup.inlineKeyboard([
-                [Markup.button.callback('🎟️ خرید بلیط', 'buy_ticket')]
+                [Markup.button.url('🎟️ شروع خرید بلیط', `https://t.me/${ctx.botInfo?.username}?start=lottery`)]
             ]).reply_markup,
             parse_mode: 'HTML'
         }
@@ -81,10 +81,10 @@ lottery.on('text', async (ctx, next) => {
             config.channels.lottery,
             `🎉 لاتاری جدید آغاز شد!\n` +
             `💸 قیمت هر بلیط: ${amount} ${config.manage.lottery.utils[unit]}\n` +
-            `🎟️ برای خرید بلیط از دکمه زیر استفاده کنید.`,
+            `🎟️ برای خرید بلیط روی دکمه زیر کلیک کنید و به ربات پیام دهید.`,
             {
                 reply_markup: Markup.inlineKeyboard([
-                    [Markup.button.callback('🎟️ خرید بلیط', 'buy_ticket')]
+                    [Markup.button.url('🎟️ شروع خرید بلیط', `https://t.me/${ctx.botInfo?.username}?start=lottery`)]
                 ]).reply_markup,
                 parse_mode: 'HTML'
             }
@@ -129,8 +129,9 @@ lottery.action('buy_ticket', async (ctx) => {
         return ctx.answerCbQuery('⛔ لاتاری فعالی وجود ندارد.');
     }
 
+    const userTickets = ctx.user.lottery || 0;
     ctx.session.lotteryStep = 'awaiting_ticket_count';
-    await ctx.reply('🎟️ چند بلیط می‌خوای بخری؟', {
+    await ctx.reply(`🎟️ چند بلیط می‌خوای بخری؟\n\n📊 تعداد بلیط‌های فعلی شما: ${userTickets}`, {
         reply_markup: Markup.inlineKeyboard([
             [Markup.button.callback('1 بلیط', 'buy_ticket_1'), Markup.button.callback('5 بلیط', 'buy_ticket_5')],
             [Markup.button.callback('10 بلیط', 'buy_ticket_10'), Markup.button.callback('20 بلیط', 'buy_ticket_20')]
@@ -205,12 +206,22 @@ lottery.action('cancel_ticket', async (ctx) => {
     await ctx.reply('❌ خرید بلیط لغو شد.');
 });
 
-lottery.action('end_lottery', async (ctx) => {
+lottery.action('check_tickets', async (ctx) => {
+    const userTickets = ctx.user.lottery || 0;
+    await ctx.reply(`🎟️ تعداد بلیط‌های شما: ${userTickets}`, { parse_mode: 'HTML' });
+});
+
+/**
+ * Admin action to end lottery
+ */
+lottery.action('admin_end_lottery', async (ctx) => {
     const adminId = ctx.from.id;
     if (!config.manage.lottery.admins.includes(adminId)) {
         return ctx.answerCbQuery('⛔ فقط ادمین می‌تونه لاتاری رو ببنده.');
     }
+});
 
+async function endLottery(ctx: CustomContext) {
     if (!ctx.session?.lotteryActive) {
         return ctx.reply('⚠️ لاتاری فعالی وجود ندارد.');
     }
@@ -240,14 +251,14 @@ lottery.action('end_lottery', async (ctx) => {
         `پس از فروش ${pool.length} بلیط، قرعه‌کشی انجام شد و برنده خوش‌شانس این دوره مشخص گردید!\n` +
         `<blockquote>🏆 برنده: کشور ${winner.country} 🎟️ تعداد بلیط‌های برنده: ${winnerTickets}\n` +
         `💰 مبلغ جایزه: ${prize.toLocaleString()} دلار</blockquote>\n` +
-        `تبریک به برنده بزرگ این دوره! منتظر دور بعدی لاتاری باشید.`
+        `تبریک به برنده بزرگ این دوره! منتظر دور بعدی لاتاری باشید.`,
+        { parse_mode: 'HTML' }
     );
 
     await prisma.user.updateMany({ data: { lottery: 0 } });
     ctx.session = {};
 
-
     await ctx.reply('✅ لاتاری با موفقیت پایان یافت.');
-});
+}
 
 export default lottery;

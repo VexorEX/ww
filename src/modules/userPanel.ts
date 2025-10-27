@@ -60,7 +60,43 @@ const userMainKeyboard = config.manage.status
     ]);
 
 export async function handleUserStart(ctx: CustomContext) {
-    await ctx.reply(`🎮 خوش آمدی ${ctx.from.first_name}! کشور شما: ${ctx.user?.countryName}`, userMainKeyboard);
+    const userTickets = ctx.user?.lottery || 0;
+    const lotteryText = userTickets > 0 ? `🎟️ لاتاری (${userTickets})` : '🎟️ لاتاری';
+
+    const dynamicKeyboard = config.manage.status
+        ? Markup.inlineKeyboard([
+            config.manage?.state?.status
+                ? [Markup.button.callback('📜 بیانیه', 'state')]
+                : [],
+            [
+                ...(config.manage?.management?.status
+                    ? [Markup.button.callback('🛠 مدیریت کشور', 'management')]
+                    : []),
+                ...(config.manage?.shop?.status
+                    ? [Markup.button.callback('🛒 خرید', 'shop')]
+                    : [])
+            ],
+            [Markup.button.callback('─────────────', 'noop')],
+            ...(productionRow1.length > 0 ? [productionRow1] : []),
+            ...(productionRow2.length > 0 ? [productionRow2] : []),
+            [
+                ...(config.manage?.stock?.status
+                    ? [Markup.button.callback('📈 سهام', 'stock')]
+                    : []),
+                // business disabled for now
+                // ...(config.manage?.business?.status
+                //     ? [Markup.button.callback('⚓ تجارت', 'business')]
+                //     : []),
+                ...(config.manage?.lottery?.status
+                    ? [Markup.button.callback(lotteryText, 'buy_ticket')]
+                    : [])
+            ]
+        ].filter((row) => row.length > 0))
+        : Markup.inlineKeyboard([
+            [Markup.button.callback('⛔ بازی متوقف شده', 'noop')]
+        ]);
+
+    await ctx.reply(`🎮 خوش آمدی ${ctx.from.first_name}! کشور شما: ${ctx.user?.countryName}`, dynamicKeyboard);
 }
 userPanel.use(management);
 userPanel.use(shop);

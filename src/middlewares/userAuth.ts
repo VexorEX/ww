@@ -64,7 +64,7 @@ const userAuth: Middleware<CustomContext> = async (ctx, next) => {
             }
 
             // اگر پیام start بود و کشور داشت، مستقیم به userPanel برو
-            if (ctx.text === '/start') {
+            if (ctx.text === '/start' || ctx.text?.startsWith('/start lottery')) {
                 await handleUserStart(ctx); // هندل start از userPanel
                 return;
             }
