@@ -3,6 +3,7 @@ import type { CustomContext } from '../../middlewares/userAuth';
 import { prisma } from '../../prisma';
 import config from '../../config/config.json';
 import { changeCapital } from '../economy';
+import { escape } from 'html-escaper';
 
 const admins: number[] = config.manage.buildings.car.admins;
 const car = new Composer<CustomContext>();
@@ -37,7 +38,6 @@ car.action('build_car', async (ctx) => {
     await ctx.reply('📌 نام پروژه خودرو را وارد کن:');
     ctx.answerCbQuery();
 });
-
 // دریافت نام پروژه
 car.on('text', async (ctx, next) => {
     ctx.session ??= {};
@@ -60,12 +60,12 @@ car.on('text', async (ctx, next) => {
         ctx.session.buildingStep = 'awaiting_admin_review';
 
         const preview =
-            `🚗 پروژه ساخت خودرو\n\n` +
-            `> کشور سازنده: ${ctx.user?.countryName}\n` +
-            `> محصول: ${ctx.session.buildingName}\n` +
-            `> توضیح: ${ctx.session.buildingDescription}\n\n` +
+            `🚗 *پروژه ساخت خودرو*\n\n` +
+            `> کشور سازنده: ${escape(ctx.user?.countryName || '')}\n` +
+            `> محصول: ${escape(ctx.session.buildingName)}\n` +
+            `> توضیح: ${escape(ctx.session.buildingDescription)}\n\n` +
             `💰 بودجه راه‌اندازی: ${Math.floor(ctx.session.setupCost / 1_000_000)}M\n` +
-            `🔄 ظرفیت تولید روزانه: 15 خودرو\n\n` +
+            `🔄 ظرفیت تولید روزانه: 15 خودرو` +
             `✅ اگر تأیید می‌کنی، دکمه زیر را بزن تا برای بررسی ادمین ارسال شود.`;
 
         const keyboard = Markup.inlineKeyboard([
@@ -75,7 +75,7 @@ car.on('text', async (ctx, next) => {
 
         await ctx.replyWithPhoto(ctx.session.buildingImageFileId, {
             caption: preview,
-            parse_mode: 'MarkdownV2',
+            parse_mode: 'HTML',
             reply_markup: keyboard.reply_markup
         });
         return;
@@ -83,7 +83,6 @@ car.on('text', async (ctx, next) => {
 
     return next();
 });
-
 // دریافت تصویر
 car.on('photo', async (ctx, next) => {
     ctx.session ??= {};
@@ -144,10 +143,10 @@ car.action('submit_building', async (ctx) => {
     });
 
     const caption =
-        `📥 درخواست ساخت خط تولید خودرو\n\n` +
-        `> کشور: ${country}\n` +
-        `> نام: ${buildingName}\n` +
-        `> توضیح: ${buildingDescription}\n` +
+        `📥 *درخواست ساخت خط تولید خودرو*\n\n` +
+        `> کشور: ${escape(country)}\n` +
+        `> نام: ${escape(buildingName)}\n` +
+        `> توضیح: ${escape(buildingDescription)}\n` +
         `> بودجه: ${Math.floor(setupCost / 1_000_000)}M\n` +
         `🔄 ظرفیت تولید روزانه: 15 خودرو`;
 
@@ -159,7 +158,7 @@ car.action('submit_building', async (ctx) => {
     for (const admin of admins) {
         const sent = await ctx.telegram.sendPhoto(admin, buildingImageFileId, {
             caption,
-            parse_mode: 'MarkdownV2',
+            parse_mode: 'HTML',
             reply_markup: keyboard.reply_markup
         });
 
@@ -224,7 +223,7 @@ car.action(/^admin_approve_building_(\d+)$/, async (ctx) => {
             `> محصول: ${pending.name}\n\n` +
             `💰 بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()}\n` +
             `🔄 ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`,
-        parse_mode: 'MarkdownV2'
+        parse_mode: 'HTML'
     });
 
     await ctx.telegram.sendMessage(Number(userId),
@@ -266,7 +265,7 @@ car.action(/^admin_reject_building_(\d+)$/, async (ctx) => {
     }
 
     const refund = Number(pending.setupCost);
-    const result = await changeCapital(pending.ownerId, 'add', refund);
+    const result = await changeCapital(BigInt(pending.ownerId), 'add', refund);
     if (result !== 'ok') return ctx.answerCbQuery('❌ خطا در بازگرداندن سرمایه.');
 
     await prisma.pendingProductionLine.delete({ where: { id: pendingId } });

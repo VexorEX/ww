@@ -23,6 +23,7 @@ lottery.on('text', async (ctx, next) => {
     if (ctx.session?.lotteryStep !== 'awaiting_ticket_price') return next();
 
     const input = ctx.message.text.trim();
+
     const match = input.match(/^(\d+)(?:\((\w+)\))?$/);
 
     if (!match) return ctx.reply('❌ فرمت قیمت معتبر نیست. مثال: `25000` یا `25(iron)`');
@@ -61,33 +62,71 @@ lottery.action('buy_ticket', async (ctx) => {
     ctx.session.lotteryStep = 'awaiting_ticket_count';
     await ctx.reply('🎟️ چند بلیط می‌خوای بخری؟');
 });
+// این تکه کد را جایگزین دو تکه کد موجود lottery.on('text') کنید
 lottery.on('text', async (ctx, next) => {
-    if (ctx.session?.lotteryStep !== 'awaiting_ticket_count') return next();
+    if (ctx.session?.lotteryStep === 'awaiting_ticket_price') {
+        const input = ctx.message.text.trim();
+        const match = input.match(/^(\d+)(?:\((\w+)\))?$/);
 
-    const count = Number(ctx.message.text.trim());
-    if (!count || count <= 0) return ctx.reply('❌ تعداد معتبر نیست.');
+        if (!match) return ctx.reply('❌ فرمت قیمت معتبر نیست. مثال: `25000` یا `25(iron)`');
 
-    const { ticketPrice, ticketUnit } = ctx.session;
-    const totalCost = count * ticketPrice;
-    const user = ctx.user;
-    const currentBalance = user[ticketUnit as keyof typeof user] as number;
+        const amount = Number(match[1]);
+        const unit = match[2] ?? 'capital';
 
-    if (currentBalance < totalCost) {
-        return ctx.reply(`❌ موجودی کافی ندارید.\n💰 مورد نیاز: ${totalCost} ${config.manage.lottery.utils[ticketUnit]}`);
+        if (!config.manage.lottery.utils[unit]) {
+            return ctx.reply('❌ واحد وارد شده معتبر نیست.');
+        }
+
+        ctx.session.lotteryActive = true;
+        ctx.session.ticketPrice = amount;
+        ctx.session.ticketUnit = unit;
+        ctx.session.lotteryStep = undefined;
+
+        await ctx.telegram.sendMessage(
+            config.channels.lottery,
+            `🎉 لاتاری جدید آغاز شد!\n` +
+            `💸 قیمت هر بلیط: ${amount} ${config.manage.lottery.utils[unit]}\n` +
+            `🎟️ برای خرید بلیط از دکمه زیر استفاده کنید.`,
+            {
+                reply_markup: Markup.inlineKeyboard([
+                    [Markup.button.callback('🎟️ خرید بلیط', 'buy_ticket')]
+                ]).reply_markup,
+                parse_mode: 'HTML'
+            }
+        );
+
+        return ctx.reply('✅ لاتاری با موفقیت شروع شد.');
     }
 
-    ctx.session.pendingTicketCount = count;
-    ctx.session.lotteryStep = 'confirm_ticket_purchase';
+    if (ctx.session?.lotteryStep === 'awaiting_ticket_count') {
+        const count = Number(ctx.message.text);
+        if (!count || count <= 0) return ctx.reply('❌ تعداد معتبر نیست.');
 
-    await ctx.reply(
-        `✅ می‌خوای ${count} بلیط بخری به قیمت ${totalCost} ${config.manage.lottery.utils[ticketUnit]}؟`,
-        {
-            reply_markup: Markup.inlineKeyboard([
-                [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket')],
-                [Markup.button.callback('❌ انصراف', 'cancel_ticket')]
-            ]).reply_markup
+        const { ticketPrice, ticketUnit } = ctx.session;
+        const totalCost = count * ticketPrice;
+        const user = ctx.user;
+        const currentBalance = user[ticketUnit as keyof typeof user] as number;
+
+        if (currentBalance < totalCost) {
+            return ctx.reply(`❌ موجودی کافی ندارید.\n💰 مورد نیاز: ${totalCost} ${config.manage.lottery.utils[ticketUnit]}`);
         }
-    );
+
+        ctx.session.pendingTicketCount = count;
+        ctx.session.lotteryStep = 'confirm_ticket_purchase';
+
+        return ctx.reply(
+            `✅ می‌خوای ${count} بلیط بخری به قیمت ${totalCost} ${config.manage.lottery.utils[ticketUnit]}؟`,
+            {
+                reply_markup: Markup.inlineKeyboard([
+                    [Markup.button.callback('✅ تأیید خرید', 'confirm_ticket')],
+                    [Markup.button.callback('❌ انصراف', 'cancel_ticket')]
+                ]).reply_markup,
+                parse_mode: 'HTML'
+            }
+        );
+    }
+
+    return next();
 });
 lottery.action('confirm_ticket', async (ctx) => {
     const count = ctx.session.pendingTicketCount;
@@ -139,6 +178,11 @@ lottery.action('end_lottery', async (ctx) => {
 
     const winner = pool[Math.floor(Math.random() * pool.length)];
     const winnerTickets = users.find(u => u.userid === winner.userid)?.lottery || 0;
+
+    if (!ctx.session.ticketPrice || !ctx.session.ticketUnit) {
+        return ctx.reply('❌ اطلاعات لاتاری ناقص است.');
+    }
+
     const prize = pool.length * ctx.session.ticketPrice * 1000;
 
     await ctx.telegram.sendMessage(config.channels.lottery,
@@ -146,13 +190,12 @@ lottery.action('end_lottery', async (ctx) => {
         `پس از فروش ${pool.length} بلیط، قرعه‌کشی انجام شد و برنده خوش‌شانس این دوره مشخص گردید!\n` +
         `> 🏆 برنده: کشور ${winner.country} 🎟️ تعداد بلیط‌های برنده: ${winnerTickets}\n` +
         `💰 مبلغ جایزه: ${prize.toLocaleString()} دلار\n` +
-        `.تبریک به برنده بزرگ این دوره! منتظر دور بعدی لاتاری باشید`
+        `تبریک به برنده بزرگ این دوره! منتظر دور بعدی لاتاری باشید.`
     );
 
     await prisma.user.updateMany({ data: { lottery: 0 } });
-    ctx.session.lotteryActive = false;
-    ctx.session.ticketPrice = undefined;
-    ctx.session.ticketUnit = undefined;
+    ctx.session = {};
+
 
     await ctx.reply('✅ لاتاری با موفقیت پایان یافت.');
 });
