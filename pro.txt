@@ -491,3 +491,6 @@ async function endLottery(ctx: CustomContext) {
 }
 
 export default lottery;
+
+
+in ro kamel check kon o bbin be dorosti pool haye tocket ha ro kam kone

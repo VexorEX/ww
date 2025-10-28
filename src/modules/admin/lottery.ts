@@ -290,6 +290,11 @@ lottery.action('confirm_ticket', async (ctx) => {
 
         const ticketUnit = state.unit;
         const totalCost = count * state.price;
+        const currentBalance = ctx.user[ticketUnit as keyof typeof ctx.user] as number;
+
+        if (currentBalance < totalCost) {
+            return ctx.reply(`❌ موجودی کافی ندارید.\n💰 مورد نیاز: ${totalCost} ${config.manage.lottery.utils[ticketUnit]}`);
+        }
 
         const result = await changeUserField(ctx.user.userid, ticketUnit, 'subtract', totalCost);
         const ticketResult = await changeUserField(ctx.user.userid, 'lottery', 'add', count);
@@ -450,6 +455,7 @@ async function endLottery(ctx: CustomContext) {
                 pool.push({ userid: user.userid, country: user.countryName });
             }
         }
+
 
         if (pool.length === 0) return ctx.reply('❌ هیچ بلیطی فروخته نشده.');
 
