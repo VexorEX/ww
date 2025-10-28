@@ -65,6 +65,17 @@ lottery.command('cticket', async (ctx) => {
 });
 
 lottery.action('admin_lottery', async (ctx) => {
+    await prisma.lotteryState.upsert({
+      where: { id: 1 },
+      update: {},
+      create: {
+        id: 1,
+        active: false,
+        price: 0,
+        unit: 'capital'
+      }
+    });
+
     const adminId = ctx.from.id;
     if (!config.manage.lottery.admins.includes(adminId)) {
         return ctx.answerCbQuery('⛔ فقط ادمین‌ها می‌تونن لاتاری رو مدیریت کنن.');
