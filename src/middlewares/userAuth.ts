@@ -8,6 +8,8 @@ type SessionFlavor<T> = {
 };
 
 export interface SessionData {
+    lotteryStep?: string;
+    pendingTicketCount?: number;
     hasVolunteered?: boolean;
     awaitingstateImage?: boolean;
     awaitingstateText?: boolean;
