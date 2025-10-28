@@ -11,6 +11,7 @@ import mines from "./components/mines";
 import business from "./countryBusiness";
 import adminPanel from "./adminPanel";
 import lottery from "./admin/lottery";
+import { prisma } from "../prisma";
 
 const userPanel = new Composer<CustomContext>();
 
@@ -107,6 +108,19 @@ userPanel.use(construction);
 userPanel.use(mines);
 // userPanel.use(business) // Disabled for now
 userPanel.use(lottery)
+userPanel.use(async (ctx, next) => {
+    await prisma.lotteryState.upsert({
+        where: { id: 1 },
+        update: {},
+        create: {
+            id: 1,
+            active: false,
+            price: 0,
+            unit: 'capital'
+        }
+    });
+    return next();
+});
 
 userPanel.action('back_main', async (ctx) => {
     const name = ctx.from.first_name;
