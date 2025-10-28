@@ -117,6 +117,7 @@ lottery.action('admin_lottery', async (ctx) => {
 // Combined text handler for all lottery steps
 lottery.on('text', async (ctx, next) => {
     try {
+        ctx.session ??= {};
         if (ctx.session?.lotteryStep === 'awaiting_ticket_price') {
             const input = ctx.message.text.trim();
             const match = input.match(/^(\d+)(?:\((\w+)\))?$/);
@@ -132,7 +133,7 @@ lottery.on('text', async (ctx, next) => {
 
             await updateLotteryState({ active: true, price: amount, unit });
 
-            ctx.session.lotteryStep = undefined;
+            delete ctx.session.lotteryStep
 
             await ctx.telegram.sendMessage(
                 config.channels.lottery,
@@ -197,6 +198,8 @@ lottery.on('text', async (ctx, next) => {
 });
 
 lottery.action('buy_ticket', async (ctx) => {
+    ctx.session ??= {};
+
     try {
         const state = await getLotteryState();
         if (!state.active) {
