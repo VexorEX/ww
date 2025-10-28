@@ -69,7 +69,17 @@ lottery.action('admin_lottery', async (ctx) => {
     if (!config.manage.lottery.admins.includes(adminId)) {
         return ctx.answerCbQuery('⛔ فقط ادمین‌ها می‌تونن لاتاری رو مدیریت کنن.');
     }
-
+    await prisma.lotteryState.upsert({
+        where: { id: 1 },
+        update: {},
+        create: {
+            id: 1,
+            active: false,
+            price: 0,
+            unit: 'capital'
+        }
+    });
+    
     try {
         const state = await getLotteryState();
         const users = await prisma.user.findMany({ select: { lottery: true } });
