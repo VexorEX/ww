@@ -15,6 +15,7 @@ export interface SessionData {
     stateText?: string;
     laststateMessageId?: number;
     // Building-related session data
+    awaiting_image_project?: boolean;
     buildingType?: string;
     buildingStep?: string;
     buildingName?: string;
@@ -28,6 +29,7 @@ export interface SessionData {
     awaiting_user_id?: boolean;
     awaiting_value?: boolean;
     awaiting_value_all?: boolean;
+    awaiting_ticket_count?: any;
     [key: string]: any;
 }
 
@@ -62,7 +64,7 @@ const userAuth: Middleware<CustomContext> = async (ctx, next) => {
             }
 
             // اگر پیام start بود و کشور داشت، مستقیم به userPanel برو
-            if (ctx.text === '/start') {
+            if (ctx.text === '/start' || ctx.text?.startsWith('/start lottery')) {
                 await handleUserStart(ctx); // هندل start از userPanel
                 return;
             }

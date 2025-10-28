@@ -353,6 +353,7 @@ countryManagement.action('army_defence', async (ctx) => {
         buildRow('🛡 ضد موشک', u.antiRocket),
         buildRow('🛡 گنبد آهنین', u.ironDome),
         buildRow('🛡 S-400', u.s400),
+        buildRow('🛡 S-300', u.s300),
         buildRow('🛡 TAAD', u.taad),
         buildRow('🛡 HQ-9', u.hq9),
         buildRow('🛡 آکاش', u.acash),

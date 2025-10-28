@@ -1,5 +1,5 @@
 {
-  "token": "7639208583:AAGI9rCVNrAD-9-fmX5DxEw-FSych-XpgC4",
+  "token": "8093518474:AAF7CslVqKQOJcuWcEkwPMIrgE6npv4I-6g",
   "manage": {
     "status": true,
     "admins": [6749274447,7588477963],
@@ -32,13 +32,14 @@
       "status": true,
       "prices": {
         "ground": {
-          "soldier": "1(crowd)",
+          "soldier": "1(crowd)+5000(capital)",
           "tank": "10(iron)",
           "heavyTank": "25(iron)"
         },
         "aerial": {
           "f35": "100(iron)",
           "f16": "50(iron)",
+          "f22": "145(iron)",
           "su57": "85(iron)",
           "f47": "155(iron)",
           "b2": "500(iron)",
@@ -79,7 +80,7 @@
       "countryPermissions": {
         "china": ["j20", "hq9", "hyperSonicRocket"],
         "usa": ["b2", "taad", "f35"],
-        "uk": ["breakerShip", "chemicalRocket", "f47"],
+        "gbr": ["breakerShip", "chemicalRocket", "f47"],
         "russia": ["su57", "tu16", "s400"],
         "iran": ["hyperSonicRocket", "chemicalRocket", "hq9"],
         "israel": ["ironDome", "chemicalRocket", "hyperSonicRocket"],
@@ -90,12 +91,13 @@
         "canada": ["f47", "continentalRocket"],
         "brazil": ["continentalRocket", "hyperSonicRocket"],
         "pakistan": ["hq9", "hyperSonicRocket"],
-        "japan": ["breakerShip", "f22"],
+        "japan": ["breakerShip", "f22","s300"],
         "italy": ["f47", "hyperSonicRocket"],
         "algeria": [],
         "australia": ["f22", "chemicalRocket"],
         "turkey": ["f47", "s300"],
-        "germany": ["f47", "taad"]
+        "germany": ["f47", "taad"],
+        "switzerland": ["b2","s300","s400","chemicalRocket"]
       },
       "defaultItems": [
         "simpleRocket",
@@ -169,11 +171,23 @@
           7588477963],
         "default": 0
       }
+    },
+    "lottery": {
+      "admins": [6749274447,
+        7588477963],
+      "status": true,
+      "utils": {
+        "iron": "آهن",
+        "capital": "پول",
+        "gold": "طلا"
+      }
     }
   },
   "channels": {
-    "state": "-1002587148503",
-    "updates": "-1002587148503"
+    "state": "-1002754782095",
+    "updates": "-1002754782095",
+    "lottery": "-1002754782095",
+    "business": "-1002754782095"
   },
   "images": {
     "gov": "https://img9.irna.ir/d/r2/2024/12/21/4/171573917.jpg?ts=1734769973771",
