@@ -125,6 +125,7 @@ export async function getCountryData(country: string): Promise<any> {
                 antiRocket: true,
                 ironDome: true,
                 s400: true,
+                s300: true,
                 taad: true,
                 hq9: true,
                 acash: true,
