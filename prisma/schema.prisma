@@ -146,3 +146,10 @@ model PendingBuilding {
   imageUrl  String
   createdAt DateTime @default(now())
 }
+
+model LotteryState {
+  id     Int     @id @default(1)
+  active Boolean
+  price  Int
+  unit   String
+}

@@ -78,6 +78,7 @@ model User {
   antiRocket BigInt @default(0)
   ironDome   BigInt @default(0)
   s400       BigInt @default(0)
+  s300       BigInt @default(0)
   taad       BigInt @default(0)
   hq9        BigInt @default(0)
   acash      BigInt @default(0)
@@ -144,4 +145,11 @@ model PendingBuilding {
   carName   String
   imageUrl  String
   createdAt DateTime @default(now())
+}
+
+model LotteryState {
+  id     Int     @id @default(1)
+  active Boolean
+  price  Int
+  unit   String
 }

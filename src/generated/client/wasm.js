@@ -172,6 +172,7 @@ exports.Prisma.UserScalarFieldEnum = {
   antiRocket: 'antiRocket',
   ironDome: 'ironDome',
   s400: 's400',
+  s300: 's300',
   taad: 'taad',
   hq9: 'hq9',
   acash: 'acash',
@@ -233,6 +234,13 @@ exports.Prisma.PendingBuildingScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.LotteryStateScalarFieldEnum = {
+  id: 'id',
+  active: 'active',
+  price: 'price',
+  unit: 'unit'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -249,7 +257,8 @@ exports.Prisma.ModelName = {
   ProductionLine: 'ProductionLine',
   PendingProductionLine: 'PendingProductionLine',
   Car: 'Car',
-  PendingBuilding: 'PendingBuilding'
+  PendingBuilding: 'PendingBuilding',
+  LotteryState: 'LotteryState'
 };
 
 /**

@@ -219,11 +219,11 @@ car.action(/^admin_approve_building_(\d+)$/, async (ctx) => {
     await ctx.telegram.sendPhoto(config.channels.updates, pending.imageFileId, {
         caption:
             `🏭 خط تولید جدید راه‌اندازی شد\n\n` +
-            ` کشور سازنده:<blockquote> ${user.countryName}\n` +
-            ` محصول: ${pending.name}</blockquote>\n\n` +
+            `<blockquote>کشور: ${user.countryName}\nمحصول: ${pending.name}</blockquote>\n\n` +
             `💰 بودجه راه‌اندازی: ${pending.setupCost.toLocaleString()}\n` +
             `🔄 ظرفیت تولید روزانه: ${pending.dailyLimit} واحد`,
         parse_mode: 'HTML'
+
     });
 
     await ctx.telegram.sendMessage(Number(userId),
