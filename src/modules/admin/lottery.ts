@@ -424,7 +424,6 @@ lottery.action('admin_cancel_lottery', async (ctx) => {
     });
 });
 
-
 async function endLottery(ctx: CustomContext) {
     try {
         const state = await getLotteryState();
