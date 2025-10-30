@@ -1,4 +1,4 @@
-import { Composer, Markup } from "telegraf";
+import{ Composer, Markup } from "telegraf";
 import { CustomContext } from "../middlewares/userAuth";
 import config from "../config/config.json";
 import management from './countryManagement'
@@ -9,9 +9,9 @@ import state from "./countryState";
 import construction from "./components/construction";
 import mines from "./components/mines";
 import business from "./countryBusiness";
-import adminPanel from "./adminPanel";
 import lottery from "./admin/lottery";
 import { prisma } from "../prisma";
+import adminPanel from "./adminPanel";
 
 const userPanel = new Composer<CustomContext>();
 
@@ -21,21 +21,21 @@ const productionRow1 = config.manage?.buildings?.car?.status
 
 const productionRow2 = [
     ...(config.manage?.buildings?.construction?.status
-        ? [Markup.button.callback('🏗 ساخت پروژه عمرانی', 'construction')]
+       ? [Markup.button.callback('🏗 ساخت پروژه عمرانی', 'construction')]
         : []),
     ...(config.manage?.buildings?.mines?.status
         ? [Markup.button.callback('⛏ مدیریت معادن', 'manage_mines')]
         : [])
 ];
 
-const userMainKeyboard = config.manage.status
+const userMainKeyboard= config.manage.status
     ? Markup.inlineKeyboard([
         config.manage?.state?.status
             ? [Markup.button.callback('📜 بیانیه', 'state')]
             : [],
         [
             ...(config.manage?.management?.status
-                ? [Markup.button.callback('🛠 مدیریت کشور', 'management')]
+                ? [Markup.button.callback('🛠 مدیریت کشور','management')]
                 : []),
             ...(config.manage?.shop?.status
                 ? [Markup.button.callback('🛒 خرید', 'shop')]
@@ -43,7 +43,7 @@ const userMainKeyboard = config.manage.status
         ],
         [Markup.button.callback('─────────────', 'noop')],
         ...(productionRow1.length > 0 ? [productionRow1] : []),
-        ...(productionRow2.length > 0 ? [productionRow2] : []),
+...(productionRow2.length > 0 ? [productionRow2] : []),
         [
             ...(config.manage?.stock?.status
                 ? [Markup.button.callback('📈 سهام', 'stock')]
@@ -78,21 +78,20 @@ export async function handleUserStart(ctx: CustomContext) {
                     : [])
             ],
             [Markup.button.callback('─────────────', 'noop')],
-            ...(productionRow1.length > 0 ? [productionRow1] : []),
+            ...(productionRow1.length> 0 ? [productionRow1] : []),
             ...(productionRow2.length > 0 ? [productionRow2] : []),
             [
                 ...(config.manage?.stock?.status
                     ? [Markup.button.callback('📈 سهام', 'stock')]
                     : []),
-                // business disabled for now
-                // ...(config.manage?.business?.status
-                //     ? [Markup.button.callback('⚓ تجارت', 'business')]
-                //     : []),
+                ...(config.manage?.business?.status
+                    ? [Markup.button.callback('⚓ تجارت', 'business')]
+                    : []),
                 ...(config.manage?.lottery?.status
                     ? [Markup.button.callback(lotteryText, 'buy_ticket')]
                     : [])
             ]
-        ].filter((row) => row.length > 0))
+        ].filter((row) => row.length >0))
         : Markup.inlineKeyboard([
             [Markup.button.callback('⛔ بازی متوقف شده', 'noop')]
         ]);
@@ -106,9 +105,10 @@ userPanel.use(car);
 userPanel.use(market);
 userPanel.use(construction);
 userPanel.use(mines);
-// userPanel.use(business) // Disabled for now
+userPanel.use(business) // Disabled for now
 userPanel.use(lottery)
-userPanel.use(async (ctx, next) => {
+userPanel.use(adminPanel);
+userPanel.use(async (ctx, next)=> {
     await prisma.lotteryState.upsert({
         where: { id: 1 },
         update: {},
