@@ -2,7 +2,7 @@ import { Composer, Markup } from 'telegraf';
 import type { CustomContext } from '../middlewares/userAuth';
 import { changeUserField } from './economy';
 import { escapeMarkdownV2 } from '../utils/escape';
-import { getCountryByName, getAvailableCountriesList } from '../utils/countryUtils';
+import { getCountryByName, getAvailableCountriesList, loadCountries } from '../utils/countryUtils';
 import { prisma } from '../prisma';
 import config from '../config/config.json';
 
@@ -35,21 +35,22 @@ const transferableFields: { [key: string]: string } = {
     'agents': 'عامل'
 };
 
-// لیست کشورها برای انتخاب مقصد (از JSON بازی)
-function loadAvailableCountries() {
-    // لیست کامل کشورها از countries.json
-    return [
-        'چین 🇨🇳', 'روسیه 🇷🇺', 'کویت 🇰🇼', 'سوریه 🇸🇾', 'قطر 🇶🇦', 'ایران 🇮🇷', 'اردن 🇯🇴', 'عمان 🇴🇲', 'مغولستان 🇲🇳', 'عربستان سعودی 🇸🇦',
-        'تایلند 🇹🇭', 'میانمار 🇲🇲', 'ژاپن 🇯🇵', 'ترکیه 🇹🇷', 'کره جنوبی 🇰🇷', 'کره شمالی 🇰🇵', 'اسرائیل 🇮🇱', 'هند 🇮🇳', 'پاکستان 🇵🇰', 'افغانستان 🇦🇫',
-        'لبنان 🇱🇧', 'فیلیپین 🇵🇭', 'مالزی 🇲🇾', 'اندونزی 🇮🇩', 'سنگاپور 🇸🇬', 'مالدیو 🇲🇻', 'آذربایجان 🇦🇿', 'قزاقستان 🇰🇿', 'قرقیزستان 🇰🇬', 'ویتنام 🇻🇳',
-        'کامبوج 🇰🇭', 'لائوس 🇱🇦', 'نپال 🇳🇵', 'لهستان 🇵🇱', 'چک 🇨🇿', 'سوئیس 🇨🇭', 'بنگلادش 🇧🇩', 'مولداوی 🇲🇩', 'فرانسه 🇫🇷', 'آلمان 🇩🇪',
-        'بریتانیا 🇬🇧', 'ایتالیا 🇮🇹', 'اسپانیا 🇪🇸', 'پرتغال 🇵🇹', 'یونان 🇬🇷', 'مجارستان 🇭🇺', 'آلبانی 🇦🇱', 'رومانی 🇷🇴', 'بلغارستان 🇧🇬', 'اسلوونی 🇸🇮',
-        'اسلواکی 🇸🇰', 'صربستان 🇷🇸', 'مونته‌نگرو 🇲🇪', 'بلاروس 🇧🇾', 'اوکراین 🇺🇦', 'استونی 🇪🇪', 'لتونی 🇱🇻', 'لیتوانی 🇱🇹', 'دانمارک 🇩🇰', 'نروژ 🇳🇴',
-        'سوئد 🇸🇪', 'فنلاند 🇫🇮', 'ایسلند 🇮🇸', 'ایرلند 🇮🇪', 'موناکو 🇲🇨', 'لیختن‌اشتاین 🇱🇮', 'آندورا 🇦🇩', 'سن‌مارینو 🇸🇲', 'گرجستان 🇬🇪', 'مصر 🇪🇬',
-        'الجزایر 🇩🇿', 'غنا 🇬🇭', 'لیبی 🇱🇾', 'زامبیا 🇿🇲', 'تانزانیا 🇹🇿', 'مراکش 🇲🇦', 'ساحل عاج 🇨🇮', 'ایالات متحده 🇺🇸', 'برزیل 🇧🇷', 'کانادا 🇨🇦',
-        'شیلی 🇨🇱', 'اروگوئه 🇺🇾', 'آرژانتین 🇦🇷', 'پاراگوئه 🇵🇾', 'پرو 🇵🇪', 'بولیوی 🇧🇴', 'مکزیک 🇲🇽', 'استرالیا 🇦🇺'
-    ];
+// تابع دریافت کشورها بر اساس منطقه (با key و name)
+function getCountriesByRegion(region: 'asia' | 'europe' | 'africa' | 'america' | 'australia'): { key: string; name: string }[] {
+    const data = loadCountries();
+    const regionData = data[region];
+    if (!regionData) return [];
+    return Object.entries(regionData).map(([key, c: any]) => ({ key, name: c.name }));
 }
+
+// لیست مناطق
+const regions = [
+    { key: 'asia', name: 'آسیا 🌏' },
+    { key: 'europe', name: 'اروپا 🌍' },
+    { key: 'africa', name: 'آفریقا 🌍' },
+    { key: 'america', name: 'آمریکا 🌎' },
+    { key: 'australia', name: 'استرالیا 🌏' }
+];
 
 business.action('business', async (ctx) => {
     // بررسی وجود session
@@ -66,47 +67,80 @@ business.action('business', async (ctx) => {
     }
 
     // ریست کردن session برای شروع انتقال جدید
-    ctx.session.tradeStep = 'select_destination';
+    ctx.session.tradeStep = 'select_region';
     ctx.session.tradeItems = [];
     ctx.session.tradeOilCost = 0;
 
-    // نمایش لیست کشورها برای انتخاب مقصد
-    const countries = loadAvailableCountries();
-    if (countries.length === 0) {
-        return ctx.reply('<blockquote>❌ هیچ کشوری برای انتقال در دسترس نیست.</blockquote>', { parse_mode: 'HTML' });
-    }
-    const countryButtons = countries.map(country =>
-        Markup.button.callback(`"${country}"`, `select_country_${country.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_')}`)
-    );
+    // نمایش کیبورد مناطق
+    const regionButtons = regions.map(r => Markup.button.callback(`"${r.name}"`, `select_region_${r.key}`));
+    regionButtons.push(Markup.button.callback('❌ انصراف', 'cancel_trade'));
 
-    countryButtons.push(Markup.button.callback('❌ انصراف', 'cancel_trade'));
-
-    await ctx.reply('<b>🌍 انتخاب کشور مقصد برای انتقال:</b>\n\n<blockquote>کشور مورد نظر خود را انتخاب کنید تا فرآیند انتقال آغاز شود.</blockquote>', {
-        reply_markup: Markup.inlineKeyboard(countryButtons, { columns: 2 }).reply_markup,
+    await ctx.reply('<b>🌍 انتخاب منطقه برای انتقال:</b>\n\n<blockquote>ابتدا منطقه مورد نظر را انتخاب کنید، سپس کشور مقصد را مشخص کنید.</blockquote>', {
+        reply_markup: Markup.inlineKeyboard(regionButtons, { columns: 1 }).reply_markup,
         parse_mode: 'HTML'
     });
 });
 
-// هندلر انتخاب کشور مقصد
-loadAvailableCountries().forEach(countryName => {
-    const callbackData = `select_country_${countryName.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_')}`;
-    business.action(callbackData, async (ctx) => {
+// هندلر انتخاب منطقه
+regions.forEach(r => {
+    business.action(`select_region_${r.key}`, async (ctx) => {
         // بررسی وجود session
         if (!ctx.session) {
             ctx.session = {};
         }
 
-        const user = ctx.user;
-        ctx.session.destinationCountry = countryName;
-        ctx.session.tradeStep = 'select_items';
+        ctx.session.selectedRegion = r.key;
+        ctx.session.tradeStep = 'select_destination';
 
-        await ctx.reply(`✅ <b>کشور مقصد:</b> ${countryName}\n\n📦 <blockquote>حالا منابع مورد نظر برای انتقال را انتخاب کنید.</blockquote>`, {
+        // دریافت کشورها در منطقه
+        const countries = getCountriesByRegion(r.key);
+        if (countries.length === 0) {
+            return ctx.reply(`<blockquote>❌ هیچ کشوری در منطقه ${r.name} در دسترس نیست.</blockquote>`, { parse_mode: 'HTML' });
+        }
+
+        const countryButtons = countries.map(country =>
+            Markup.button.callback(`"${country.name}"`, `select_country_${country.key}`)
+        );
+        countryButtons.push(Markup.button.callback('❌ انصراف', 'cancel_trade'));
+
+        await ctx.reply(`✅ <b>منطقه:</b> ${r.name}\n\n<b>🌍 انتخاب کشور مقصد:</b>\n\n<blockquote>کشور مورد نظر خود را انتخاب کنید.</blockquote>`, {
+            reply_markup: Markup.inlineKeyboard(countryButtons, { columns: 2 }).reply_markup,
             parse_mode: 'HTML'
         });
-
-        // نمایش آیتم‌های قابل انتقال
-        await showTradeItemsKeyboard(ctx);
     });
+});
+
+// هندلر انتخاب کشور مقصد (پس از انتخاب منطقه)
+business.action(/^select_country_(.+)$/, async (ctx) => {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+
+    if (ctx.session.tradeStep !== 'select_destination') return;
+
+    const countryKey = ctx.match[1];
+    // Lookup name from loadCountries
+    let countryName = '';
+    for (const [reg, countries] of Object.entries(loadCountries())) {
+        if (countries[countryKey]) {
+            countryName = countries[countryKey].name;
+            break;
+        }
+    }
+    if (!countryName) {
+        return ctx.reply('<blockquote>❌ کشور یافت نشد.</blockquote>', { parse_mode: 'HTML' });
+    }
+
+    ctx.session.destinationCountry = countryName;
+    ctx.session.tradeStep = 'select_items';
+
+    await ctx.reply(`✅ <b>کشور مقصد:</b> ${countryName}\n\n📦 <blockquote>حالا منابع مورد نظر برای انتقال را انتخاب کنید.</blockquote>`, {
+        parse_mode: 'HTML'
+    });
+
+    // نمایش آیتم‌های قابل انتقال
+    await showTradeItemsKeyboard(ctx);
 });
 
 // تابع نمایش کیبورد آیتم‌های قابل انتقال
@@ -175,7 +209,10 @@ business.on('text', async (ctx, next) => {
         }
 
         // اضافه کردن آیتم به لیست (هنوز کسر نمی‌کنیم)
-        ctx.session.tradeItems!.push({ type: field, amount });
+        if (!ctx.session.tradeItems) {
+            ctx.session.tradeItems = [];
+        }
+        ctx.session.tradeItems.push({ type: field, amount });
         ctx.session.tradeStep = 'select_items';
         ctx.session.selectedItem = null;
 
@@ -399,6 +436,7 @@ business.action('cancel_trade', async (ctx) => {
     ctx.session.tradeStep = null;
     ctx.session.tradeItems = [];
     ctx.session.destinationCountry = null;
+    ctx.session.selectedRegion = null;
     ctx.session.tradeOilCost = 0;
     await ctx.reply('<blockquote>❌ انتقال لغو شد.</blockquote>', {
         parse_mode: 'HTML'
@@ -415,31 +453,45 @@ async function deliverTradeItems(ctx: CustomContext, items: { type: string; amou
 
         setTimeout(async () => {
             // فقط notify، add قبلاً در executeTrade انجام شده
-            await ctx.telegram.sendMessage(userId, `<blockquote>📦 محموله ${amount} واحد ${transferableFields[type]} تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
-            // اختیاری: notify به sender هم
-            await ctx.telegram.sendMessage(senderUserId, `<blockquote>📦 محموله ${amount} واحد ${transferableFields[type]} به مقصد تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
+            try {
+                await ctx.telegram.sendMessage(userId, `<blockquote>📦 محموله ${amount} واحد ${transferableFields[type]} تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
+                // اختیاری: notify به sender هم
+                await ctx.telegram.sendMessage(senderUserId, `<blockquote>📦 محموله ${amount} واحد ${transferableFields[type]} به مقصد تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
+            } catch (error) {
+                console.error('Error sending delivery notification:', error);
+            }
         }, delay * 1000);
     }
 
     // ارسال خبر به کانال با تصویر
-    const senderUser = await prisma.user.findUnique({ where: { userid: senderId } });
-    if (!senderUser) return;
+    try {
+        const senderUser = await prisma.user.findUnique({ where: { userid: senderId } });
+        if (!senderUser) return;
 
-    const country = getCountryByName(senderUser.countryName);
-    const countryText = country?.name ?? senderUser.countryName;
+        const country = getCountryByName(senderUser.countryName);
+        const countryText = country?.name ?? senderUser.countryName;
 
-    const newsTemplates = [
-        `خبر فوری - انتقال ♨️ طبق گزارش خبرنگاران کشور ${countryText} انتقال جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n✅ گمان‌هایی بر انتقال تسلیحات نظامی وجود دارد. ⁉️`,
-        `خبر فوری - انتقال ♨️ طبق گزارش خبرنگاران کشور ${countryText} انتقال جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n✅ گمان‌هایی بر انتقال سرمایه رایج وجود دارد. ⁉️`
-    ];
+        const newsTemplates = [
+            `خبر فوری - انتقال ♨️ طبق گزارش خبرنگاران کشور ${countryText} انتقال جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n✅ گمان‌هایی بر انتقال تسلیحات نظامی وجود دارد. ⁉️`,
+            `خبر فوری - انتقال ♨️ طبق گزارش خبرنگاران کشور ${countryText} انتقال جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n✅ گمان‌هایی بر انتقال سرمایه رایج وجود دارد. ⁉️`
+        ];
 
-    const selectedNews = newsTemplates[Math.floor(Math.random() * newsTemplates.length)];
-    // فرض: URL تصویر ثابت مرتبط با انتقال/تجارت
-    const tradeImageUrl = 'https://example.com/trade-delivery.jpg'; // جایگزین با URL واقعی تصویر
-    await ctx.telegram.sendPhoto(config.channels.business, tradeImageUrl, {
-        caption: escapeMarkdownV2(selectedNews),
-        parse_mode: 'MarkdownV2'
-    });
+        const selectedNews = newsTemplates[Math.floor(Math.random() * newsTemplates.length)];
+
+        // استفاده از URL از config اگر موجود، иначе sendMessage
+        if (config.images && config.images.trade) {
+            await ctx.telegram.sendPhoto(config.channels.business, config.images.trade, {
+                caption: escapeMarkdownV2(selectedNews),
+                parse_mode: 'MarkdownV2'
+            });
+        } else {
+            await ctx.telegram.sendMessage(config.channels.business, escapeMarkdownV2(selectedNews), {
+                parse_mode: 'MarkdownV2'
+            });
+        }
+    } catch (error) {
+        console.error('Error sending news to channel:', error);
+    }
 }
 
 export default business;
