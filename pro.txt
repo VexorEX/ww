@@ -31,6 +31,12 @@ function loadAvailableCountries() {
 business.action('business', async (ctx) => {
     const user = ctx.user;
 
+    // چک کردن منابع کافی
+    const hasResources = transferableFields.some(field => user[field] > 0);
+    if (!hasResources) {
+        return ctx.reply('❌ شما هیچ منبعی برای تجارت ندارید.');
+    }
+
     // ریست کردن session برای شروع تجارت جدید
     ctx.session.tradeStep = 'select_destination';
     ctx.session.tradeItems = [];
@@ -73,6 +79,14 @@ async function showTradeItemsKeyboard(ctx: CustomContext) {
     const buttons = transferableFields
         .filter(field => user[field] > 0)
         .map(field => Markup.button.callback(`${field} (${user[field]})`, `select_item_${field}`));
+
+    // اضافه کردن دکمه تأیید و ارسال
+    if (ctx.session.tradeItems && ctx.session.tradeItems.length > 0) {
+        buttons.push(Markup.button.callback('✅ تأیید و ارسال', 'confirm_trade'));
+    }
+
+    // اضافه کردن دکمه لغو
+    buttons.push(Markup.button.callback('❌ انصراف', 'cancel_trade'));
 
     if (buttons.length === 0) {
         return ctx.reply('❌ شما هیچ آیتمی برای ارسال ندارید.');
@@ -309,7 +323,7 @@ async function executeTrade(ctx: CustomContext, senderId: bigint, receiverId: bi
     }
 
     // ارسال محموله‌ها
-    await deliverTradeItems(ctx);
+    await deliverTradeItems(ctx, receiverId);
 
     // پاک کردن session
     ctx.session.tradeStep = null;
@@ -330,13 +344,13 @@ business.action('cancel_trade', async (ctx) => {
     });
 });
 
-async function deliverTradeItems(ctx: CustomContext) {
-    const user = ctx.user;
+async function deliverTradeItems(ctx: CustomContext, receiverId: bigint) {
+    const senderUser = ctx.user;
     const items = ctx.session.tradeItems ?? [];
 
     for (const item of items) {
         const { type, amount } = item;
-        const userId = Number(user.userid);
+        const userId = Number(receiverId);
         const delay = Math.floor(Math.random() * (180 - 120 + 1)) + 120;
 
         setTimeout(async () => {
@@ -345,8 +359,8 @@ async function deliverTradeItems(ctx: CustomContext) {
         }, delay * 1000);
     }
 
-    const country = getCountryByName(user.countryName);
-    const countryText = country?.name ?? user.countryName;
+    const country = getCountryByName(senderUser.countryName);
+    const countryText = country?.name ?? senderUser.countryName;
 
     const newsTemplates = [
         `خبر فوری - تجاری ♨️ طبق گزارش خبر نگاران کشور ${countryText} تجارت جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n✅ گمان‌هایی بر انتقال تسلیحات نظامی وجود دارد. ⁉️`,
@@ -360,3 +374,10 @@ async function deliverTradeItems(ctx: CustomContext) {
 }
 
 export default business;
+
+
+
+1. har trade bayad yek maghsad dashte bashad
+2. mikham kkhodet kamelesh koni
+3. marahele kamele injorie : user type tejarat ro entekhab mikone ( felan faghat yek tarafe hast ) , check mishe ke oil kafi ro dashte bashe , mahmole ha va meghdareshon ro az ferestande migire , maghsad ro ba estefade az inlinekeyboard moshakhas mikone , yek payam ba detail transform ke maghsad o mahmole ha brash mire o montazer taiid mimone , agar taiid shod oil maliat va mahmole ha kam mishe , dar baze 2-3 min be maghsad add mishe o payam mire be channel
+4. mikham user dar marahele avalie ke entekhab maghsad o mahmole hast betone cancel kone
