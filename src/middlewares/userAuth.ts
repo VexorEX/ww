@@ -37,38 +37,56 @@ export interface SessionData {
 
 export interface CustomContext extends Context, SessionFlavor<SessionData> {
     user?: User;
-    state: {
-        religion?: string;
-        country?: string;
-        countryName?: string;
-        government?: string;
-    };
+    state: { religion?: string; country?: string; countryName?: string; government?: string; };
 }
 
 const userAuth: Middleware<CustomContext> = async (ctx, next) => {
-    const userId = ctx.from?.id;
-    if (!userId) return await next();
+    const userIdNum = ctx.from?.id;
+    if (!userIdNum) return await next();
 
     try {
-        const user = await prisma.user.findUnique({ where: { userid: userId } });
+        // اگر schema از BigInt استفاده می‌کند، بهتر است مقدار را به BigInt تبدیل کنیم
+        const user = await prisma.user.findUnique({ where: { userid: BigInt(userIdNum) } });
 
         if (user) {
             ctx.user = user;
 
             if (!user.country) {
+                // اگر این یک callback_query است و داده‌اش قرار است توسط registration هندل شود،
+                // اجازه بده به next بره تا actionها دریافت شوند.
+                const isCallback = ctx.updateType === 'callback_query';
+                const callbackData = (ctx.callbackQuery as any)?.data as string | undefined;
+
+                // لیست الگوهایی که مربوط به فرایند ثبت‌نام/دریافت کشور هستند
+                const allowedPrefixes = [
+                    'getCountry',
+                    'request_country',
+                    'rank0_', 'rank1_', 'rank2_', 'rank3_',
+                    'setCountry_', 'confirm_country', 'reject_', 'reselect_country_'
+                ];
+
+                const allowedForCallback = isCallback && typeof callbackData === 'string' &&
+                    allowedPrefixes.some(pref => callbackData.startsWith(pref));
+
+                if (allowedForCallback) {
+                    return await next();
+                }
+
+                // برای پیام‌های عادی یا callbackهای غیرمجاز، پیغام راهنمایی نشان بده
                 await ctx.reply(
                     '🌍 شما هنوز کشوری ندارید!\nبرای شروع بازی باید داوطلب شوید و کشور دریافت کنید.',
-                    Markup.inlineKeyboard([
-                        Markup.button.callback('✅ داوطلب شدن', 'getCountry')
-                    ])
+                    Markup.inlineKeyboard([ Markup.button.callback('✅ داوطلب شدن', 'getCountry') ])
                 );
-                return; // ادامه نده تا ثبت‌نام انجام بشه
+                return; // از عبور بیشتر جلوگیری کن
             }
 
-            // اگر پیام start بود و کشور داشت، مستقیم به userPanel برو
-            if (ctx.text === '/start' || ctx.text?.startsWith('/start lottery')) {
-                await handleUserStart(ctx); // هندل start از userPanel
-                return;
+            // اگر پیامِ متنی /start بود و کاربر کشور دارد، مستقیم به userPanel برو
+            if (ctx.updateType === 'message') {
+                const text = (ctx.message as any)?.text as string | undefined;
+                if (text === '/start' || text?.startsWith('/start lottery')) {
+                    await handleUserStart(ctx);
+                    return;
+                }
             }
         } else {
             ctx.user = undefined;
