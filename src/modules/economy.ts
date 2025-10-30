@@ -21,22 +21,32 @@ export type Operation =
 function applyOperation<T extends number | bigint>(
     current: T,
     operation: Operation,
-    value: number,
+    value: number | bigint,
     isBigInt: boolean
 ): T | 'invalid' {
     try {
         let result: unknown;
 
         if (isBigInt) {
-            const cur = BigInt(current);
-            const val = BigInt(value);
+            // Ensure both operands are bigint before operations to avoid mixing errors
+            const cur = typeof current === 'bigint' ? current : BigInt(current as any);
+            const val = typeof value === 'bigint' ? value : BigInt(value as any);
+
             switch (operation) {
-                case 'add': result = cur + val; break;
-                case 'subtract': result = cur - val; break;
-                case 'multiply': result = cur * val; break;
-                case 'divide': if (value === 0) return 'invalid'; result = cur / val; break;
-                case 'mod': result = cur % val; break;
-                case 'power': result = BigInt(Math.pow(Number(cur), value)); break;
+                case 'add': result = cur + (val as bigint); break;
+                case 'subtract': result = cur - (val as bigint); break;
+                case 'multiply': result = cur * (val as bigint); break;
+                case 'divide':
+                    if ((val as bigint) === 0n) return 'invalid';
+                    result = cur / (val as bigint);
+                    break;
+                case 'mod': result = cur % (val as bigint); break;
+                case 'power': {
+                    // exponentiation on bigints: convert exponent to number (may overflow for large exp)
+                    const exp = typeof value === 'bigint' ? Number(value) : Number(value);
+                    result = BigInt(Math.pow(Number(cur), exp));
+                    break;
+                }
                 case 'floor': result = BigInt(Math.floor(Number(cur))); break;
                 case 'ceil': result = BigInt(Math.ceil(Number(cur))); break;
                 case 'round': result = BigInt(Math.round(Number(cur))); break;
@@ -46,18 +56,23 @@ function applyOperation<T extends number | bigint>(
             }
         } else {
             const cur = Number(current);
+            const val = typeof value === 'bigint' ? Number(value) : Number(value);
+
             switch (operation) {
-                case 'add': result = cur + value; break;
-                case 'subtract': result = cur - value; break;
-                case 'multiply': result = cur * value; break;
-                case 'divide': if (value === 0) return 'invalid'; result = cur / value; break;
-                case 'mod': result = cur % value; break;
-                case 'power': result = Math.pow(cur, value); break;
+                case 'add': result = cur + val; break;
+                case 'subtract': result = cur - val; break;
+                case 'multiply': result = cur * val; break;
+                case 'divide':
+                    if (val === 0) return 'invalid';
+                    result = cur / val;
+                    break;
+                case 'mod': result = cur % val; break;
+                case 'power': result = Math.pow(cur, val); break;
                 case 'floor': result = Math.floor(cur); break;
                 case 'ceil': result = Math.ceil(cur); break;
                 case 'round': result = Math.round(cur); break;
                 case 'sqrt': result = Math.floor(Math.sqrt(cur)); break;
-                case 'set': result = value; break;
+                case 'set': result = val; break;
                 default: return 'invalid';
             }
         }
@@ -73,7 +88,7 @@ export async function changeUserField(
     userid: bigint,
     field: string,
     operation: Operation,
-    value: number
+    value: number | bigint
 ): Promise<'ok' | 'not_found' | 'invalid' | 'error'> {
     try {
         const user = await prisma.user.findUnique({ where: { userid } });
@@ -110,7 +125,7 @@ export async function changeUserField(
 export async function changeFieldForAllUsers(
     field: string,
     operation: Operation,
-    value: number
+    value: number | bigint
 ): Promise<'ok' | 'invalid' | 'error'> {
     try {
         const users = await prisma.user.findMany({ select: { userid: true, [field]: true } });
@@ -148,7 +163,7 @@ export async function changeFieldForAllUsers(
 export async function changeCapital(
     userid: bigint,
     operation: Operation,
-    value: number
+    value: number | bigint
 ): Promise<'ok' | 'not_found' | 'invalid' | 'error'> {
     return changeUserField(userid, 'capital', operation, value);
 }
