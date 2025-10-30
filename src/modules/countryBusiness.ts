@@ -8,7 +8,17 @@ import config from '../config/config.json';
 
 const business = new Composer<CustomContext>();
 
-// 定义可交易字段及其显示名称
+// یک Map موقتی برای ذخیره جزئیات تجارت‌ها (به جای session، چون session per-user است)
+// در تولید، از Redis یا دیتابیس استفاده کنید
+const pendingTrades = new Map<string, {
+    senderId: bigint;
+    receiverId: bigint;
+    items: { type: string; amount: number }[];
+    tradeCost?: { amount: number; unit: string };
+    oilCost: number;
+}>();
+
+// تعریف کلیدهای قابل انتقال و نام‌های نمایشی آنها
 const transferableFields: { [key: string]: string } = {
     'iron': 'آهن',
     'gold': 'طلا',
@@ -29,7 +39,7 @@ const transferableFields: { [key: string]: string } = {
 // لیست کشورها برای انتخاب مقصد
 function loadAvailableCountries() {
     try {
-        // استفاده از لیست کشور‌های موجود در بازی
+        // استفاده از لیست کشور‌های موجود در بازی (با فیلتر خالی برای همه)
         const availableCountries = getAvailableCountriesList('').map(country => country.name);
         return availableCountries.length > 0 ? availableCountries : [
             'ایران 🇮🇷', 'چین 🇨🇳', 'روسیه 🇷🇺', 'آمریکا 🇺🇸', 'انگلیس 🇬🇧',
@@ -49,7 +59,7 @@ business.action('business', async (ctx) => {
     if (!ctx.session) {
         ctx.session = {};
     }
-    
+
     const user = ctx.user;
 
     // چک کردن منابع کافی
@@ -85,7 +95,7 @@ loadAvailableCountries().forEach(countryName => {
         if (!ctx.session) {
             ctx.session = {};
         }
-        
+
         const user = ctx.user;
         ctx.session.destinationCountry = countryName;
         ctx.session.tradeStep = 'select_items';
@@ -105,7 +115,7 @@ async function showTradeItemsKeyboard(ctx: CustomContext) {
     if (!ctx.session) {
         ctx.session = {};
     }
-    
+
     const user = ctx.user;
     const buttons = Object.keys(transferableFields)
         .filter(field => user[field] > 0)
@@ -136,7 +146,7 @@ Object.keys(transferableFields).forEach(field => {
         if (!ctx.session) {
             ctx.session = {};
         }
-        
+
         if (ctx.session.tradeStep !== 'select_items') return;
 
         ctx.session.selectedItem = field;
@@ -152,7 +162,7 @@ business.on('text', async (ctx, next) => {
     if (!ctx.session) {
         ctx.session = {};
     }
-    
+
     if (ctx.session.tradeStep === 'awaiting_quantity') {
         const amount = parseInt(ctx.message.text.trim());
         const field = ctx.session.selectedItem;
@@ -165,7 +175,7 @@ business.on('text', async (ctx, next) => {
         }
 
         // اضافه کردن آیتم به لیست (هنوز کسر نمی‌کنیم)
-        ctx.session.tradeItems.push({ type: field, amount });
+        ctx.session.tradeItems!.push({ type: field, amount });
         ctx.session.tradeStep = 'select_items';
         ctx.session.selectedItem = null;
 
@@ -187,7 +197,7 @@ business.action('confirm_trade', async (ctx) => {
     if (!ctx.session) {
         ctx.session = {};
     }
-    
+
     if (ctx.session.tradeStep !== 'select_items' || !ctx.session.tradeItems || ctx.session.tradeItems.length === 0) {
         return ctx.reply('❌ هیچ آیتمی برای ارسال انتخاب نکرده‌اید.');
     }
@@ -231,7 +241,7 @@ business.action(/^set_trade_cost_(\d+)_(\w+)$/, async (ctx) => {
     if (!ctx.session) {
         ctx.session = {};
     }
-    
+
     const match = ctx.match;
     const amount = parseInt(match[1]);
     const unit = match[2];
@@ -247,7 +257,7 @@ business.action('set_trade_cost_0', async (ctx) => {
     if (!ctx.session) {
         ctx.session = {};
     }
-    
+
     ctx.session.tradeCost = { amount: 0, unit: 'free' };
     ctx.session.tradeStep = 'send_confirmation_to_destination';
 
@@ -260,17 +270,17 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
     if (!ctx.session) {
         ctx.session = {};
     }
-    
+
     const user = ctx.user;
-    const items = ctx.session.tradeItems;
-    const destination = ctx.session.destinationCountry;
+    const items = ctx.session.tradeItems!;
+    const destination = ctx.session.destinationCountry!;
     const tradeCost = ctx.session.tradeCost;
     const oilCost = ctx.session.tradeOilCost;
 
     // پیدا کردن کاربران کشور مقصد
     const destinationUsers = await prisma.user.findMany({
         where: { countryName: destination },
-        select: { userid: true, countryName: true }
+        select: { userid: true }
     });
 
     if (destinationUsers.length === 0) {
@@ -283,8 +293,17 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
         try {
             const tradeId = `trade_${user.userid}_${destUser.userid}_${Date.now()}`;
 
+            // ذخیره جزئیات تجارت در Map (موقتی)
+            pendingTrades.set(tradeId, {
+                senderId: user.userid,
+                receiverId: destUser.userid,
+                items,
+                tradeCost,
+                oilCost
+            });
+
             let costText = '';
-            if (tradeCost.amount === 0) {
+            if (!tradeCost || tradeCost.amount === 0) {
                 costText = 'رایگان';
             } else {
                 costText = `${tradeCost.amount} ${transferableFields[tradeCost.unit] || tradeCost.unit}`;
@@ -307,7 +326,12 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
 
             confirmationsSent++;
         } catch (error) {
-            console.log(`Failed to send to user ${destUser.userid}:`, error);
+            // چک کردن اینکه آیا خطا مربوط به عدم دسترسی به کاربر است
+            if (error instanceof Error && error.message.includes('BadRequest: chat not found')) {
+                console.log(`کاربر ${destUser.userid} ربات را بلاک کرده یا چت پیدا نشد`);
+            } else {
+                console.log(`Failed to send to user ${destUser.userid}:`, error);
+            }
         }
     }
 
@@ -316,7 +340,9 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
             parse_mode: 'HTML'
         });
     } else {
-        await ctx.reply('❌ نتوانستم درخواست را ارسال کنم.');
+        await ctx.reply('❌ نتوانستم درخواست را ارسال کنم. ممکن است هیچ کاربر فعالی در کشور مقصد وجود نداشته باشد یا همه کاربران ربات را بلاک کرده باشند.', {
+            parse_mode: 'HTML'
+        });
     }
 }
 
@@ -326,9 +352,9 @@ business.action(/^accept_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
     if (!ctx.session) {
         ctx.session = {};
     }
-    
+
     const tradeId = ctx.match[1];
-    const accepterId = ctx.from.id;
+    const accepterId = BigInt(ctx.from.id);
 
     // استخراج اطلاعات از tradeId
     const parts = tradeId.split('_');
@@ -336,21 +362,27 @@ business.action(/^accept_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
     const receiverId = BigInt(parts[2]);
 
     // بررسی اینکه آیا این کاربر مجاز به قبول است
-    if (receiverId !== BigInt(accepterId)) {
+    if (receiverId !== accepterId) {
         return ctx.reply('❌ شما مجاز به قبول این تجارت نیستید.');
     }
 
-    // پیدا کردن اطلاعات تجارت از دیتابیس یا session (اینجا از session فرض می‌کنیم)
-    // در عمل باید از دیتابیس استفاده کنید
+    // بارگیری جزئیات تجارت از Map
+    const tradeDetails = pendingTrades.get(tradeId);
+    if (!tradeDetails) {
+        return ctx.reply('❌ جزئیات تجارت یافت نشد.');
+    }
+
     const senderUser = await prisma.user.findUnique({ where: { userid: senderId } });
-    if (!senderUser) return ctx.reply('❌ کاربر ارسال‌کننده یافت نشد.');
+    if (!senderUser) {
+        return ctx.reply('❌ کاربر ارسال‌کننده یافت نشد.');
+    }
 
     try {
         // ارسال تأیید به ارسال‌کننده
         await ctx.telegram.sendMessage(Number(senderId), `✅ کشور ${ctx.user.countryName} تجارت شما را قبول کرد!\n\n🚚 ارسال محموله‌ها آغاز می‌شود...`);
 
         // اجرای تجارت
-        await executeTrade(ctx, senderId, receiverId);
+        await executeTrade(ctx, tradeDetails, senderId, receiverId, tradeId);
     } catch (error) {
         console.log('Trade execution error:', error);
         await ctx.reply('❌ خطا در اجرای تجارت.');
@@ -363,31 +395,35 @@ business.action(/^reject_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
     if (!ctx.session) {
         ctx.session = {};
     }
-    
-    const tradeId = ctx.match[1];
-    const rejecterId = ctx.from.id;
 
-    const parts = tradeId.split('_');
-    const senderId = BigInt(parts[1]);
+    const tradeId = ctx.match[1];
+
+    // بارگیری جزئیات برای senderId
+    const tradeDetails = pendingTrades.get(tradeId);
+    if (!tradeDetails) {
+        return ctx.reply('❌ جزئیات تجارت یافت نشد.');
+    }
+
+    const senderId = tradeDetails.senderId;
 
     try {
         await ctx.telegram.sendMessage(Number(senderId), `❌ کشور ${ctx.user.countryName} تجارت شما را رد کرد.`);
         await ctx.reply('❌ تجارت رد شد.');
+
+        // پاک کردن از pending
+        pendingTrades.delete(tradeId);
     } catch (error) {
         console.log('Trade rejection error:', error);
     }
 });
 
 // تابع اجرای تجارت
-async function executeTrade(ctx: CustomContext, senderId: bigint, receiverId: bigint) {
-    // بررسی وجود session
-    if (!ctx.session) {
-        ctx.session = {};
-    }
-    
-    const items = ctx.session.tradeItems;
-    const tradeCost = ctx.session.tradeCost;
-    const oilCost = ctx.session.tradeOilCost;
+async function executeTrade(ctx: CustomContext, tradeDetails: {
+    items: { type: string; amount: number }[];
+    tradeCost?: { amount: number; unit: string };
+    oilCost: number;
+}, senderId: bigint, receiverId: bigint, tradeId: string) {
+    const { items, tradeCost, oilCost } = tradeDetails;
 
     // کسر منابع از ارسال‌کننده
     for (const item of items) {
@@ -401,20 +437,18 @@ async function executeTrade(ctx: CustomContext, senderId: bigint, receiverId: bi
     }
 
     // اگر هزینه وجود دارد، کسر از دریافت‌کننده و اضافه به ارسال‌کننده
-    if (tradeCost.amount > 0) {
+    if (tradeCost && tradeCost.amount > 0) {
         await changeUserField(receiverId, tradeCost.unit, 'subtract', tradeCost.amount);
         await changeUserField(senderId, tradeCost.unit, 'add', tradeCost.amount);
     }
 
-    // ارسال محموله‌ها
-    await deliverTradeItems(ctx, receiverId);
+    // ارسال محموله‌ها (فقط notify با delay، بدون add دوباره)
+    await deliverTradeItems(ctx, items, receiverId, senderId);
 
-    // پاک کردن session
-    ctx.session.tradeStep = null;
-    ctx.session.tradeItems = [];
-    ctx.session.destinationCountry = null;
-    ctx.session.tradeCost = null;
-    ctx.session.tradeOilCost = 0;
+    // پاک کردن از pending
+    pendingTrades.delete(tradeId);
+
+    // پاک کردن session ارسال‌کننده (اگر لازم، اما چون per-user، در cancel handle می‌شود)
 }
 
 // هندلر انصراف (فقط ریست session، کیبورد می‌مونه برای استفاده مجدد)
@@ -423,7 +457,6 @@ business.action('cancel_trade', async (ctx) => {
     if (!ctx.session) {
         ctx.session = {};
     }
-    
     ctx.session.tradeStep = null;
     ctx.session.tradeItems = [];
     ctx.session.destinationCountry = null;
@@ -434,32 +467,32 @@ business.action('cancel_trade', async (ctx) => {
     });
 });
 
-async function deliverTradeItems(ctx: CustomContext, receiverId: bigint) {
-    // بررسی وجود session
-    if (!ctx.session) {
-        ctx.session = {};
-    }
-    
-    const senderUser = ctx.user;
-    const items = ctx.session.tradeItems ?? [];
+async function deliverTradeItems(ctx: CustomContext, items: { type: string; amount: number }[], receiverId: bigint, senderId: bigint) {
+    const userId = Number(receiverId);
+    const senderUserId = Number(senderId);
 
     for (const item of items) {
         const { type, amount } = item;
-        const userId = Number(receiverId);
         const delay = Math.floor(Math.random() * (180 - 120 + 1)) + 120;
 
         setTimeout(async () => {
-            await changeUserField(BigInt(userId), type, 'add', amount);
+            // فقط notify، add قبلاً در executeTrade انجام شده
             await ctx.telegram.sendMessage(userId, `📦 محموله ${amount} واحد ${transferableFields[type]} تحویل شد.`);
+            // اختیاری: notify به sender هم
+            await ctx.telegram.sendMessage(senderUserId, `📦 محموله ${amount} واحد ${transferableFields[type]} به مقصد تحویل شد.`);
         }, delay * 1000);
     }
+
+    // ارسال خبر به کانال
+    const senderUser = await prisma.user.findUnique({ where: { userid: senderId } });
+    if (!senderUser) return;
 
     const country = getCountryByName(senderUser.countryName);
     const countryText = country?.name ?? senderUser.countryName;
 
     const newsTemplates = [
-        `خبر فوری - تجاری ♨️ طبق گزارش خبر نگاران کشور ${countryText} تجارت جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n✅ گمان‌هایی بر انتقال تسلیحات نظامی وجود دارد. ⁉️`,
-        `خبر فوری - تجاری ♨️ طبق گزارش خبر نگاران کشور ${countryText} تجارت جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n✅ گمان‌هایی بر انتقال سرمایه رایج وجود دارد. ⁉️`
+        `خبر فوری - تجاری ♨️ طبق گزارش خبرنگاران کشور ${countryText} تجارت جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n✅ گمان‌هایی بر انتقال تسلیحات نظامی وجود دارد. ⁉️`,
+        `خبر فوری - تجاری ♨️ طبق گزارش خبرنگاران کشور ${countryText} تجارت جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n✅ گمان‌هایی بر انتقال سرمایه رایج وجود دارد. ⁉️`
     ];
 
     const selectedNews = newsTemplates[Math.floor(Math.random() * newsTemplates.length)];
