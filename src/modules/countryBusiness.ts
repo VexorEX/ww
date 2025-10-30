@@ -45,6 +45,11 @@ function loadAvailableCountries() {
 }
 
 business.action('business', async (ctx) => {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+    
     const user = ctx.user;
 
     // چک کردن منابع کافی
@@ -76,6 +81,11 @@ business.action('business', async (ctx) => {
 loadAvailableCountries().forEach(countryName => {
     const callbackData = `select_country_${countryName.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_')}`;
     business.action(callbackData, async (ctx) => {
+        // بررسی وجود session
+        if (!ctx.session) {
+            ctx.session = {};
+        }
+        
         const user = ctx.user;
         ctx.session.destinationCountry = countryName;
         ctx.session.tradeStep = 'select_items';
@@ -91,6 +101,11 @@ loadAvailableCountries().forEach(countryName => {
 
 // تابع نمایش کیبورد آیتم‌های قابل انتقال
 async function showTradeItemsKeyboard(ctx: CustomContext) {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+    
     const user = ctx.user;
     const buttons = Object.keys(transferableFields)
         .filter(field => user[field] > 0)
@@ -117,6 +132,11 @@ async function showTradeItemsKeyboard(ctx: CustomContext) {
 // هندلر انتخاب آیتم‌ها
 Object.keys(transferableFields).forEach(field => {
     business.action(`select_item_${field}`, async (ctx) => {
+        // بررسی وجود session
+        if (!ctx.session) {
+            ctx.session = {};
+        }
+        
         if (ctx.session.tradeStep !== 'select_items') return;
 
         ctx.session.selectedItem = field;
@@ -128,6 +148,11 @@ Object.keys(transferableFields).forEach(field => {
 });
 
 business.on('text', async (ctx, next) => {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+    
     if (ctx.session.tradeStep === 'awaiting_quantity') {
         const amount = parseInt(ctx.message.text.trim());
         const field = ctx.session.selectedItem;
@@ -158,6 +183,11 @@ business.on('text', async (ctx, next) => {
 
 // هندلر تأیید نهایی تجارت
 business.action('confirm_trade', async (ctx) => {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+    
     if (ctx.session.tradeStep !== 'select_items' || !ctx.session.tradeItems || ctx.session.tradeItems.length === 0) {
         return ctx.reply('❌ هیچ آیتمی برای ارسال انتخاب نکرده‌اید.');
     }
@@ -197,6 +227,11 @@ ${itemsList}
 
 // هندلر تنظیم هزینه تجارت
 business.action(/^set_trade_cost_(\d+)_(\w+)$/, async (ctx) => {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+    
     const match = ctx.match;
     const amount = parseInt(match[1]);
     const unit = match[2];
@@ -208,6 +243,11 @@ business.action(/^set_trade_cost_(\d+)_(\w+)$/, async (ctx) => {
 });
 
 business.action('set_trade_cost_0', async (ctx) => {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+    
     ctx.session.tradeCost = { amount: 0, unit: 'free' };
     ctx.session.tradeStep = 'send_confirmation_to_destination';
 
@@ -216,6 +256,11 @@ business.action('set_trade_cost_0', async (ctx) => {
 
 // تابع ارسال تأیید به کشور مقصد
 async function sendTradeConfirmationToDestination(ctx: CustomContext) {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+    
     const user = ctx.user;
     const items = ctx.session.tradeItems;
     const destination = ctx.session.destinationCountry;
@@ -277,6 +322,11 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
 
 // هندلر قبول تجارت توسط کشور مقصد
 business.action(/^accept_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+    
     const tradeId = ctx.match[1];
     const accepterId = ctx.from.id;
 
@@ -309,6 +359,11 @@ business.action(/^accept_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
 
 // هندلر رد تجارت
 business.action(/^reject_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+    
     const tradeId = ctx.match[1];
     const rejecterId = ctx.from.id;
 
@@ -325,6 +380,11 @@ business.action(/^reject_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
 
 // تابع اجرای تجارت
 async function executeTrade(ctx: CustomContext, senderId: bigint, receiverId: bigint) {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+    
     const items = ctx.session.tradeItems;
     const tradeCost = ctx.session.tradeCost;
     const oilCost = ctx.session.tradeOilCost;
@@ -359,6 +419,11 @@ async function executeTrade(ctx: CustomContext, senderId: bigint, receiverId: bi
 
 // هندلر انصراف (فقط ریست session، کیبورد می‌مونه برای استفاده مجدد)
 business.action('cancel_trade', async (ctx) => {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+    
     ctx.session.tradeStep = null;
     ctx.session.tradeItems = [];
     ctx.session.destinationCountry = null;
@@ -370,6 +435,11 @@ business.action('cancel_trade', async (ctx) => {
 });
 
 async function deliverTradeItems(ctx: CustomContext, receiverId: bigint) {
+    // بررسی وجود session
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+    
     const senderUser = ctx.user;
     const items = ctx.session.tradeItems ?? [];
 
