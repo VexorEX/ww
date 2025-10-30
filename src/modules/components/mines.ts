@@ -30,7 +30,7 @@ mines.action('manage_mines', async (ctx) => {
     const rows: any[] = [];
 
     for (const [type, spec] of Object.entries(mineSpecs) as [MineType, typeof mineSpecs[MineType]][]) {
-        const current = user[spec.field] as number;
+        const current = typeof user[spec.field] === 'bigint' ? Number(user[spec.field]) : Number(user[spec.field] ?? 0);
         rows.push([
             Markup.button.callback(spec.label, 'noop'),
             Markup.button.callback(`📦 ${spec.dailyOutput}/روز`, 'noop'),
@@ -87,7 +87,8 @@ export async function applyDailyMineProfit(userid: bigint): Promise<'ok' | 'erro
         if (!user) return 'error';
 
         for (const [type, spec] of Object.entries(mineSpecs) as [MineType, typeof mineSpecs[MineType]][]) {
-            const count = user[spec.field] as number;
+            const rawCount = user[spec.field];
+            const count = typeof rawCount === 'bigint' ? Number(rawCount) : Number(rawCount ?? 0);
             const total = count * spec.dailyOutput;
             if (total > 0) {
                 const result = await changeUserField(userid, spec.resource as string, 'add', total);
@@ -133,7 +134,8 @@ mines.command('mineprofit', async (ctx) => {
     let report: string[] = [];
 
     for (const [type, spec] of Object.entries(mineSpecs) as [MineType, typeof mineSpecs[MineType]][]) {
-        const count = user[spec.field] as number;
+        const rawCount = user[spec.field];
+        const count = typeof rawCount === 'bigint' ? Number(rawCount) : Number(rawCount ?? 0);
         const total = count * spec.dailyOutput;
 
         if (total > 0) {
