@@ -59,7 +59,7 @@ business.action('business', async (ctx) => {
     // چک کردن منابع کافی
     const hasResources = Object.keys(transferableFields).some(field => user[field] > 0);
     if (!hasResources) {
-        return ctx.reply('❌ *شما هیچ منبعی برای انتقال ندارید.*', { parse_mode: 'MarkdownV2' });
+        return ctx.reply('<blockquote>❌ شما هیچ منبعی برای انتقال ندارید.</blockquote>', { parse_mode: 'HTML' });
     }
 
     // ریست کردن session برای شروع انتقال جدید
@@ -70,7 +70,7 @@ business.action('business', async (ctx) => {
     // نمایش لیست کشورها برای انتخاب مقصد
     const countries = loadAvailableCountries();
     if (countries.length === 0) {
-        return ctx.reply('❌ *هیچ کشوری برای انتقال در دسترس نیست.*', { parse_mode: 'MarkdownV2' });
+        return ctx.reply('<blockquote>❌ هیچ کشوری برای انتقال در دسترس نیست.</blockquote>', { parse_mode: 'HTML' });
     }
     const countryButtons = countries.map(country =>
         Markup.button.callback(`"${country}"`, `select_country_${country.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_')}`)
@@ -97,7 +97,7 @@ loadAvailableCountries().forEach(countryName => {
         ctx.session.destinationCountry = countryName;
         ctx.session.tradeStep = 'select_items';
 
-        await ctx.reply(`✅ *کشور مقصد:* ${countryName}\n\n📦 <blockquote>حالا منابع مورد نظر برای انتقال را انتخاب کنید.</blockquote>`, {
+        await ctx.reply(`✅ <b>کشور مقصد:</b> ${countryName}\n\n📦 <blockquote>حالا منابع مورد نظر برای انتقال را انتخاب کنید.</blockquote>`, {
             parse_mode: 'HTML'
         });
 
@@ -127,7 +127,7 @@ async function showTradeItemsKeyboard(ctx: CustomContext) {
     buttons.push(Markup.button.callback('❌ انصراف', 'cancel_trade'));
 
     if (buttons.length === 1) { // فقط انصراف
-        return ctx.reply('❌ *شما هیچ منبعی برای انتقال ندارید.*', { parse_mode: 'MarkdownV2' });
+        return ctx.reply('<blockquote>❌ شما هیچ منبعی برای انتقال ندارید.</blockquote>', { parse_mode: 'HTML' });
     }
 
     await ctx.reply('📦 <blockquote>منبع مورد نظر برای انتقال را انتخاب کنید:</blockquote>', {
@@ -148,7 +148,7 @@ Object.keys(transferableFields).forEach(field => {
 
         ctx.session.selectedItem = field;
         ctx.session.tradeStep = 'awaiting_quantity';
-        await ctx.reply(`🔢 <blockquote>چند واحد *${transferableFields[field]}* می‌خواهید انتقال دهید؟\n(حداکثر: ${ctx.user[field]})</blockquote>`, {
+        await ctx.reply(`🔢 <blockquote>چند واحد <b>${transferableFields[field]}</b> می‌خواهید انتقال دهید؟\n(حداکثر: ${ctx.user[field]})</blockquote>`, {
             parse_mode: 'HTML'
         });
     });
@@ -166,7 +166,7 @@ business.on('text', async (ctx, next) => {
         const user = ctx.user;
 
         if (!amount || amount <= 0 || amount > user[field]) {
-            return ctx.reply(`❌ <blockquote>مقدار نامعتبر یا بیشتر از موجودی شما (${user[field]}) است.</blockquote>`, {
+            return ctx.reply(`<blockquote>❌ مقدار نامعتبر یا بیشتر از موجودی شما (${user[field]}) است.</blockquote>`, {
                 parse_mode: 'HTML'
             });
         }
@@ -176,7 +176,7 @@ business.on('text', async (ctx, next) => {
         ctx.session.tradeStep = 'select_items';
         ctx.session.selectedItem = null;
 
-        await ctx.reply(`✅ <blockquote>${amount} واحد *${transferableFields[field]}* با موفقیت ثبت شد.</blockquote>\n\n📦 <blockquote>منبع دیگری انتخاب کنید یا "✅ تأیید و ارسال" را بزنید.</blockquote>`, {
+        await ctx.reply(`✅ <blockquote>${amount} واحد <b>${transferableFields[field]}</b> با موفقیت ثبت شد.</blockquote>\n\n📦 <blockquote>منبع دیگری انتخاب کنید یا "✅ تأیید و ارسال" را بزنید.</blockquote>`, {
             parse_mode: 'HTML'
         });
 
@@ -196,7 +196,7 @@ business.action('confirm_trade', async (ctx) => {
     }
 
     if (ctx.session.tradeStep !== 'select_items' || !ctx.session.tradeItems || ctx.session.tradeItems.length === 0) {
-        return ctx.reply('❌ <blockquote>هیچ منبعی برای انتقال انتخاب نکرده‌اید.</blockquote>', { parse_mode: 'HTML' });
+        return ctx.reply('<blockquote>❌ هیچ منبعی برای انتقال انتخاب نکرده‌اید.</blockquote>', { parse_mode: 'HTML' });
     }
 
     const user = ctx.user;
@@ -207,7 +207,7 @@ business.action('confirm_trade', async (ctx) => {
     const oilCost = Math.floor(Math.random() * (60 - 35 + 1)) + 35;
 
     if (user.oil < oilCost) {
-        return ctx.reply(`❌ <blockquote>نفت کافی برای پردازش انتقال ندارید. نیاز: ${oilCost} نفت</blockquote>`);
+        return ctx.reply(`<blockquote>❌ نفت کافی برای پردازش انتقال ندارید. نیاز: ${oilCost} نفت</blockquote>`, { parse_mode: 'HTML' });
     }
 
     // ذخیره هزینه نفت برای استفاده بعد
@@ -237,7 +237,7 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
     });
 
     if (destinationUsers.length === 0) {
-        return ctx.reply('❌ <blockquote>کشور مقصد کاربران فعالی ندارد.</blockquote>', { parse_mode: 'HTML' });
+        return ctx.reply('<blockquote>❌ کشور مقصد کاربران فعالی ندارد.</blockquote>', { parse_mode: 'HTML' });
     }
 
     // ارسال درخواست به همه کاربران کشور مقصد
@@ -257,7 +257,7 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
             const itemsList = items.map((item, index) => `${index + 1}. ${item.amount} واحد ${transferableFields[item.type]}`).join('\n');
             const message = `<b>📦 درخواست انتقال دریافتی</b>\n\n` +
                 `<b>از کشور:</b> ${user.countryName}\n` +
-                `<b>هزینه پیشنهادی:</b> *رایگان*\n\n` +
+                `<b>هزینه پیشنهادی:</b> <i>رایگان</i>\n\n` +
                 `<b>محموله‌ها:</b>\n${itemsList}\n\n` +
                 `<blockquote>⚠️ آیا این انتقال را قبول می‌کنید؟ (بدون هیچ هزینه‌ای برای شما)</blockquote>`;
 
@@ -285,7 +285,7 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
             parse_mode: 'HTML'
         });
     } else {
-        await ctx.reply('❌ <blockquote>نتوانستم درخواست را ارسال کنم. ممکن است کاربران مقصد ربات را بلاک کرده باشند.</blockquote>', {
+        await ctx.reply('<blockquote>❌ نتوانستم درخواست را ارسال کنم. ممکن است کاربران مقصد ربات را بلاک کرده باشند.</blockquote>', {
             parse_mode: 'HTML'
         });
     }
@@ -308,18 +308,18 @@ business.action(/^accept_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
 
     // بررسی اینکه آیا این کاربر مجاز به قبول است
     if (receiverId !== accepterId) {
-        return ctx.reply('❌ <blockquote>شما مجاز به قبول این انتقال نیستید.</blockquote>', { parse_mode: 'HTML' });
+        return ctx.reply('<blockquote>❌ شما مجاز به قبول این انتقال نیستید.</blockquote>', { parse_mode: 'HTML' });
     }
 
     // بارگیری جزئیات انتقال از Map
     const tradeDetails = pendingTrades.get(tradeId);
     if (!tradeDetails) {
-        return ctx.reply('❌ <blockquote>جزئیات انتقال یافت نشد.</blockquote>', { parse_mode: 'HTML' });
+        return ctx.reply('<blockquote>❌ جزئیات انتقال یافت نشد.</blockquote>', { parse_mode: 'HTML' });
     }
 
     const senderUser = await prisma.user.findUnique({ where: { userid: senderId } });
     if (!senderUser) {
-        return ctx.reply('❌ <blockquote>کاربر ارسال‌کننده یافت نشد.</blockquote>', { parse_mode: 'HTML' });
+        return ctx.reply('<blockquote>❌ کاربر ارسال‌کننده یافت نشد.</blockquote>', { parse_mode: 'HTML' });
     }
 
     try {
@@ -330,7 +330,7 @@ business.action(/^accept_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
         await executeTrade(ctx, tradeDetails, senderId, receiverId, tradeId);
     } catch (error) {
         console.log('Trade execution error:', error);
-        await ctx.reply('❌ <blockquote>خطا در اجرای انتقال.</blockquote>', { parse_mode: 'HTML' });
+        await ctx.reply('<blockquote>❌ خطا در اجرای انتقال.</blockquote>', { parse_mode: 'HTML' });
     }
 });
 
@@ -346,14 +346,14 @@ business.action(/^reject_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
     // بارگیری جزئیات برای senderId
     const tradeDetails = pendingTrades.get(tradeId);
     if (!tradeDetails) {
-        return ctx.reply('❌ <blockquote>جزئیات انتقال یافت نشد.</blockquote>', { parse_mode: 'HTML' });
+        return ctx.reply('<blockquote>❌ جزئیات انتقال یافت نشد.</blockquote>', { parse_mode: 'HTML' });
     }
 
     const senderId = tradeDetails.senderId;
 
     try {
         await ctx.telegram.sendMessage(Number(senderId), `❌ <blockquote>کشور ${ctx.user.countryName} انتقال شما را رد کرد.</blockquote>`, { parse_mode: 'HTML' });
-        await ctx.reply('❌ <blockquote>انتقال رد شد.</blockquote>', { parse_mode: 'HTML' });
+        await ctx.reply('<blockquote>❌ انتقال رد شد.</blockquote>', { parse_mode: 'HTML' });
 
         // پاک کردن از pending
         pendingTrades.delete(tradeId);
@@ -397,7 +397,7 @@ business.action('cancel_trade', async (ctx) => {
     ctx.session.tradeItems = [];
     ctx.session.destinationCountry = null;
     ctx.session.tradeOilCost = 0;
-    await ctx.reply('❌ <blockquote>انتقال لغو شد.</blockquote>', {
+    await ctx.reply('<blockquote>❌ انتقال لغو شد.</blockquote>', {
         parse_mode: 'HTML'
     });
 });
@@ -412,9 +412,9 @@ async function deliverTradeItems(ctx: CustomContext, items: { type: string; amou
 
         setTimeout(async () => {
             // فقط notify، add قبلاً در executeTrade انجام شده
-            await ctx.telegram.sendMessage(userId, `📦 <blockquote>محموله ${amount} واحد ${transferableFields[type]} تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
+            await ctx.telegram.sendMessage(userId, `<blockquote>📦 محموله ${amount} واحد ${transferableFields[type]} تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
             // اختیاری: notify به sender هم
-            await ctx.telegram.sendMessage(senderUserId, `📦 <blockquote>محموله ${amount} واحد ${transferableFields[type]} به مقصد تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
+            await ctx.telegram.sendMessage(senderUserId, `<blockquote>📦 محموله ${amount} واحد ${transferableFields[type]} به مقصد تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
         }, delay * 1000);
     }
 
