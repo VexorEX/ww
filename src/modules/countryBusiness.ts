@@ -2,9 +2,10 @@ import { Composer, Markup } from 'telegraf';
 import type { CustomContext } from '../middlewares/userAuth';
 import { changeUserField } from './economy';
 import { escapeMarkdownV2 } from '../utils/escape';
-import { getCountryByName, getAvailableCountriesList, loadCountries } from '../utils/countryUtils';
+import { getCountryByName, getAvailableCountriesList } from '../utils/countryUtils';
 import { prisma } from '../prisma';
 import config from '../config/config.json';
+import countriesData from '../config/countries.json'; // Assuming countries.json is imported directly if loadCountries not exported
 
 const business = new Composer<CustomContext>();
 
@@ -35,12 +36,11 @@ const transferableFields: { [key: string]: string } = {
     'agents': 'عامل'
 };
 
-// تابع دریافت کشورها بر اساس منطقه (با key و name)
-function getCountriesByRegion(region: 'asia' | 'europe' | 'africa' | 'america' | 'australia'): { key: string; name: string }[] {
-    const data = loadCountries();
-    const regionData = data[region];
+// تابع دریافت کشورها بر اساس منطقه (با key و name) - مستقیم از JSON
+function getCountriesByRegion(region: string): { key: string; name: string }[] {
+    const regionData = countriesData[region as keyof typeof countriesData];
     if (!regionData) return [];
-    return Object.entries(regionData).map(([key, c: any]) => ({ key, name: c.name }));
+    return Object.entries(regionData).map(([key, c]: [string , any]) => ({ key, name: c.name }));
 }
 
 // لیست مناطق
@@ -120,11 +120,12 @@ business.action(/^select_country_(.+)$/, async (ctx) => {
     if (ctx.session.tradeStep !== 'select_destination') return;
 
     const countryKey = ctx.match[1];
-    // Lookup name from loadCountries
+    // Lookup name from countriesData
     let countryName = '';
-    for (const [reg, countries] of Object.entries(loadCountries())) {
-        if (countries[countryKey]) {
-            countryName = countries[countryKey].name;
+    for (const [reg, countries] of Object.entries(countriesData)) {
+        const countryObj = (countries as any)[countryKey];
+        if (countryObj) {
+            countryName = countryObj.name;
             break;
         }
     }
