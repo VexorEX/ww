@@ -8,7 +8,23 @@ import config from '../config/config.json';
 
 const business = new Composer<CustomContext>();
 
-const transferableFields = ['iron', 'gold', 'oil', 'uranium', 'capital', 'soldier', 'tank', 'plane', 'ship', 'missile', 'nuclear', 'satellite', 'spies', 'agents'];
+// 定义可交易字段及其显示名称
+const transferableFields: { [key: string]: string } = {
+    'iron': 'آهن',
+    'gold': 'طلا',
+    'oil': 'نفت',
+    'uranium': 'اورانیوم',
+    'capital': 'سرمایه',
+    'soldier': 'سرباز',
+    'tank': 'تانک',
+    'plane': 'هواپیما',
+    'ship': 'کشتی',
+    'missile': 'موشک',
+    'nuclear': 'سلاح هسته‌ای',
+    'satellite': 'ماهواره',
+    'spies': 'جاسوس',
+    'agents': 'عامل'
+};
 
 // لیست کشورها برای انتخاب مقصد
 function loadAvailableCountries() {
@@ -31,6 +47,12 @@ function loadAvailableCountries() {
 business.action('business', async (ctx) => {
     const user = ctx.user;
 
+    // چک کردن منابع کافی
+    const hasResources = Object.keys(transferableFields).some(field => user[field] > 0);
+    if (!hasResources) {
+        return ctx.reply('❌ شما هیچ منبعی برای تجارت ندارید.');
+    }
+
     // ریست کردن session برای شروع تجارت جدید
     ctx.session.tradeStep = 'select_destination';
     ctx.session.tradeItems = [];
@@ -39,7 +61,7 @@ business.action('business', async (ctx) => {
     // نمایش لیست کشورها برای انتخاب مقصد
     const countries = loadAvailableCountries();
     const countryButtons = countries.map(country =>
-        Markup.button.callback(country, `select_country_${country.replace(/[^a-zA-Z0-9]/g, '_')}`)
+        Markup.button.callback(country, `select_country_${country.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_')}`)
     );
 
     countryButtons.push(Markup.button.callback('❌ انصراف', 'cancel_trade'));
@@ -52,7 +74,7 @@ business.action('business', async (ctx) => {
 
 // هندلر انتخاب کشور مقصد
 loadAvailableCountries().forEach(countryName => {
-    const callbackData = `select_country_${countryName.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const callbackData = `select_country_${countryName.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_')}`;
     business.action(callbackData, async (ctx) => {
         const user = ctx.user;
         ctx.session.destinationCountry = countryName;
@@ -70,9 +92,17 @@ loadAvailableCountries().forEach(countryName => {
 // تابع نمایش کیبورد آیتم‌های قابل انتقال
 async function showTradeItemsKeyboard(ctx: CustomContext) {
     const user = ctx.user;
-    const buttons = transferableFields
+    const buttons = Object.keys(transferableFields)
         .filter(field => user[field] > 0)
-        .map(field => Markup.button.callback(`${field} (${user[field]})`, `select_item_${field}`));
+        .map(field => Markup.button.callback(`${transferableFields[field]} (${user[field]})`, `select_item_${field}`));
+
+    // اضافه کردن دکمه تأیید و ارسال
+    if (ctx.session.tradeItems && ctx.session.tradeItems.length > 0) {
+        buttons.push(Markup.button.callback('✅ تأیید و ارسال', 'confirm_trade'));
+    }
+
+    // اضافه کردن دکمه لغو
+    buttons.push(Markup.button.callback('❌ انصراف', 'cancel_trade'));
 
     if (buttons.length === 0) {
         return ctx.reply('❌ شما هیچ آیتمی برای ارسال ندارید.');
@@ -85,17 +115,18 @@ async function showTradeItemsKeyboard(ctx: CustomContext) {
 }
 
 // هندلر انتخاب آیتم‌ها
-for (const field of transferableFields) {
+Object.keys(transferableFields).forEach(field => {
     business.action(`select_item_${field}`, async (ctx) => {
         if (ctx.session.tradeStep !== 'select_items') return;
 
         ctx.session.selectedItem = field;
         ctx.session.tradeStep = 'awaiting_quantity';
-        await ctx.reply(`🔢 چند واحد ${field} می‌خواهید ارسال کنید؟ (حداکثر: ${ctx.user[field]})`, {
+        await ctx.reply(`🔢 چند واحد ${transferableFields[field]} می‌خواهید ارسال کنید؟ (حداکثر: ${ctx.user[field]})`, {
             parse_mode: 'HTML'
         });
     });
-}
+});
+
 business.on('text', async (ctx, next) => {
     if (ctx.session.tradeStep === 'awaiting_quantity') {
         const amount = parseInt(ctx.message.text.trim());
@@ -113,7 +144,7 @@ business.on('text', async (ctx, next) => {
         ctx.session.tradeStep = 'select_items';
         ctx.session.selectedItem = null;
 
-        await ctx.reply(`✅ ${amount} واحد ${field} ثبت شد.\n\n📦 آیتم دیگری انتخاب کنید یا دکمه "✅ تأیید و ارسال" را بزنید.`, {
+        await ctx.reply(`✅ ${amount} واحد ${transferableFields[field]} ثبت شد.\n\n📦 آیتم دیگری انتخاب کنید یا دکمه "✅ تأیید و ارسال" را بزنید.`, {
             parse_mode: 'HTML'
         });
 
@@ -147,7 +178,13 @@ business.action('confirm_trade', async (ctx) => {
     ctx.session.tradeStep = 'awaiting_trade_cost';
 
     // پرسیدن هزینه تجارت از کاربر
-    await ctx.reply(`💰 چه هزینه‌ای می‌خواهید از کشور ${destination} دریافت کنید؟\n\n📦 محموله‌های شما:\n${items.map((item, index) => `${index + 1}. ${item.amount} واحد ${item.type}`).join('\n')}\n\n💸 هزینه پردازش: ${oilCost} نفت`, {
+    const itemsList = items.map((item, index) => `${index + 1}. ${item.amount} واحد ${transferableFields[item.type]}`).join('\n');
+    await ctx.reply(`💰 چه هزینه‌ای می‌خواهید از کشور ${destination} دریافت کنید؟
+
+📦 محموله‌های شما:
+${itemsList}
+
+💸 هزینه پردازش: ${oilCost} نفت`, {
         reply_markup: Markup.inlineKeyboard([
             [Markup.button.callback('💰 رایگان', 'set_trade_cost_0')],
             [Markup.button.callback('💎 1000 طلا', 'set_trade_cost_1000_gold')],
@@ -205,13 +242,14 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
             if (tradeCost.amount === 0) {
                 costText = 'رایگان';
             } else {
-                costText = `${tradeCost.amount} ${tradeCost.unit}`;
+                costText = `${tradeCost.amount} ${transferableFields[tradeCost.unit] || tradeCost.unit}`;
             }
 
+            const itemsList = items.map((item, index) => `${index + 1}. ${item.amount} واحد ${transferableFields[item.type]}`).join('\n');
             const message = `<b>📦 درخواست تجارت دریافتی</b>\n\n` +
                 `<b>از کشور:</b> ${user.countryName}\n` +
                 `<b>هزینه پیشنهادی:</b> ${costText}\n\n` +
-                `<b>محموله‌ها:</b>\n${items.map((item, index) => `${index + 1}. ${item.amount} واحد ${item.type}`).join('\n')}\n\n` +
+                `<b>محموله‌ها:</b>\n${itemsList}\n\n` +
                 `<b>⚠️ آیا این تجارت را قبول دارید؟</b>`;
 
             await ctx.telegram.sendMessage(Number(destUser.userid), message, {
@@ -309,7 +347,7 @@ async function executeTrade(ctx: CustomContext, senderId: bigint, receiverId: bi
     }
 
     // ارسال محموله‌ها
-    await deliverTradeItems(ctx);
+    await deliverTradeItems(ctx, receiverId);
 
     // پاک کردن session
     ctx.session.tradeStep = null;
@@ -325,28 +363,29 @@ business.action('cancel_trade', async (ctx) => {
     ctx.session.tradeItems = [];
     ctx.session.destinationCountry = null;
     ctx.session.tradeOilCost = 0;
+    ctx.session.tradeCost = null;
     await ctx.reply('❌ تجارت لغو شد.', {
         parse_mode: 'HTML'
     });
 });
 
-async function deliverTradeItems(ctx: CustomContext) {
-    const user = ctx.user;
+async function deliverTradeItems(ctx: CustomContext, receiverId: bigint) {
+    const senderUser = ctx.user;
     const items = ctx.session.tradeItems ?? [];
 
     for (const item of items) {
         const { type, amount } = item;
-        const userId = Number(user.userid);
+        const userId = Number(receiverId);
         const delay = Math.floor(Math.random() * (180 - 120 + 1)) + 120;
 
         setTimeout(async () => {
             await changeUserField(BigInt(userId), type, 'add', amount);
-            await ctx.telegram.sendMessage(userId, `📦 محموله ${amount} واحد ${type} تحویل شد.`);
+            await ctx.telegram.sendMessage(userId, `📦 محموله ${amount} واحد ${transferableFields[type]} تحویل شد.`);
         }, delay * 1000);
     }
 
-    const country = getCountryByName(user.countryName);
-    const countryText = country?.name ?? user.countryName;
+    const country = getCountryByName(senderUser.countryName);
+    const countryText = country?.name ?? senderUser.countryName;
 
     const newsTemplates = [
         `خبر فوری - تجاری ♨️ طبق گزارش خبر نگاران کشور ${countryText} تجارت جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n✅ گمان‌هایی بر انتقال تسلیحات نظامی وجود دارد. ⁉️`,
