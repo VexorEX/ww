@@ -113,11 +113,21 @@ export function getAvailableCountriesList(name: string): Country[] {
 
 // Helper اضافی: فرمت لیست برای reply (اختیاری)
 export function formatCountryList(countries: Country[] | string[], title: string): string {
-    if (countries.length === 0) return '❌ نتیجه‌ای پیدا نشد!';
-    const list = Array.isArray(countries[0])
-        ? (countries as Country[]).map(c => c.name).join(' | ')
-        : (countries as string[]).join(' | ');
-    return `🌍 ${title}:\n${list}\n(تعداد: ${countries.length})`;
+    if (!countries || countries.length === 0) return '❌ نتیجه‌ای پیدا نشد!';
+
+    let listStr: string;
+    const first = countries[0] as any;
+
+    if (typeof first === 'string') {
+        listStr = (countries as string[]).join(' | ');
+    } else if (typeof first === 'object' && first !== null && 'name' in first) {
+        listStr = (countries as Country[]).map(c => c.name).join(' | ');
+    } else {
+        // fallback
+        listStr = countries.map(c => String((c as any).name ?? c)).join(' | ');
+    }
+
+    return `🌍 ${title}:\n${listStr}\n(تعداد: ${countries.length})`;
 }
 
 export function getCountryByName(name: string) {
