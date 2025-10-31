@@ -567,6 +567,14 @@ business.action('cancel_trade', async (ctx) => {
     if (!ctx.session) {
         ctx.session = {};
     }
+
+    const user = ctx.user;
+    if (ctx.session.deductedItems && ctx.session.deductedItems.length > 0) {
+        for (const item of ctx.session.deductedItems) {
+            await changeUserField(user.userid, item.type, 'add', item.amount);
+        }
+        ctx.session.deductedItems = [];
+    }
     ctx.session.tradeStep = null;
     ctx.session.tradeItems = [];
     ctx.session.destinationCountry = null;
