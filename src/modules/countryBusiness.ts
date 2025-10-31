@@ -20,7 +20,7 @@ const pendingTrades = new Map<string, {
 }>();
 
 // لیست آیتم‌های غیرقابل انتقال
-const nonTransferableFields: string[] = ['soldier','refinery','ironMine','goldMine','uraniumMine'];
+const nonTransferableFields: string[] = ['soldier','goldMine','uraniumMine','ironMine','refinery'];
 
 // تعریف کلیدهای قابل انتقال و نام‌های نمایشی آنها (همه فیلدها از model)
 const transferableFields: { [key: string]: string } = {
@@ -121,7 +121,7 @@ business.action('business', async (ctx) => {
 
     // ریست کردن session برای شروع انتقال جدید
     ctx.session.tradeStep = 'select_region';
-    ctx.session.tradeItems = [];
+    ctx.session.tradeItems = []; // مطمئن شوید که همیشه خالی است
     ctx.session.tradeOilCost = 0;
 
     // نمایش کیبورد مناطق
@@ -379,13 +379,16 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
     });
 
     if (destinationUsers.length === 0) {
-        // اگر مقصد خالی، منابع رو برگردون
+        // اگر مقصد خالی، منابع رو برگردان
         for (const item of items) {
             await changeUserField(user.userid, item.type, 'add', item.amount);
         }
         await changeUserField(user.userid, 'oil', 'add', oilCost);
         return ctx.reply('<blockquote>❌ کشور مقصد کاربران فعالی ندارد. منابع بازگردانده شد.</blockquote>', { parse_mode: 'HTML' });
     }
+
+    // کپی items برای جلوگیری از تداخل
+    const copiedItems = [...items];
 
     // ارسال درخواست به همه کاربران کشور مقصد
     let confirmationsSent = 0;
@@ -397,12 +400,12 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
             pendingTrades.set(tradeId, {
                 senderId: user.userid,
                 receiverId: destUser.userid,
-                items,
+                items: copiedItems, // کپی جدید
                 oilCost,
                 resourcesDeducted: true
             });
 
-            const itemsList = items.map((item, index) => `${index + 1}. ${item.amount} واحد ${transferableFields[item.type]}`).join('\n');
+            const itemsList = copiedItems.map((item, index) => `${index + 1}. ${item.amount} واحد ${transferableFields[item.type]}`).join('\n');
             const message = `<b>📦 درخواست انتقال دریافتی</b>\n\n` +
                 `<b>از کشور:</b> ${user.countryName}\n\n` +
                 `<b>محموله‌ها:</b>\n${itemsList}\n\n` +
@@ -431,7 +434,7 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
             parse_mode: 'HTML'
         });
     } else {
-        // اگر هیچی ارسال نشد، منابع رو برگردون
+        // اگر هیچی ارسال نشد، منابع رو برگردان
         for (const item of items) {
             await changeUserField(user.userid, item.type, 'add', item.amount);
         }
@@ -508,7 +511,7 @@ business.action(/^reject_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
         await ctx.telegram.sendMessage(Number(senderId), `❌ <blockquote>کشور ${ctx.user.countryName} انتقال شما را رد کرد.</blockquote>`, { parse_mode: 'HTML' });
         await ctx.reply('<blockquote>❌ انتقال رد شد.</blockquote>', { parse_mode: 'HTML' });
 
-        // اگر منابع کسر شده، برگردون + 50% نفت مالیات
+        // اگر منابع کسر شده، برگردان + 50% نفت مالیات
         if (tradeDetails.resourcesDeducted) {
             for (const item of tradeDetails.items) {
                 await changeUserField(senderId, item.type, 'add', item.amount);
@@ -543,9 +546,15 @@ async function executeTrade(ctx: CustomContext, tradeDetails: {
 
     // پاک کردن از pending
     pendingTrades.delete(tradeId);
+
+    // پاک کردن session کاربر sender
+    const senderSession = await prisma.user.findUnique({ where: { userid: senderId } });
+    if (senderSession) {
+        // فرض کنید session در دیتابیس ذخیره می‌شود، یا از ctx.telegram (اما برای سادگی، در کد فرض بر پاک کردن در final_confirm)
+    }
 }
 
-// هندلر انصراف (فقط ریست session، کیبورد می‌مونه برای استفاده مجدد)
+// هندلر انصراف (پاک کردن session و بستن پنل)
 business.action('cancel_trade', async (ctx) => {
     // بررسی وجود session
     if (!ctx.session) {
@@ -557,9 +566,10 @@ business.action('cancel_trade', async (ctx) => {
     ctx.session.selectedRegion = null;
     ctx.session.tradeOilCost = 0;
     await ctx.answerCbQuery('❌ انتقال لغو شد.');
-    await ctx.deleteMessage(); // یا ctx.editMessageText('انتقال لغو شد.') برای back
+    await ctx.deleteMessage(); // حذف پیام فعلی برای بستن پنل
 });
 
+// تابع deliverTradeItems
 async function deliverTradeItems(ctx: CustomContext, items: { type: string; amount: number }[], receiverId: bigint, senderId: bigint) {
     const userId = Number(receiverId);
     const senderUserId = Number(senderId);
@@ -569,7 +579,7 @@ async function deliverTradeItems(ctx: CustomContext, items: { type: string; amou
         const delay = Math.floor(Math.random() * (180 - 120 + 1)) + 120;
 
         setTimeout(async () => {
-            // فقط notify، add قبلاً در executeTrade انجام شده
+            // فقط notify، add قبلاً در executeTrade انجام شد
             try {
                 await ctx.telegram.sendMessage(userId, `<blockquote>📦 محموله ${amount} واحد ${transferableFields[type]} تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
                 // اختیاری: notify به sender هم
@@ -595,22 +605,37 @@ async function deliverTradeItems(ctx: CustomContext, items: { type: string; amou
 
         const selectedNews = newsTemplates[Math.floor(Math.random() * newsTemplates.length)];
 
-        // استفاده از URL از config اگر موجود، иначе sendMessage
-        if (config.images && config.images.trade) {
-            // انتخاب تصویر تصادفی از لیست
-            const randomImage = config.images.trade[Math.floor(Math.random() * config.images.trade.length)];
+        // انتخاب تصویر تصادفی از لیست
+        const randomImage = config.images.trade[Math.floor(Math.random() * config.images.trade.length)];
 
-            await ctx.telegram.sendPhoto(config.channels.business, randomImage, {
-                caption: escapeMarkdownV2(selectedNews),
-                parse_mode: 'MarkdownV2'
-            });
-        } else {
+        // تست URL با head request (اختیاری، برای چک اعتبار)
+        try {
+            const response = await fetch(randomImage, { method: 'HEAD' });
+            if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
+                await ctx.telegram.sendPhoto(config.channels.business, randomImage, {
+                    caption: escapeMarkdownV2(selectedNews),
+                    parse_mode: 'MarkdownV2'
+                });
+            } else {
+                // fallback به sendMessage اگر URL معتبر نیست
+                await ctx.telegram.sendMessage(config.channels.business, escapeMarkdownV2(selectedNews), {
+                    parse_mode: 'MarkdownV2'
+                });
+            }
+        } catch (urlError) {
+            console.error('Image URL invalid:', randomImage, urlError);
+            // fallback به sendMessage
             await ctx.telegram.sendMessage(config.channels.business, escapeMarkdownV2(selectedNews), {
                 parse_mode: 'MarkdownV2'
             });
         }
     } catch (error) {
         console.error('Error sending news to channel:', error);
+        // نهایی fallback
+        const fallbackNews = 'خبر فوری - انتقال ♨️ محموله‌ها سالم تحویل شدند.';
+        await ctx.telegram.sendMessage(config.channels.business, fallbackNews, {
+            parse_mode: 'MarkdownV2'
+        });
     }
 }
 
