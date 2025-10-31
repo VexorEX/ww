@@ -18,12 +18,25 @@ perm.command('ban', async (ctx) => {
         return ctx.reply('❌ فرمت صحیح: /ban <userid>');
     }
 
-    await prisma.user.update({
-        where: { userid: BigInt(targetId) },
-        data: { banned: true }
-    });
+    try {
+        const user = await prisma.user.findUnique({
+            where: { userid: BigInt(targetId) }
+        });
 
-    await ctx.reply(`✅ کاربر ${targetId} بن شد.`);
+        if (!user) {
+            return ctx.reply(`❌ کاربر با شناسه ${targetId} یافت نشد.`);
+        }
+
+        await prisma.user.update({
+            where: { userid: BigInt(targetId) },
+            data: { banned: true }
+        });
+
+        await ctx.reply(`✅ کاربر ${targetId} بن شد.`);
+    } catch (error) {
+        console.error('Error banning user:', error);
+        await ctx.reply(`❌ خطایی در بن کردن کاربر رخ داد: ${error.message}`);
+    }
 });
 
 perm.command('unban', async (ctx) => {
@@ -39,12 +52,25 @@ perm.command('unban', async (ctx) => {
         return ctx.reply('❌ فرمت صحیح: /unban <userid>');
     }
 
-    await prisma.user.update({
-        where: { userid: BigInt(targetId) },
-        data: { banned: false }
-    });
+    try {
+        const user = await prisma.user.findUnique({
+            where: { userid: BigInt(targetId) }
+        });
 
-    await ctx.reply(`✅ کاربر ${targetId} آن‌بن شد.`);
+        if (!user) {
+            return ctx.reply(`❌ کاربر با شناسه ${targetId} یافت نشد.`);
+        }
+
+        await prisma.user.update({
+            where: { userid: BigInt(targetId) },
+            data: { banned: false }
+        });
+
+        await ctx.reply(`✅ کاربر ${targetId} آن‌بن شد.`);
+    } catch (error) {
+        console.error('Error unbanning user:', error);
+        await ctx.reply(`❌ خطایی در آن‌بن کردن کاربر رخ داد: ${error.message}`);
+    }
 });
 
 export default perm;
