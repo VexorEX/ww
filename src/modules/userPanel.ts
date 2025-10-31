@@ -12,6 +12,7 @@ import business from "./countryBusiness";
 import lottery from "./admin/lottery";
 import { prisma } from "../prisma";
 import adminPanel from "./adminPanel";
+import perm from "./admin/perm";
 
 const userPanel = new Composer<CustomContext>();
 
@@ -108,6 +109,7 @@ userPanel.use(mines);
 userPanel.use(business) // Disabled for now
 userPanel.use(lottery)
 userPanel.use(adminPanel);
+userPanel.use(perm)
 userPanel.use(async (ctx, next)=> {
     await prisma.lotteryState.upsert({
         where: { id: 1 },
