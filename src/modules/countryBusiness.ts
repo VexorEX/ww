@@ -16,13 +16,13 @@ const pendingTrades = new Map<string, {
     items: { type: string; amount: number }[];
     oilCost: number;
     resourcesDeducted: boolean;
-    destination: string; // اضافه شد برای مقصد
+    destination: string;
 }>();
 
 // لیست آیتم‌های غیرقابل انتقال
 const nonTransferableFields: string[] = ['soldier', 'goldMine', 'uraniumMine', 'ironMine', 'refinery'];
 
-// تعریف کلیدهای قابل انتقال و نام‌های نمایشی آنها (همه فیلدها از model)
+// تعریف کلیدهای قابل انتقال و نام‌های نمایشی آنها
 const transferableFields: { [key: string]: string } = {
     // منابع
     'oil': 'نفت',
@@ -268,7 +268,16 @@ business.on('text', async (ctx, next) => {
             });
         }
 
-        // اضافه کردن آیتم به لیست (هنوز کسر نمی‌کنیم)
+        // کسر فوری از کاربر
+        await changeUserField(user.userid, field, 'subtract', amount);
+
+        // ذخیره در لیست برای برگرداندن اگر cancel شد
+        if (!ctx.session.deductedItems) {
+            ctx.session.deductedItems = [];
+        }
+        ctx.session.deductedItems.push({ type: field, amount });
+
+        // اضافه به لیست نمایش
         if (!ctx.session.tradeItems) {
             ctx.session.tradeItems = [];
         }
@@ -302,9 +311,14 @@ business.action('confirm_trade', async (ctx) => {
     // محاسبه هزینه نفت (پردازش انتقال)
     const oilCost = Math.floor(Math.random() * (60 - 35 + 1)) + 35;
 
-    if (Number(user.oil) < oilCost) {
-        return ctx.reply(`<blockquote>❌ نفت کافی برای پردازش انتقال ندارید. نیاز: ${oilCost} نفت</blockquote>`, { parse_mode: 'HTML' });
+    // کسر oil فوری
+    await changeUserField(user.userid, 'oil', 'subtract', oilCost);
+
+    // ذخیره در لیست برای برگرداندن
+    if (!ctx.session.deductedItems) {
+        ctx.session.deductedItems = [];
     }
+    ctx.session.deductedItems.push({ type: 'oil', amount: oilCost });
 
     // ذخیره هزینه نفت برای استفاده بعد
     ctx.session.tradeOilCost = oilCost;
@@ -325,7 +339,7 @@ business.action('confirm_trade', async (ctx) => {
     });
 });
 
-// هندلر تأیید نهایی (کسر منابع و ارسال) + خبر اولیه
+// هندلر تأیید نهایی (فقط خبر، بدون کسر)
 business.action('final_confirm', async (ctx) => {
     // بررسی وجود session
     if (!ctx.session) {
@@ -339,24 +353,6 @@ business.action('final_confirm', async (ctx) => {
     const oilCost = ctx.session.tradeOilCost!;
     const destination = ctx.session.destinationCountry!;
     const countryName = user.countryName;
-
-    // دریافت داده‌های تازه کاربر از دیتابیس برای چک دقیق
-    const freshUser = await prisma.user.findUnique({ where: { userid: user.userid } });
-    if (!freshUser) {
-        return ctx.reply('<blockquote>❌ خطا در دریافت اطلاعات کاربر. انتقال لغو شد.</blockquote>', { parse_mode: 'HTML' });
-    }
-
-    // چک نهایی منابع با داده‌های تازه
-    const hasEnough = items.every(item => Number(freshUser[item.type as keyof typeof freshUser]) >= item.amount) && Number(freshUser.oil) >= oilCost;
-    if (!hasEnough) {
-        return ctx.reply('<blockquote>❌ منابع کافی ندارید. انتقال لغو شد.</blockquote>', { parse_mode: 'HTML' });
-    }
-
-    // کسر منابع از کاربر (با داده‌های تازه)
-    for (const item of items) {
-        await changeUserField(user.userid, item.type, 'subtract', item.amount);
-    }
-    await changeUserField(user.userid, 'oil', 'subtract', oilCost);
 
     ctx.session.tradeStep = 'send_confirmation_to_destination';
 
@@ -392,10 +388,11 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
 
     if (destinationUsers.length === 0) {
         // اگر مقصد خالی، منابع رو برگردان
-        for (const item of items) {
-            await changeUserField(user.userid, item.type, 'add', item.amount);
+        if (ctx.session.deductedItems) {
+            for (const item of ctx.session.deductedItems) {
+                await changeUserField(user.userid, item.type, 'add', item.amount);
+            }
         }
-        await changeUserField(user.userid, 'oil', 'add', oilCost);
         return ctx.reply('<blockquote>❌ کشور مقصد کاربران فعالی ندارد. منابع بازگردانده شد.</blockquote>', { parse_mode: 'HTML' });
     }
 
@@ -408,17 +405,20 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
         try {
             const tradeId = `trade_${user.userid}_${destUser.userid}_${Date.now()}`;
 
+            // کپی تازه برای هر کاربر
+            const copiedItemsForUser = [...copiedItems];
+
             // ذخیره جزئیات انتقال در Map (موقتی)
             pendingTrades.set(tradeId, {
                 senderId: user.userid,
                 receiverId: destUser.userid,
-                items: copiedItems, // کپی جدید
+                items: copiedItemsForUser,
                 oilCost,
                 resourcesDeducted: true,
-                destination // اضافه شد برای خبر نهایی
+                destination
             });
 
-            const itemsList = copiedItems.map((item, index) => `${index + 1}. ${item.amount} واحد ${transferableFields[item.type]}`).join('\n');
+            const itemsList = copiedItemsForUser.map((item, index) => `${index + 1}. ${item.amount} واحد ${transferableFields[item.type]}`).join('\n');
             const message = `<b>📦 درخواست انتقال دریافتی</b>\n\n` +
                 `<b>از کشور:</b> ${user.countryName}\n\n` +
                 `<b>محموله‌ها:</b>\n${itemsList}\n\n` +
@@ -430,10 +430,8 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
                 ]).reply_markup,
                 parse_mode: 'HTML'
             });
-
             confirmationsSent++;
         } catch (error) {
-            // چک کردن اینکه آیا خطا مربوط به عدم دسترسی به کاربر است
             if (error instanceof Error && error.message.includes('BadRequest: chat not found')) {
                 console.log(`کاربر ${destUser.userid} ربات را بلاک کرده یا چت پیدا نشد`);
             } else {
@@ -448,10 +446,11 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
         });
     } else {
         // اگر هیچی ارسال نشد، منابع رو برگردان
-        for (const item of items) {
-            await changeUserField(user.userid, item.type, 'add', item.amount);
+        if (ctx.session.deductedItems) {
+            for (const item of ctx.session.deductedItems) {
+                await changeUserField(user.userid, item.type, 'add', item.amount);
+            }
         }
-        await changeUserField(user.userid, 'oil', 'add', oilCost);
         await ctx.reply('<blockquote>❌ نتوانستم درخواست را ارسال کنم. منابع بازگردانده شد.</blockquote>', {
             parse_mode: 'HTML'
         });
