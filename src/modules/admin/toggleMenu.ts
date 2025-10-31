@@ -43,6 +43,7 @@ toggleMenu.action('admin_toggleMenu', async (ctx) => {
         })
     );
 
+    // استفاده از reply به جای editMessageText برای اولین نمایش
     await ctx.reply('🧩 وضعیت نمایش دکمه‌های منو:', keyboard);
     ctx.answerCbQuery();
 });
@@ -53,8 +54,15 @@ toggleMenu.action( /^toggle_section_(.+)$/, async (ctx) => {
     const keys = sectionKey.split('__');
 
     // بارگذاری نسخه تازه
-    delete require.cache[require.resolve(CONFIG_PATH)];
-    const freshConfig = require(CONFIG_PATH);
+    let freshConfig;
+    try {
+        // استفاده از fs.readFileSync برای خواندن فایل به صورت مستقیم
+        const configFile = fs.readFileSync(CONFIG_PATH, 'utf-8');
+        freshConfig = JSON.parse(configFile);
+    } catch (err) {
+        console.error('❌ خطا در خواندن فایل پیکربندی:', err);
+        return ctx.answerCbQuery('❌ خطا در خواندن فایل پیکربندی.');
+    }
 
     // دسترسی به مسیر
     let target = freshConfig.manage;
@@ -72,29 +80,48 @@ toggleMenu.action( /^toggle_section_(.+)$/, async (ctx) => {
 
     // تغییر وضعیت
     target[lastKey].status = !current;
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify(freshConfig, null, 2), 'utf-8');
+    
+    try {
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(freshConfig, null, 2), 'utf-8');
+    } catch (err) {
+        console.error('❌ خطا در نوشتن فایل پیکربندی:', err);
+        return ctx.answerCbQuery('❌ خطا در ذخیره تغییرات.');
+    }
+
+    // به‌روزرسانی config در حافظه
+    try {
+        // بارگذاری مجدد config در حافظه
+        delete require.cache[require.resolve(CONFIG_PATH)];
+        Object.assign(config, require(CONFIG_PATH));
+    } catch (err) {
+        console.error('❌ خطا در بارگذاری مجدد پیکربندی:', err);
+    }
 
     // بازسازی کیبورد
     const paths = extractStatusPaths(freshConfig.manage);
     const keyboard = Markup.inlineKeyboard(
         paths.map((path) => {
             const keys = path.split('.').slice(1);
-            const sectionObj = keys.reduce((acc, key) => acc?.[key], config.manage);
+            const sectionObj = keys.reduce((acc, key) => acc?.[key], freshConfig.manage);
             const status = typeof sectionObj?.status === 'boolean' ? sectionObj.status : null;
             const label = keys.join(' › ');
             return [Markup.button.callback(`${status === true ? '✅' : status === false ? '❌' : '❓'} ${label}`, `toggle_section_${keys.join('__')}`)];
         })
     );
 
-
     try {
-        await ctx.editMessageText('🧩 وضعیت نمایش دکمه‌های منو:', {
-            reply_markup: keyboard.reply_markup
-        });
+        // استفاده از editMessageText فقط اگر پیام قابل ویرایش باشد
+        if (ctx.callbackQuery && ctx.callbackQuery.message) {
+            await ctx.editMessageText('🧩 وضعیت نمایش دکمه‌های منو:', {
+                reply_markup: keyboard.reply_markup
+            });
+        } else {
+            // در غیر این صورت از reply استفاده کن
+            await ctx.reply('🧩 وضعیت نمایش دکمه‌های منو:', keyboard);
+        }
     } catch (err) {
-        console.error('❌ خطا در ویرایش پیام:', err);
+        console.error('❌ خطا در ویرایش یا ارسال پیام:', err);
         await ctx.reply(`✅ وضعیت "${keys.join(' › ')}" به ${!current ? 'فعال' : 'غیرفعال'} تغییر یافت.`);
-
     }
 
     ctx.answerCbQuery();

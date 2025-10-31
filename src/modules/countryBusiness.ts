@@ -20,7 +20,7 @@ const pendingTrades = new Map<string, {
 }>();
 
 // لیست آیتم‌های غیرقابل انتقال
-const nonTransferableFields: string[] = ['soldier'];
+const nonTransferableFields: string[] = ['soldier','goldMine', 'uraniumMine', 'ironMine', 'refinery'];
 
 // تعریف کلیدهای قابل انتقال و نام‌های نمایشی آنها (همه فیلدها از model)
 const transferableFields: { [key: string]: string } = {
