@@ -340,13 +340,19 @@ business.action('final_confirm', async (ctx) => {
     const destination = ctx.session.destinationCountry!;
     const countryName = user.countryName;
 
-    // چک نهایی منابع
-    const hasEnough = items.every(item => Number(user[item.type as keyof typeof user]) >= item.amount) && Number(user.oil) >= oilCost;
+    // دریافت داده‌های تازه کاربر از دیتابیس برای چک دقیق
+    const freshUser = await prisma.user.findUnique({ where: { userid: user.userid } });
+    if (!freshUser) {
+        return ctx.reply('<blockquote>❌ خطا در دریافت اطلاعات کاربر. انتقال لغو شد.</blockquote>', { parse_mode: 'HTML' });
+    }
+
+    // چک نهایی منابع با داده‌های تازه
+    const hasEnough = items.every(item => Number(freshUser[item.type as keyof typeof freshUser]) >= item.amount) && Number(freshUser.oil) >= oilCost;
     if (!hasEnough) {
         return ctx.reply('<blockquote>❌ منابع کافی ندارید. انتقال لغو شد.</blockquote>', { parse_mode: 'HTML' });
     }
 
-    // کسر منابع از کاربر
+    // کسر منابع از کاربر (با داده‌های تازه)
     for (const item of items) {
         await changeUserField(user.userid, item.type, 'subtract', item.amount);
     }
