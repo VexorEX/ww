@@ -1,8 +1,7 @@
 import { Composer, Markup } from 'telegraf';
 import type { CustomContext } from '../middlewares/userAuth';
 import { changeUserField } from './economy';
-import { escapeMarkdownV2 } from '../utils/escape';
-import { getCountryByName, getAvailableCountriesList } from '../utils/countryUtils';
+import { getCountryByName } from '../utils/countryUtils';
 import { prisma } from '../prisma';
 import config from '../config/config.json';
 import countriesData from '../config/countries.json';
@@ -17,10 +16,11 @@ const pendingTrades = new Map<string, {
     items: { type: string; amount: number }[];
     oilCost: number;
     resourcesDeducted: boolean;
+    destination: string; // اضافه شد برای مقصد
 }>();
 
 // لیست آیتم‌های غیرقابل انتقال
-const nonTransferableFields: string[] = ['soldier','goldMine', 'uraniumMine', 'ironMine', 'refinery'];
+const nonTransferableFields: string[] = ['soldier', 'goldMine', 'uraniumMine', 'ironMine', 'refinery'];
 
 // تعریف کلیدهای قابل انتقال و نام‌های نمایشی آنها (همه فیلدها از model)
 const transferableFields: { [key: string]: string } = {
@@ -30,10 +30,6 @@ const transferableFields: { [key: string]: string } = {
     'gold': 'طلا',
     'uranium': 'اورانیوم',
     'capital': 'سرمایه',
-    'goldMine': 'معدن طلا',
-    'uraniumMine': 'معدن اورانیوم',
-    'ironMine': 'معدن آهن',
-    'refinery': 'پالایشگاه',
     // ارتش پایه
     'tank': 'تانک',
     'heavyTank': 'تانک سنگین',
@@ -78,7 +74,7 @@ const transferableFields: { [key: string]: string } = {
 
 // گروه‌بندی فیلدها بر اساس category برای مرتب‌سازی
 const fieldCategories: { [key: string]: string[] } = {
-    'منابع': ['oil', 'iron', 'gold', 'uranium', 'capital', 'goldMine', 'uraniumMine', 'ironMine', 'refinery'],
+    'منابع': ['oil', 'iron', 'gold', 'uranium', 'capital'],
     'ارتش پایه': ['tank', 'heavyTank'],
     'جنگنده‌ها': ['su57', 'f47', 'f35', 'j20', 'f16', 'f22', 'am50', 'b2', 'tu16'],
     'پهپادها': ['espionageDrone', 'suicideDrone', 'crossDrone', 'witnessDrone'],
@@ -238,7 +234,6 @@ async function showTradeItemsKeyboard(ctx: CustomContext) {
 }
 
 // هندلر انتخاب آیتم‌ها
-// هندلر انتخاب آیتم‌ها
 Object.keys(transferableFields).forEach(field => {
     business.action(`select_item_${field}`, async (ctx) => {
         // بررسی وجود session
@@ -250,7 +245,7 @@ Object.keys(transferableFields).forEach(field => {
 
         ctx.session.selectedItem = field;
         ctx.session.tradeStep = 'awaiting_quantity';
-        await ctx.reply(`🔢 <blockquote>چند واحد <b>${transferableFields[field]}</b> می‌خواهید انتقال دهید؟\n(حداکثر: ${Number(ctx.user[field as keyof typeof ctx.user])})</blockquote>`, {
+        await ctx.reply(`🔢 <blockquote>چند واحد <b>${transferableFields[field]}</b> می‌خواهید انتقال دهید؟<br>(حداکثر: ${Number(ctx.user[field as keyof typeof ctx.user])})</blockquote>`, {
             parse_mode: 'HTML'
         });
     });
@@ -331,7 +326,6 @@ business.action('confirm_trade', async (ctx) => {
 });
 
 // هندلر تأیید نهایی (کسر منابع و ارسال) + خبر اولیه
-// هندلر تأیید نهایی (کسر منابع و ارسال) + خبر اولیه
 business.action('final_confirm', async (ctx) => {
     // بررسی وجود session
     if (!ctx.session) {
@@ -362,31 +356,11 @@ business.action('final_confirm', async (ctx) => {
 
     // خبر اولیه: انتقال در حال انجام
     const initialNews = `خبر فوری - انتقال\n<blockquote>1 محموله از کشور ${countryName} در حال انتقال است</blockquote>\nمقصد در گزارش بعدی معلوم می‌شود`;
-
-    // انتخاب تصویر تصادفی از لیست
     const randomImage = config.images.trade[Math.floor(Math.random() * config.images.trade.length)];
-
-    // تست URL با head request (برای چک اعتبار)
-    try {
-        const response = await fetch(randomImage, { method: 'HEAD' });
-        if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
-            await ctx.telegram.sendPhoto(config.channels.business, randomImage, {
-                caption: initialNews,
-                parse_mode: 'HTML'
-            });
-        } else {
-            // fallback به sendMessage اگر URL معتبر نیست
-            await ctx.telegram.sendMessage(config.channels.business, initialNews, {
-                parse_mode: 'HTML'
-            });
-        }
-    } catch (urlError) {
-        console.error('Image URL invalid in final_confirm:', randomImage, urlError);
-        // fallback به sendMessage
-        await ctx.telegram.sendMessage(config.channels.business, initialNews, {
-            parse_mode: 'HTML'
-        });
-    }
+    await ctx.telegram.sendPhoto(config.channels.business, randomImage, {
+        caption: initialNews,
+        parse_mode: 'HTML'
+    });
 
     // مستقیم ارسال به مقصد (رایگان)
     await sendTradeConfirmationToDestination(ctx);
@@ -434,7 +408,8 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
                 receiverId: destUser.userid,
                 items: copiedItems, // کپی جدید
                 oilCost,
-                resourcesDeducted: true
+                resourcesDeducted: true,
+                destination // اضافه شد برای خبر نهایی
             });
 
             const itemsList = copiedItems.map((item, index) => `${index + 1}. ${item.amount} واحد ${transferableFields[item.type]}`).join('\n');
@@ -456,7 +431,7 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
             if (error instanceof Error && error.message.includes('BadRequest: chat not found')) {
                 console.log(`کاربر ${destUser.userid} ربات را بلاک کرده یا چت پیدا نشد`);
             } else {
-                console.log(`Failed to send to user ${destUser.userid}:`, error);
+                console.error(`Failed to send to user ${destUser.userid}:`, error);
             }
         }
     }
@@ -565,8 +540,9 @@ async function executeTrade(ctx: CustomContext, tradeDetails: {
     items: { type: string; amount: number }[];
     oilCost: number;
     resourcesDeducted: boolean;
+    destination: string;
 }, senderId: bigint, receiverId: bigint, tradeId: string) {
-    const { items } = tradeDetails;
+    const { items, destination } = tradeDetails;
 
     // اضافه کردن منابع به دریافت‌کننده (رایگان، بدون کسر)
     for (const item of items) {
@@ -574,7 +550,7 @@ async function executeTrade(ctx: CustomContext, tradeDetails: {
     }
 
     // ارسال محموله‌ها (فقط notify با delay، بدون add دوباره)
-    await deliverTradeItems(ctx, items, receiverId, senderId);
+    await deliverTradeItems(ctx, items, receiverId, senderId, destination);
 
     // پاک کردن از pending
     pendingTrades.delete(tradeId);
@@ -595,9 +571,26 @@ business.action('cancel_trade', async (ctx) => {
     await ctx.deleteMessage(); // حذف پیام فعلی برای بستن پنل
 });
 
-async function deliverTradeItems(ctx: CustomContext, items: { type: string; amount: number }[], receiverId: bigint, senderId: bigint) {
+async function deliverTradeItems(ctx: CustomContext, items: { type: string; amount: number }[], receiverId: bigint, senderId: bigint, destination: string) {
     const userId = Number(receiverId);
     const senderUserId = Number(senderId);
+
+    // تحویل تک‌تک
+    for (const item of items) {
+        const { type, amount } = item;
+        const delay = Math.floor(Math.random() * (180 - 120 + 1)) + 120;
+
+        setTimeout(async () => {
+            // فقط notify، add قبلاً در executeTrade انجام شد
+            try {
+                await ctx.telegram.sendMessage(userId, `<blockquote>📦 محموله ${amount} واحد ${transferableFields[type]} تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
+                // اختیاری: notify به sender هم
+                await ctx.telegram.sendMessage(senderUserId, `<blockquote>📦 محموله ${amount} واحد ${transferableFields[type]} به مقصد تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
+            } catch (error) {
+                console.error('Error sending delivery notification:', error);
+            }
+        }, delay * 1000);
+    }
 
     // منتظر ماندن برای تحویل همه محموله‌ها (حداکثر delay)
     const maxDelay = 180 * 1000; // 180 ثانیه
@@ -612,14 +605,14 @@ async function deliverTradeItems(ctx: CustomContext, items: { type: string; amou
         const newsTemplates = [
             `خبر فوری - تجاری ♨️
 
-<blockquote>طبق گزارش خبرنگاران کشور‌های ${countryText} و [کشور مقصد] تجارت جدیدی داشتند. ↔️</blockquote>
+<blockquote>طبق گزارش خبرنگاران کشور‌های ${countryText} و ${destination} تجارت جدیدی داشتند. ↔️</blockquote>
 
 <blockquote>محموله‌ها به صورت کاملاً سالم تحویل داده شدند. ✅</blockquote>
 
 <blockquote>بار محموله معلوم نیست اما گمان‌هایی بر انتقال تسلیحات نظامی برآورد می‌شود. ⁉️</blockquote>`,
             `خبر فوری - تجاری ♨️
 
-<blockquote>طبق گزارش خبرنگاران کشور‌های ${countryText} و [کشور مقصد] تجارت جدیدی داشتند. ↔️</blockquote>
+<blockquote>طبق گزارش خبرنگاران کشور‌های ${countryText} و ${destination} تجارت جدیدی داشتند. ↔️</blockquote>
 
 <blockquote>محموله‌ها به صورت کاملاً سالم تحویل داده شدند. ✅</blockquote>
 
@@ -653,23 +646,6 @@ async function deliverTradeItems(ctx: CustomContext, items: { type: string; amou
             });
         }
     }, maxDelay + 1000); // کمی بعد از آخرین تحویل
-
-    // تحویل تک‌تک
-    for (const item of items) {
-        const { type, amount } = item;
-        const delay = Math.floor(Math.random() * (180 - 120 + 1)) + 120;
-
-        setTimeout(async () => {
-            // فقط notify، add قبلاً در executeTrade انجام شد
-            try {
-                await ctx.telegram.sendMessage(userId, `<blockquote>📦 محموله ${amount} واحد ${transferableFields[type]} تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
-                // اختیاری: notify به sender هم
-                await ctx.telegram.sendMessage(senderUserId, `<blockquote>📦 محموله ${amount} واحد ${transferableFields[type]} به مقصد تحویل شد.</blockquote>`, { parse_mode: 'HTML' });
-            } catch (error) {
-                console.error('Error sending delivery notification:', error);
-            }
-        }, delay * 1000);
-    }
 }
 
 export default business;
