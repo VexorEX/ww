@@ -8,8 +8,6 @@ import toggleMenu from "./admin/toggleMenu";
 import { runDailyTasks } from "./helper/runDailyTasks";
 import lottery from "./admin/lottery";
 import { applyDailyMineProfitForAllUsers } from "./components/mines";
-import perm from "./admin/perm";
-
 
 const adminPanel = new Composer<CustomContext>();
 
@@ -37,7 +35,6 @@ adminPanel.use(editAsset)
 adminPanel.use(showUser)
 adminPanel.use(toggleMenu)
 adminPanel.use(lottery)
-adminPanel.use(perm)
 
 adminPanel.command('deposit_mines', async (ctx) => {
     const adminId = ctx.from.id;
