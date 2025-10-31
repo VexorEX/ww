@@ -20,7 +20,7 @@ const pendingTrades = new Map<string, {
 }>();
 
 // لیست آیتم‌های غیرقابل انتقال
-const nonTransferableFields: string[] = ['soldier','goldMine','uraniumMine','ironMine','refinery'];
+const nonTransferableFields: string[] = ['soldier'];
 
 // تعریف کلیدهای قابل انتقال و نام‌های نمایشی آنها (همه فیلدها از model)
 const transferableFields: { [key: string]: string } = {
@@ -30,10 +30,10 @@ const transferableFields: { [key: string]: string } = {
     'gold': 'طلا',
     'uranium': 'اورانیوم',
     'capital': 'سرمایه',
-    // 'goldMine': 'معدن طلا',
-    // 'uraniumMine': 'معدن اورانیوم',
-    // 'ironMine': 'معدن آهن',
-    // 'refinery': 'پالایشگاه',
+    'goldMine': 'معدن طلا',
+    'uraniumMine': 'معدن اورانیوم',
+    'ironMine': 'معدن آهن',
+    'refinery': 'پالایشگاه',
     // ارتش پایه
     'tank': 'تانک',
     'heavyTank': 'تانک سنگین',
@@ -121,14 +121,14 @@ business.action('business', async (ctx) => {
 
     // ریست کردن session برای شروع انتقال جدید
     ctx.session.tradeStep = 'select_region';
-    ctx.session.tradeItems = []; // مطمئن شوید که همیشه خالی است
+    ctx.session.tradeItems = [];
     ctx.session.tradeOilCost = 0;
 
     // نمایش کیبورد مناطق
     const regionButtons = regions.map(r => Markup.button.callback(`"${r.name}"`, `select_region_${r.key}`));
     regionButtons.push(Markup.button.callback('❌ انصراف', 'cancel_trade'));
 
-    await ctx.reply('<b>🌍 انتخاب منطقه برای انتقال:</b>\n\n<blockquote>ابتدا منطقه مورد نظر را انتخاب کنید، سپس کشور مقصد را مشخص کنید.</blockquote>', {
+    await ctx.reply('<b>🌍 انتخاب کشور مقصد برای انتقال:</b>\n\n<blockquote>ابتدا منطقه مورد نظر را انتخاب کنید، سپس کشور مقصد را مشخص کنید.</blockquote>', {
         reply_markup: Markup.inlineKeyboard(regionButtons, { columns: 1 }).reply_markup,
         parse_mode: 'HTML'
     });
@@ -249,7 +249,7 @@ Object.keys(transferableFields).forEach(field => {
 
         ctx.session.selectedItem = field;
         ctx.session.tradeStep = 'awaiting_quantity';
-        await ctx.reply(`🔢 <blockquote>چند واحد <b>${transferableFields[field]}</b> می‌خواهید انتقال دهید؟\n(حداکثر: ${Number(ctx.user[field as keyof typeof ctx.user])})</blockquote>`, {
+        await ctx.reply(`🔢 <blockquote>چند واحد <b>${transferableFields[field]}</b> می‌خواهید انتقال دهید؟<br>(حداکثر: ${Number(ctx.user[field as keyof typeof ctx.user])})</blockquote>`, {
             parse_mode: 'HTML'
         });
     });
@@ -329,7 +329,7 @@ business.action('confirm_trade', async (ctx) => {
     });
 });
 
-// هندلر تأیید نهایی (کسر منابع و ارسال)
+// هندلر تأیید نهایی (کسر منابع و ارسال) + خبر اولیه
 business.action('final_confirm', async (ctx) => {
     // بررسی وجود session
     if (!ctx.session) {
@@ -341,6 +341,8 @@ business.action('final_confirm', async (ctx) => {
     const user = ctx.user;
     const items = ctx.session.tradeItems!;
     const oilCost = ctx.session.tradeOilCost!;
+    const destination = ctx.session.destinationCountry!;
+    const countryName = user.countryName;
 
     // چک نهایی منابع
     const hasEnough = items.every(item => Number(user[item.type as keyof typeof user]) >= item.amount) && Number(user.oil) >= oilCost;
@@ -355,6 +357,14 @@ business.action('final_confirm', async (ctx) => {
     await changeUserField(user.userid, 'oil', 'subtract', oilCost);
 
     ctx.session.tradeStep = 'send_confirmation_to_destination';
+
+    // خبر اولیه: انتقال در حال انجام
+    const initialNews = `خبر فوری - انتقال\n<blockquote>1 محموله از کشور ${countryName} در حال انتقال است</blockquote>\nمقصد در گزارش بعدی معلوم می‌شود`;
+    const randomImage = config.images.trade[Math.floor(Math.random() * config.images.trade.length)];
+    await ctx.telegram.sendPhoto(config.channels.business, randomImage, {
+        caption: initialNews,
+        parse_mode: 'HTML'
+    });
 
     // مستقیم ارسال به مقصد (رایگان)
     await sendTradeConfirmationToDestination(ctx);
@@ -430,7 +440,7 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
     }
 
     if (confirmationsSent > 0) {
-        await ctx.reply(`✅ <blockquote>درخواست انتقال به ${confirmationsSent} کاربر از کشور ${destination} ارسال شد.</blockquote>\n\n⏳ <blockquote>منتظر پاسخ آنها باشید...</blockquote>`, {
+        await ctx.reply(`✅ <blockquote>درخواست انتقال به کشور ${destination} ارسال شد.</blockquote>\n\n⏳ <blockquote>منتظر پاسخ آنها باشید...</blockquote>`, {
             parse_mode: 'HTML'
         });
     } else {
@@ -511,7 +521,7 @@ business.action(/^reject_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
         await ctx.telegram.sendMessage(Number(senderId), `❌ <blockquote>کشور ${ctx.user.countryName} انتقال شما را رد کرد.</blockquote>`, { parse_mode: 'HTML' });
         await ctx.reply('<blockquote>❌ انتقال رد شد.</blockquote>', { parse_mode: 'HTML' });
 
-        // اگر منابع کسر شده، برگردان + 50% نفت مالیات
+        // اگر منابع کسر شد، برگردان + 50% نفت مالیات
         if (tradeDetails.resourcesDeducted) {
             for (const item of tradeDetails.items) {
                 await changeUserField(senderId, item.type, 'add', item.amount);
@@ -546,15 +556,9 @@ async function executeTrade(ctx: CustomContext, tradeDetails: {
 
     // پاک کردن از pending
     pendingTrades.delete(tradeId);
-
-    // پاک کردن session کاربر sender
-    const senderSession = await prisma.user.findUnique({ where: { userid: senderId } });
-    if (senderSession) {
-        // فرض کنید session در دیتابیس ذخیره می‌شود، یا از ctx.telegram (اما برای سادگی، در کد فرض بر پاک کردن در final_confirm)
-    }
 }
 
-// هندلر انصراف (پاک کردن session و بستن پنل)
+// هندلر انصراف (فقط ریست session، کیبورد می‌مونه برای استفاده مجدد)
 business.action('cancel_trade', async (ctx) => {
     // بررسی وجود session
     if (!ctx.session) {
@@ -569,11 +573,66 @@ business.action('cancel_trade', async (ctx) => {
     await ctx.deleteMessage(); // حذف پیام فعلی برای بستن پنل
 });
 
-// تابع deliverTradeItems
 async function deliverTradeItems(ctx: CustomContext, items: { type: string; amount: number }[], receiverId: bigint, senderId: bigint) {
     const userId = Number(receiverId);
     const senderUserId = Number(senderId);
 
+    // منتظر ماندن برای تحویل همه محموله‌ها (حداکثر delay)
+    const maxDelay = 180 * 1000; // 180 ثانیه
+    setTimeout(async () => {
+        // ارسال خبر نهایی تحویل
+        const senderUser = await prisma.user.findUnique({ where: { userid: senderId } });
+        if (!senderUser) return;
+
+        const country = getCountryByName(senderUser.countryName);
+        const countryText = country?.name ?? senderUser.countryName;
+
+        const newsTemplates = [
+            `خبر فوری - تجاری ♨️
+
+<blockquote>طبق گزارش خبرنگاران کشور‌های ${countryText} و [کشور مقصد] تجارت جدیدی داشتند. ↔️</blockquote>
+
+<blockquote>محموله‌ها به صورت کاملاً سالم تحویل داده شدند. ✅</blockquote>
+
+<blockquote>بار محموله معلوم نیست اما گمان‌هایی بر انتقال تسلیحات نظامی برآورد می‌شود. ⁉️</blockquote>`,
+            `خبر فوری - تجاری ♨️
+
+<blockquote>طبق گزارش خبرنگاران کشور‌های ${countryText} و [کشور مقصد] تجارت جدیدی داشتند. ↔️</blockquote>
+
+<blockquote>محموله‌ها به صورت کاملاً سالم تحویل داده شدند. ✅</blockquote>
+
+<blockquote>بار محموله معلوم نیست اما گمان‌هایی بر انتقال سرمایه رایج برآورد می‌شود. ⁉️</blockquote>`
+        ];
+
+        const selectedNews = newsTemplates[Math.floor(Math.random() * newsTemplates.length)];
+
+        // انتخاب تصویر تصادفی از لیست
+        const randomImage = config.images.trade[Math.floor(Math.random() * config.images.trade.length)];
+
+        // تست URL با head request (اختیاری، برای چک اعتبار)
+        try {
+            const response = await fetch(randomImage, { method: 'HEAD' });
+            if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
+                await ctx.telegram.sendPhoto(config.channels.business, randomImage, {
+                    caption: selectedNews,
+                    parse_mode: 'HTML'
+                });
+            } else {
+                // fallback به sendMessage اگر URL معتبر نیست
+                await ctx.telegram.sendMessage(config.channels.business, selectedNews, {
+                    parse_mode: 'HTML'
+                });
+            }
+        } catch (urlError) {
+            console.error('Image URL invalid:', randomImage, urlError);
+            // fallback به sendMessage
+            await ctx.telegram.sendMessage(config.channels.business, selectedNews, {
+                parse_mode: 'HTML'
+            });
+        }
+    }, maxDelay + 1000); // کمی بعد از آخرین تحویل
+
+    // تحویل تک‌تک
     for (const item of items) {
         const { type, amount } = item;
         const delay = Math.floor(Math.random() * (180 - 120 + 1)) + 120;
@@ -588,54 +647,6 @@ async function deliverTradeItems(ctx: CustomContext, items: { type: string; amou
                 console.error('Error sending delivery notification:', error);
             }
         }, delay * 1000);
-    }
-
-    // ارسال خبر به کانال با تصویر
-    try {
-        const senderUser = await prisma.user.findUnique({ where: { userid: senderId } });
-        if (!senderUser) return;
-
-        const country = getCountryByName(senderUser.countryName);
-        const countryText = country?.name ?? senderUser.countryName;
-
-        const newsTemplates = [
-            `خبر فوری - انتقال ♨️ طبق گزارش خبرنگاران کشور ${countryText} انتقال جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n\n✅ گمان‌هایی بر انتقال تسلیحات نظامی وجود دارد. ⁉️`,
-            `خبر فوری - انتقال ♨️ طبق گزارش خبرنگاران کشور ${countryText} انتقال جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n\n✅ گمان‌هایی بر انتقال سرمایه رایج وجود دارد. ⁉️`
-        ];
-
-        const selectedNews = newsTemplates[Math.floor(Math.random() * newsTemplates.length)];
-
-        // انتخاب تصویر تصادفی از لیست
-        const randomImage = config.images.trade[Math.floor(Math.random() * config.images.trade.length)];
-
-        // تست URL با head request (اختیاری، برای چک اعتبار)
-        try {
-            const response = await fetch(randomImage, { method: 'HEAD' });
-            if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
-                await ctx.telegram.sendPhoto(config.channels.business, randomImage, {
-                    caption: escapeMarkdownV2(selectedNews),
-                    parse_mode: 'MarkdownV2'
-                });
-            } else {
-                // fallback به sendMessage اگر URL معتبر نیست
-                await ctx.telegram.sendMessage(config.channels.business, escapeMarkdownV2(selectedNews), {
-                    parse_mode: 'MarkdownV2'
-                });
-            }
-        } catch (urlError) {
-            console.error('Image URL invalid:', randomImage, urlError);
-            // fallback به sendMessage
-            await ctx.telegram.sendMessage(config.channels.business, escapeMarkdownV2(selectedNews), {
-                parse_mode: 'MarkdownV2'
-            });
-        }
-    } catch (error) {
-        console.error('Error sending news to channel:', error);
-        // نهایی fallback
-        const fallbackNews = 'خبر فوری - انتقال ♨️ محموله‌ها سالم تحویل شدند.';
-        await ctx.telegram.sendMessage(config.channels.business, fallbackNews, {
-            parse_mode: 'MarkdownV2'
-        });
     }
 }
 

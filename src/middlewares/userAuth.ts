@@ -51,6 +51,11 @@ const userAuth: Middleware<CustomContext> = async (ctx, next) => {
         if (user) {
             ctx.user = user;
 
+            if (user.banned) {
+                return ctx.reply('⛔ شما توسط مدیریت بن شده‌اید و نمی‌توانید از ربات استفاده کنید.');
+            }
+
+
             if (!user.country) {
                 // اگر این یک callback_query است و داده‌اش قرار است توسط registration هندل شود،
                 // اجازه بده به next بره تا actionها دریافت شوند.

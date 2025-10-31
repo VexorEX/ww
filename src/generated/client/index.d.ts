@@ -1397,6 +1397,7 @@ export namespace Prisma {
 
   export type UserMinAggregateOutputType = {
     userid: bigint | null
+    banned: boolean | null
     country: string | null
     countryName: string | null
     level: number | null
@@ -1458,6 +1459,7 @@ export namespace Prisma {
 
   export type UserMaxAggregateOutputType = {
     userid: bigint | null
+    banned: boolean | null
     country: string | null
     countryName: string | null
     level: number | null
@@ -1519,6 +1521,7 @@ export namespace Prisma {
 
   export type UserCountAggregateOutputType = {
     userid: number
+    banned: number
     country: number
     countryName: number
     level: number
@@ -1692,6 +1695,7 @@ export namespace Prisma {
 
   export type UserMinAggregateInputType = {
     userid?: true
+    banned?: true
     country?: true
     countryName?: true
     level?: true
@@ -1753,6 +1757,7 @@ export namespace Prisma {
 
   export type UserMaxAggregateInputType = {
     userid?: true
+    banned?: true
     country?: true
     countryName?: true
     level?: true
@@ -1814,6 +1819,7 @@ export namespace Prisma {
 
   export type UserCountAggregateInputType = {
     userid?: true
+    banned?: true
     country?: true
     countryName?: true
     level?: true
@@ -1962,6 +1968,7 @@ export namespace Prisma {
 
   export type UserGroupByOutputType = {
     userid: bigint
+    banned: boolean
     country: string
     countryName: string
     level: number
@@ -2042,6 +2049,7 @@ export namespace Prisma {
 
   export type UserSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     userid?: boolean
+    banned?: boolean
     country?: boolean
     countryName?: boolean
     level?: boolean
@@ -2103,6 +2111,7 @@ export namespace Prisma {
 
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     userid?: boolean
+    banned?: boolean
     country?: boolean
     countryName?: boolean
     level?: boolean
@@ -2164,6 +2173,7 @@ export namespace Prisma {
 
   export type UserSelectScalar = {
     userid?: boolean
+    banned?: boolean
     country?: boolean
     countryName?: boolean
     level?: boolean
@@ -2229,6 +2239,7 @@ export namespace Prisma {
     objects: {}
     scalars: $Extensions.GetPayloadResult<{
       userid: bigint
+      banned: boolean
       country: string
       countryName: string
       level: number
@@ -2680,6 +2691,7 @@ export namespace Prisma {
    */ 
   interface UserFieldRefs {
     readonly userid: FieldRef<"User", 'BigInt'>
+    readonly banned: FieldRef<"User", 'Boolean'>
     readonly country: FieldRef<"User", 'String'>
     readonly countryName: FieldRef<"User", 'String'>
     readonly level: FieldRef<"User", 'Int'>
@@ -7910,6 +7922,7 @@ export namespace Prisma {
 
   export const UserScalarFieldEnum: {
     userid: 'userid',
+    banned: 'banned',
     country: 'country',
     countryName: 'countryName',
     level: 'level',
@@ -8077,6 +8090,13 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Boolean'
+   */
+  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+  /**
    * Reference to a field of type 'String'
    */
   export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
@@ -8098,13 +8118,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Boolean'
-   */
-  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
-
-
-  /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -8119,6 +8132,7 @@ export namespace Prisma {
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
     userid?: BigIntFilter<"User"> | bigint | number
+    banned?: BoolFilter<"User"> | boolean
     country?: StringFilter<"User"> | string
     countryName?: StringFilter<"User"> | string
     level?: IntFilter<"User"> | number
@@ -8180,6 +8194,7 @@ export namespace Prisma {
 
   export type UserOrderByWithRelationInput = {
     userid?: SortOrder
+    banned?: SortOrder
     country?: SortOrder
     countryName?: SortOrder
     level?: SortOrder
@@ -8244,6 +8259,7 @@ export namespace Prisma {
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
+    banned?: BoolFilter<"User"> | boolean
     country?: StringFilter<"User"> | string
     countryName?: StringFilter<"User"> | string
     level?: IntFilter<"User"> | number
@@ -8305,6 +8321,7 @@ export namespace Prisma {
 
   export type UserOrderByWithAggregationInput = {
     userid?: SortOrder
+    banned?: SortOrder
     country?: SortOrder
     countryName?: SortOrder
     level?: SortOrder
@@ -8374,6 +8391,7 @@ export namespace Prisma {
     OR?: UserScalarWhereWithAggregatesInput[]
     NOT?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
     userid?: BigIntWithAggregatesFilter<"User"> | bigint | number
+    banned?: BoolWithAggregatesFilter<"User"> | boolean
     country?: StringWithAggregatesFilter<"User"> | string
     countryName?: StringWithAggregatesFilter<"User"> | string
     level?: IntWithAggregatesFilter<"User"> | number
@@ -8811,6 +8829,7 @@ export namespace Prisma {
 
   export type UserCreateInput = {
     userid: bigint | number
+    banned?: boolean
     country: string
     countryName: string
     level?: number
@@ -8872,6 +8891,7 @@ export namespace Prisma {
 
   export type UserUncheckedCreateInput = {
     userid: bigint | number
+    banned?: boolean
     country: string
     countryName: string
     level?: number
@@ -8933,6 +8953,7 @@ export namespace Prisma {
 
   export type UserUpdateInput = {
     userid?: BigIntFieldUpdateOperationsInput | bigint | number
+    banned?: BoolFieldUpdateOperationsInput | boolean
     country?: StringFieldUpdateOperationsInput | string
     countryName?: StringFieldUpdateOperationsInput | string
     level?: IntFieldUpdateOperationsInput | number
@@ -8994,6 +9015,7 @@ export namespace Prisma {
 
   export type UserUncheckedUpdateInput = {
     userid?: BigIntFieldUpdateOperationsInput | bigint | number
+    banned?: BoolFieldUpdateOperationsInput | boolean
     country?: StringFieldUpdateOperationsInput | string
     countryName?: StringFieldUpdateOperationsInput | string
     level?: IntFieldUpdateOperationsInput | number
@@ -9055,6 +9077,7 @@ export namespace Prisma {
 
   export type UserCreateManyInput = {
     userid: bigint | number
+    banned?: boolean
     country: string
     countryName: string
     level?: number
@@ -9116,6 +9139,7 @@ export namespace Prisma {
 
   export type UserUpdateManyMutationInput = {
     userid?: BigIntFieldUpdateOperationsInput | bigint | number
+    banned?: BoolFieldUpdateOperationsInput | boolean
     country?: StringFieldUpdateOperationsInput | string
     countryName?: StringFieldUpdateOperationsInput | string
     level?: IntFieldUpdateOperationsInput | number
@@ -9177,6 +9201,7 @@ export namespace Prisma {
 
   export type UserUncheckedUpdateManyInput = {
     userid?: BigIntFieldUpdateOperationsInput | bigint | number
+    banned?: BoolFieldUpdateOperationsInput | boolean
     country?: StringFieldUpdateOperationsInput | string
     countryName?: StringFieldUpdateOperationsInput | string
     level?: IntFieldUpdateOperationsInput | number
@@ -9662,6 +9687,11 @@ export namespace Prisma {
     not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[]
@@ -9705,6 +9735,7 @@ export namespace Prisma {
 
   export type UserCountOrderByAggregateInput = {
     userid?: SortOrder
+    banned?: SortOrder
     country?: SortOrder
     countryName?: SortOrder
     level?: SortOrder
@@ -9821,6 +9852,7 @@ export namespace Prisma {
 
   export type UserMaxOrderByAggregateInput = {
     userid?: SortOrder
+    banned?: SortOrder
     country?: SortOrder
     countryName?: SortOrder
     level?: SortOrder
@@ -9882,6 +9914,7 @@ export namespace Prisma {
 
   export type UserMinOrderByAggregateInput = {
     userid?: SortOrder
+    banned?: SortOrder
     country?: SortOrder
     countryName?: SortOrder
     level?: SortOrder
@@ -10010,6 +10043,14 @@ export namespace Prisma {
     _sum?: NestedBigIntFilter<$PrismaModel>
     _min?: NestedBigIntFilter<$PrismaModel>
     _max?: NestedBigIntFilter<$PrismaModel>
+  }
+
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -10404,11 +10445,6 @@ export namespace Prisma {
     userId?: SortOrder
   }
 
-  export type BoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
-  }
-
   export type LotteryStateCountOrderByAggregateInput = {
     id?: SortOrder
     active?: SortOrder
@@ -10440,20 +10476,16 @@ export namespace Prisma {
     price?: SortOrder
   }
 
-  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
-  }
-
   export type BigIntFieldUpdateOperationsInput = {
     set?: bigint | number
     increment?: bigint | number
     decrement?: bigint | number
     multiply?: bigint | number
     divide?: bigint | number
+  }
+
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -10496,10 +10528,6 @@ export namespace Prisma {
     divide?: bigint | number
   }
 
-  export type BoolFieldUpdateOperationsInput = {
-    set?: boolean
-  }
-
   export type NestedBigIntFilter<$PrismaModel = never> = {
     equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     in?: bigint[] | number[]
@@ -10509,6 +10537,11 @@ export namespace Prisma {
     gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     not?: NestedBigIntFilter<$PrismaModel> | bigint | number
+  }
+
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -10572,6 +10605,14 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
@@ -10740,19 +10781,6 @@ export namespace Prisma {
     _sum?: NestedBigIntNullableFilter<$PrismaModel>
     _min?: NestedBigIntNullableFilter<$PrismaModel>
     _max?: NestedBigIntNullableFilter<$PrismaModel>
-  }
-
-  export type NestedBoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
-  }
-
-  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
   }
 
 
