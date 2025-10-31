@@ -245,7 +245,7 @@ Object.keys(transferableFields).forEach(field => {
 
         ctx.session.selectedItem = field;
         ctx.session.tradeStep = 'awaiting_quantity';
-        await ctx.reply(`🔢 <blockquote>چند واحد <b>${transferableFields[field]}</b> می‌خواهید انتقال دهید؟<br>(حداکثر: ${Number(ctx.user[field as keyof typeof ctx.user])})</blockquote>`, {
+        await ctx.reply(`🔢 <blockquote>چند واحد <b>${transferableFields[field]}</b> می‌خواهید انتقال دهید؟\n(حداکثر: ${Number(ctx.user[field as keyof typeof ctx.user])})</blockquote>`, {
             parse_mode: 'HTML'
         });
     });
