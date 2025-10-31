@@ -597,7 +597,10 @@ async function deliverTradeItems(ctx: CustomContext, items: { type: string; amou
 
         // استفاده از URL از config اگر موجود، иначе sendMessage
         if (config.images && config.images.trade) {
-            await ctx.telegram.sendPhoto(config.channels.business, config.images.trade, {
+            // انتخاب تصویر تصادفی از لیست
+            const randomImage = config.images.trade[Math.floor(Math.random() * config.images.trade.length)];
+
+            await ctx.telegram.sendPhoto(config.channels.business, randomImage, {
                 caption: escapeMarkdownV2(selectedNews),
                 parse_mode: 'MarkdownV2'
             });
