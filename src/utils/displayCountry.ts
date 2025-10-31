@@ -62,6 +62,7 @@ interface FormattedUser {
     antiRocket: number;
     ironDome: number;
     s400: number;
+    s300: number;
     taad: number;
     hq9: number;
     acash: number;
@@ -197,6 +198,7 @@ export async function getCountryData(country: string): Promise<any> {
             antiRocket: user.antiRocket,
             ironDome: user.ironDome,
             s400: user.s400,
+            s300: user.s300,
             taad: user.taad,
             hq9: user.hq9,
             acash: user.acash,
