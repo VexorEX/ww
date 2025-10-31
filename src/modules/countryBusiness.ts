@@ -331,6 +331,7 @@ business.action('confirm_trade', async (ctx) => {
 });
 
 // هندلر تأیید نهایی (کسر منابع و ارسال) + خبر اولیه
+// هندلر تأیید نهایی (کسر منابع و ارسال) + خبر اولیه
 business.action('final_confirm', async (ctx) => {
     // بررسی وجود session
     if (!ctx.session) {
@@ -361,11 +362,31 @@ business.action('final_confirm', async (ctx) => {
 
     // خبر اولیه: انتقال در حال انجام
     const initialNews = `خبر فوری - انتقال\n<blockquote>1 محموله از کشور ${countryName} در حال انتقال است</blockquote>\nمقصد در گزارش بعدی معلوم می‌شود`;
+
+    // انتخاب تصویر تصادفی از لیست
     const randomImage = config.images.trade[Math.floor(Math.random() * config.images.trade.length)];
-    await ctx.telegram.sendPhoto(config.channels.business, randomImage, {
-        caption: initialNews,
-        parse_mode: 'HTML'
-    });
+
+    // تست URL با head request (برای چک اعتبار)
+    try {
+        const response = await fetch(randomImage, { method: 'HEAD' });
+        if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
+            await ctx.telegram.sendPhoto(config.channels.business, randomImage, {
+                caption: initialNews,
+                parse_mode: 'HTML'
+            });
+        } else {
+            // fallback به sendMessage اگر URL معتبر نیست
+            await ctx.telegram.sendMessage(config.channels.business, initialNews, {
+                parse_mode: 'HTML'
+            });
+        }
+    } catch (urlError) {
+        console.error('Image URL invalid in final_confirm:', randomImage, urlError);
+        // fallback به sendMessage
+        await ctx.telegram.sendMessage(config.channels.business, initialNews, {
+            parse_mode: 'HTML'
+        });
+    }
 
     // مستقیم ارسال به مقصد (رایگان)
     await sendTradeConfirmationToDestination(ctx);
