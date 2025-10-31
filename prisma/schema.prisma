@@ -12,19 +12,20 @@ datasource db {
 }
 
 model User {
-  userid       BigInt @id
+  userid       BigInt  @id
+  banned       Boolean @default(false)
   country      String
   countryName  String
-  level        Int    @default(0)
-  rank         Int    @default(0)
+  level        Int     @default(0)
+  rank         Int     @default(0)
   government   String
-  religion     String @default("islam")
-  crowd        BigInt @default(15000000)
-  capital      BigInt @default(150000000)
-  dailyProfit  BigInt @default(100000000)
-  satisfaction Int    @default(80)
-  security     Int    @default(80)
-  lottery      Int    @default(0)
+  religion     String  @default("islam")
+  crowd        BigInt  @default(15000000)
+  capital      BigInt  @default(150000000)
+  dailyProfit  BigInt  @default(100000000)
+  satisfaction Int     @default(80)
+  security     Int     @default(80)
+  lottery      Int     @default(0)
 
   // منابع
   oil         BigInt @default(0)

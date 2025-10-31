@@ -121,6 +121,7 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 
 exports.Prisma.UserScalarFieldEnum = {
   userid: 'userid',
+  banned: 'banned',
   country: 'country',
   countryName: 'countryName',
   level: 'level',
