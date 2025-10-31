@@ -2,7 +2,7 @@ import { Composer, Markup } from 'telegraf';
 import type { CustomContext } from '../middlewares/userAuth';
 import { changeUserField } from './economy';
 import { escapeMarkdownV2 } from '../utils/escape';
-import { getCountryByName } from '../utils/countryUtils';
+import { getCountryByName, getAvailableCountriesList } from '../utils/countryUtils';
 import { prisma } from '../prisma';
 import config from '../config/config.json';
 import countriesData from '../config/countries.json';
@@ -19,7 +19,7 @@ const pendingTrades = new Map<string, {
     resourcesDeducted: boolean;
 }>();
 
-// لیست آیتم‌هایی که نباید transferable باشند
+// لیست آیتم‌های غیرقابل انتقال
 const nonTransferableFields: string[] = ['soldier'];
 
 // تعریف کلیدهای قابل انتقال و نام‌های نمایشی آنها (همه فیلدها از model)
@@ -306,7 +306,7 @@ business.action('confirm_trade', async (ctx) => {
     // محاسبه هزینه نفت (پردازش انتقال)
     const oilCost = Math.floor(Math.random() * (60 - 35 + 1)) + 35;
 
-    if (user.oil < oilCost) {
+    if (Number(user.oil) < oilCost) {
         return ctx.reply(`<blockquote>❌ نفت کافی برای پردازش انتقال ندارید. نیاز: ${oilCost} نفت</blockquote>`, { parse_mode: 'HTML' });
     }
 
@@ -343,7 +343,7 @@ business.action('final_confirm', async (ctx) => {
     const oilCost = ctx.session.tradeOilCost!;
 
     // چک نهایی منابع
-    const hasEnough = items.every(item => user[item.type as keyof typeof user] >= item.amount) && user.oil >= oilCost;
+    const hasEnough = items.every(item => Number(user[item.type as keyof typeof user]) >= item.amount) && Number(user.oil) >= oilCost;
     if (!hasEnough) {
         return ctx.reply('<blockquote>❌ منابع کافی ندارید. انتقال لغو شد.</blockquote>', { parse_mode: 'HTML' });
     }
@@ -476,6 +476,8 @@ business.action(/^accept_trade_(trade_\d+_\d+_\d+)$/, async (ctx) => {
     try {
         // ارسال تأیید به ارسال‌کننده
         await ctx.telegram.sendMessage(Number(senderId), `✅ <blockquote>کشور ${ctx.user.countryName} انتقال شما را قبول کرد!</blockquote>\n\n🚚 <blockquote>ارسال محموله‌ها آغاز می‌شود...</blockquote>`, { parse_mode: 'HTML' });
+        // اطلاع‌رسانی به دریافت‌کننده
+        await ctx.reply('<blockquote>✅ انتقال قبول شد. محموله‌ها در راه است!</blockquote>', { parse_mode: 'HTML' });
 
         // اجرای انتقال
         await executeTrade(ctx, tradeDetails, senderId, receiverId, tradeId);
@@ -587,8 +589,8 @@ async function deliverTradeItems(ctx: CustomContext, items: { type: string; amou
         const countryText = country?.name ?? senderUser.countryName;
 
         const newsTemplates = [
-            `خبر فوری - انتقال ♨️ طبق گزارش خبرنگاران کشور ${countryText} انتقال جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n✅ گمان‌هایی بر انتقال تسلیحات نظامی وجود دارد. ⁉️`,
-            `خبر فوری - انتقال ♨️ طبق گزارش خبرنگاران کشور ${countryText} انتقال جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n✅ گمان‌هایی بر انتقال سرمایه رایج وجود دارد. ⁉️`
+            `خبر فوری - انتقال ♨️ طبق گزارش خبرنگاران کشور ${countryText} انتقال جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n\n✅ گمان‌هایی بر انتقال تسلیحات نظامی وجود دارد. ⁉️`,
+            `خبر فوری - انتقال ♨️ طبق گزارش خبرنگاران کشور ${countryText} انتقال جدیدی داشت.\n↔️ محموله‌ها سالم تحویل شدند.\n\n✅ گمان‌هایی بر انتقال سرمایه رایج وجود دارد. ⁉️`
         ];
 
         const selectedNews = newsTemplates[Math.floor(Math.random() * newsTemplates.length)];
