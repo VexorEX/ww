@@ -19,26 +19,73 @@ const pendingTrades = new Map<string, {
     resourcesDeducted: boolean;
 }>();
 
-// تعریف کلیدهای قابل انتقال و نام‌های نمایشی آنها
-const transferableFields: { [key: string]: string } = {
-    'iron': 'آهن',
-    'gold': 'طلا',
-    'oil': 'نفت',
-    'uranium': 'اورانیوم',
-    'capital': 'سرمایه',
-    'soldier': 'سرباز',
-    'tank': 'تانک',
-    'plane': 'هواپیما',
-    'ship': 'کشتی',
-    'missile': 'موشک',
-    'nuclear': 'سلاح هسته‌ای',
-    'satellite': 'ماهواره',
-    'spies': 'جاسوس',
-    'agents': 'عامل'
-};
-
 // لیست آیتم‌هایی که نباید transferable باشند
 const nonTransferableFields: string[] = ['soldier'];
+
+// تعریف کلیدهای قابل انتقال و نام‌های نمایشی آنها (همه فیلدها از model)
+const transferableFields: { [key: string]: string } = {
+    // منابع
+    'oil': 'نفت',
+    'iron': 'آهن',
+    'gold': 'طلا',
+    'uranium': 'اورانیوم',
+    'capital': 'سرمایه',
+    'goldMine': 'معدن طلا',
+    'uraniumMine': 'معدن اورانیوم',
+    'ironMine': 'معدن آهن',
+    'refinery': 'پالایشگاه',
+    // ارتش پایه
+    'tank': 'تانک',
+    'heavyTank': 'تانک سنگین',
+    // جنگنده‌ها
+    'su57': 'Su-57',
+    'f47': 'F-47',
+    'f35': 'F-35',
+    'j20': 'J-20',
+    'f16': 'F-16',
+    'f22': 'F-22',
+    'am50': 'AM-50',
+    'b2': 'B-2',
+    'tu16': 'Tu-16',
+    // پهپادها
+    'espionageDrone': 'پهپاد جاسوسی',
+    'suicideDrone': 'پهپاد انتحاری',
+    'crossDrone': 'پهپاد کروز',
+    'witnessDrone': 'پهپاد شاهد',
+    // موشک‌ها
+    'simpleRocket': 'موشک ساده',
+    'crossRocket': 'موشک کروز',
+    'dotTargetRocket': 'موشک نقطه‌زن',
+    'continentalRocket': 'موشک قاره‌پیما',
+    'ballisticRocket': 'موشک بالستیک',
+    'chemicalRocket': 'موشک شیمیایی',
+    'hyperSonicRocket': 'موشک هایپرسونیک',
+    'clusterRocket': 'موشک خوشه‌ای',
+    // کشتی‌های دریایی
+    'battleship': 'ناو جنگی',
+    'marineShip': 'کشتی دریایی',
+    'breakerShip': 'کشتی بریک',
+    'nuclearSubmarine': 'زیردریایی هسته‌ای',
+    // دفاع
+    'antiRocket': 'ضد موشک',
+    'ironDome': 'گنبد آهنین',
+    's400': 'S-400',
+    's300': 'S-300',
+    'taad': 'TAAD',
+    'hq9': 'HQ-9',
+    'acash': 'Akash'
+};
+
+// گروه‌بندی فیلدها بر اساس category برای مرتب‌سازی
+const fieldCategories: { [key: string]: string[] } = {
+    'منابع': ['oil', 'iron', 'gold', 'uranium', 'capital', 'goldMine', 'uraniumMine', 'ironMine', 'refinery'],
+    'ارتش پایه': ['tank', 'heavyTank'],
+    'جنگنده‌ها': ['su57', 'f47', 'f35', 'j20', 'f16', 'f22', 'am50', 'b2', 'tu16'],
+    'پهپادها': ['espionageDrone', 'suicideDrone', 'crossDrone', 'witnessDrone'],
+    'موشک‌ها': ['simpleRocket', 'crossRocket', 'dotTargetRocket', 'continentalRocket', 'ballisticRocket', 'chemicalRocket', 'hyperSonicRocket', 'clusterRocket'],
+    'کشتی‌های دریایی': ['battleship', 'marineShip', 'breakerShip', 'nuclearSubmarine'],
+    'دفاع': ['antiRocket', 'ironDome', 's400', 's300', 'taad', 'hq9', 'acash']
+};
 
 // تابع دریافت کشورها بر اساس منطقه (با key و name) - مستقیم از JSON
 function getCountriesByRegion(region: string, userCountry: string): { key: string; name: string }[] {
@@ -67,7 +114,7 @@ business.action('business', async (ctx) => {
     const user = ctx.user;
 
     // چک کردن منابع کافی
-    const hasResources = Object.keys(transferableFields).some(field => !nonTransferableFields.includes(field) && user[field] > 0);
+    const hasResources = Object.keys(transferableFields).some(field => !nonTransferableFields.includes(field) && Number(user[field as keyof typeof user]) > 0);
     if (!hasResources) {
         return ctx.reply('<blockquote>❌ شما هیچ منبعی برای انتقال ندارید.</blockquote>', { parse_mode: 'HTML' });
     }
@@ -150,7 +197,7 @@ business.action(/^select_country_(.+)$/, async (ctx) => {
     await showTradeItemsKeyboard(ctx);
 });
 
-// تابع نمایش کیبورد آیتم‌های قابل انتقال
+// تابع نمایش کیبورد آیتم‌های قابل انتقال (مرتب‌شده بر اساس category)
 async function showTradeItemsKeyboard(ctx: CustomContext) {
     // بررسی وجود session
     if (!ctx.session) {
@@ -158,9 +205,19 @@ async function showTradeItemsKeyboard(ctx: CustomContext) {
     }
 
     const user = ctx.user;
-    const buttons = Object.keys(transferableFields)
-        .filter(field => !nonTransferableFields.includes(field) && user[field] > 0)
-        .map(field => Markup.button.callback(`"${transferableFields[field]} (${user[field]})"`, `select_item_${field}`));
+    const buttons: any[] = [];
+
+    // گروه‌بندی بر اساس category
+    Object.entries(fieldCategories).forEach(([category, fields]) => {
+        const categoryButtons = fields
+            .filter(field => !nonTransferableFields.includes(field) && Number(user[field as keyof typeof user]) > 0)
+            .map(field => Markup.button.callback(`"${transferableFields[field]} (${Number(user[field as keyof typeof user])})"`, `select_item_${field}`));
+
+        if (categoryButtons.length > 0) {
+            // هدر category (به عنوان متن، نه button) - برای سادگی، buttons رو مستقیم اضافه می‌کنم
+            buttons.push(...categoryButtons);
+        }
+    });
 
     // اضافه کردن دکمه تأیید و ارسال
     if (ctx.session.tradeItems && ctx.session.tradeItems.length > 0) {
@@ -192,7 +249,7 @@ Object.keys(transferableFields).forEach(field => {
 
         ctx.session.selectedItem = field;
         ctx.session.tradeStep = 'awaiting_quantity';
-        await ctx.reply(`🔢 <blockquote>چند واحد <b>${transferableFields[field]}</b> می‌خواهید انتقال دهید؟\n(حداکثر: ${ctx.user[field]})</blockquote>`, {
+        await ctx.reply(`🔢 <blockquote>چند واحد <b>${transferableFields[field]}</b> می‌خواهید انتقال دهید؟\n(حداکثر: ${Number(ctx.user[field as keyof typeof ctx.user])})</blockquote>`, {
             parse_mode: 'HTML'
         });
     });
@@ -209,8 +266,8 @@ business.on('text', async (ctx, next) => {
         const field = ctx.session.selectedItem;
         const user = ctx.user;
 
-        if (!amount || amount <= 0 || amount > user[field]) {
-            return ctx.reply(`<blockquote>❌ مقدار نامعتبر یا بیشتر از موجودی شما (${user[field]}) است.</blockquote>`, {
+        if (!amount || amount <= 0 || amount > Number(user[field as keyof typeof user])) {
+            return ctx.reply(`<blockquote>❌ مقدار نامعتبر یا بیشتر از موجودی شما (${Number(user[field as keyof typeof user])}) است.</blockquote>`, {
                 parse_mode: 'HTML'
             });
         }
@@ -286,7 +343,7 @@ business.action('final_confirm', async (ctx) => {
     const oilCost = ctx.session.tradeOilCost!;
 
     // چک نهایی منابع
-    const hasEnough = items.every(item => user[item.type] >= item.amount) && user.oil >= oilCost;
+    const hasEnough = items.every(item => user[item.type as keyof typeof user] >= item.amount) && user.oil >= oilCost;
     if (!hasEnough) {
         return ctx.reply('<blockquote>❌ منابع کافی ندارید. انتقال لغو شد.</blockquote>', { parse_mode: 'HTML' });
     }
@@ -374,7 +431,7 @@ async function sendTradeConfirmationToDestination(ctx: CustomContext) {
             parse_mode: 'HTML'
         });
     } else {
-        // اگر ارسال نشد، منابع رو برگردون
+        // اگر هیچی ارسال نشد، منابع رو برگردون
         for (const item of items) {
             await changeUserField(user.userid, item.type, 'add', item.amount);
         }
@@ -497,9 +554,8 @@ business.action('cancel_trade', async (ctx) => {
     ctx.session.destinationCountry = null;
     ctx.session.selectedRegion = null;
     ctx.session.tradeOilCost = 0;
-    await ctx.reply('<blockquote>❌ انتقال لغو شد.</blockquote>', {
-        parse_mode: 'HTML'
-    });
+    await ctx.answerCbQuery('❌ انتقال لغو شد.');
+    await ctx.deleteMessage(); // یا ctx.editMessageText('انتقال لغو شد.') برای back
 });
 
 async function deliverTradeItems(ctx: CustomContext, items: { type: string; amount: number }[], receiverId: bigint, senderId: bigint) {
