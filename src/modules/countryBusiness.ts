@@ -354,6 +354,29 @@ business.action('final_confirm', async (ctx) => {
     const destination = ctx.session.destinationCountry!;
     const countryName = user.countryName;
 
+    // دریافت داده‌های تازه کاربر از دیتابیس برای چک دقیق
+    const freshUser = await prisma.user.findUnique({ where: { userid: user.userid } });
+    if (!freshUser) {
+        return ctx.reply('<blockquote>❌ خطا در دریافت اطلاعات کاربر. انتقال لغو شد.</blockquote>', { parse_mode: 'HTML' });
+    }
+
+    // چک نهایی: آیا تمام محموله‌ها موجود است؟
+    const hasEnough = items.every(item => {
+        const currentAmount = Number(freshUser[item.type as keyof typeof freshUser]);
+        return currentAmount >= item.amount;
+    }) && Number(freshUser.oil) >= oilCost;
+
+    if (!hasEnough) {
+        // اگر کافی نیست، منابع را برگردان (اگر قبلاً کسر شده)
+        if (ctx.session.deductedItems) {
+            for (const deductedItem of ctx.session.deductedItems) {
+                await changeUserField(user.userid, deductedItem.type, 'add', deductedItem.amount);
+            }
+            ctx.session.deductedItems = [];
+        }
+        return ctx.reply('<blockquote>❌ منابع کافی ندارید (برخی محموله‌ها تمام شده). انتقال لغو شد و منابع بازگردانده شد.</blockquote>', { parse_mode: 'HTML' });
+    }
+
     ctx.session.tradeStep = 'send_confirmation_to_destination';
 
     // خبر اولیه: انتقال در حال انجام

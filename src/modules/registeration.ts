@@ -1,11 +1,9 @@
-import{ Composer, Markup } from 'telegraf';
+import { Composer, Markup } from 'telegraf';
 import { prisma } from '../prisma';
 import type { CustomContext as BaseCustomContext } from '../middlewares/userAuth';
 import {
-    formatCountryList,
     getAvailableCountries,
     getCountriesByRank,
-    getCountriesByRegion,
     getCountryByName
 } from '../utils/countryUtils';
 import config from '../config/config.json';
@@ -14,6 +12,7 @@ import { escapeMarkdownV2 } from "../utils/escape";
 import fs from 'fs';
 import path from 'path';
 import userPanel from "./userPanel";
+
 const fcPath = path.join(__dirname, '../config/fc.json');
 
 interface Country {
@@ -24,10 +23,11 @@ interface Country {
     lang: string;
     region?: string;
 }
+
 interface CustomContext extends BaseCustomContext {
     match: any;
     session?: {
-        hasVolunteered?:boolean;
+        hasVolunteered?: boolean;
         requestUserId?: bigint;
         pendingUserId?: bigint;
         pendingCountry?: Country;
@@ -35,21 +35,13 @@ interface CustomContext extends BaseCustomContext {
 }
 
 const registration = new Composer<CustomContext>();
-const ADMIN_COUNTRY_IDS : number[] = config.manage.country.admins || [];
-
+const ADMIN_COUNTRY_IDS: number[] = config.manage.country.admins || [];
 
 async function sendRequestToAdmins(ctx: CustomContext, userId: bigint, username: string | undefined, firstName: string) {
     const hyperlink = `https://t.me/${username || userId}`;
-    const countriesList = getAvailableCountries();
-    const availableText = formatCountryList(countriesList, 'کشورهای در دسترس');
 
-    //فرار کاراکترهای خاص برای Markdown
-    const escapedFirstName = escapeMarkdownV2(firstName);
-    const message = `
-درخواست کننده: [${escapedFirstName}](${hyperlink})
-userid: ${userId}
--------------------------
-  `;
+    // استفاده از HTML به جای MarkdownV2 برای سادگی و کمتر خطا
+    const message = `<b>درخواست کننده:</b> <a href="${hyperlink}">${firstName}</a>\n<b>userid:</b> ${userId}\n-------------------------\n`;
 
     const keyboard = Markup.inlineKeyboard([
         [Markup.button.callback('رتبه', 'noop')],
@@ -58,16 +50,16 @@ userid: ${userId}
         [Markup.button.callback('رد', `reject_${userId}`)]
     ]);
 
-    for(const adminId of ADMIN_COUNTRY_IDS) {
+    for (const adminId of ADMIN_COUNTRY_IDS) {
         try {
             await ctx.telegram.getChat(adminId);
-            await ctx.telegram.sendMessage(adminId, message, { parse_mode: 'MarkdownV2', ...keyboard });
+            await ctx.telegram.sendMessage(adminId, message, { parse_mode: 'HTML', reply_markup: keyboard.reply_markup });
         } catch (err) {
             console.error(`❌ ارسال پیام به ادمین ${adminId} ناموفق بود:`, err);
         }
-
     }
 }
+
 function handleRankAction(rank: number) {
     return async (ctx: CustomContext) => {
         const adminId = ctx.from.id;
@@ -83,30 +75,30 @@ function handleRankAction(rank: number) {
             return !availableNames.includes(c.name) && !fc.includes(code);
         });
 
-        if (filtered.length === 0) return ctx.answerCbQuery('❌ همه‌ی کشورهاقبلاً تخصیص داده شده‌اند!');
+        if (filtered.length === 0) return ctx.answerCbQuery('❌ همه‌ی کشورها قبلاً تخصیص داده شده‌اند!');
 
         const keyboard = Markup.inlineKeyboard(
-            filtered.map(c => {
-                return [Markup.button.callback(c.name, `setCountry_${requestUserId}_${c.country}`)];
-            }).filter(Boolean)
+            filtered.map(c => [
+                Markup.button.callback(c.name, `setCountry_${requestUserId}_${c.country}`)
+            ]).filter(Boolean)
         );
 
-        await ctx.reply(`🌍کشورهای آزاد با رتبه ${rank}:`, keyboard);
+        await ctx.reply(`🌍 کشورهای آزاد با رتبه ${rank}:`, keyboard);
         ctx.answerCbQuery();
     };
 }
 
 registration.command('start', async (ctx) => {
     if (ctx.user?.country) {
-        await ctx.reply(`🎮 خوش آمدی ${ctx.from.first_name}! کشورشما: ${ctx.user.countryName}`);
+        await ctx.reply(`🎮 خوش آمدی ${ctx.from.first_name}! کشور شما: ${ctx.user.countryName}`);
         return;
     }
     ctx.session = {};
 
-    if (ctx.session.hasVolunteered) {
+    if (ctx.session?.hasVolunteered) {
         await ctx.reply('✅ شما قبلاً داوطلب شده‌اید و منتظر اختصاص کشور هستید.');
         return;
-   }
+    }
 
     if (!config.manage.country.status) {
         await ctx.reply("❌ فعلاً کشوردهی فعال نیست.");
@@ -136,14 +128,15 @@ registration.action(['getCountry', 'request_country'], async (ctx) => {
     await ctx.answerCbQuery('✅ درخواست شما به ادمین ارسال شد! منتظر تایید باشید.');
     await ctx.reply('درخواست ارسال شد. ادمین به زودی کشور شما را تنظیم می‌کند.');
 });
+
 registration.action(/^rank3_(\d+)$/, handleRankAction(3));
-registration.action(/^rank2_(\d+)$/,handleRankAction(2));
+registration.action(/^rank2_(\d+)$/, handleRankAction(2));
 registration.action(/^rank1_(\d+)$/, handleRankAction(1));
 registration.action(/^rank0_(\d+)$/, handleRankAction(0));
 
 registration.action(/reject_(\d+)/, async (ctx) => {
     const adminId = ctx.from.id;
-   const requestUserId = BigInt(ctx.match[1]); // گرفتن userId از match
+    const requestUserId = BigInt(ctx.match[1]); // گرفتن userId از match
 
     if (!ADMIN_COUNTRY_IDS.includes(adminId)) {
         return ctx.answerCbQuery('❌ دسترسی ندارید!');
@@ -163,8 +156,7 @@ registration.action(/^setCountry_(\d+)_(\w+)$/, async (ctx) => {
     const country = getCountryByName(countryKey);
     if (!country) return ctx.answerCbQuery('❌ کشور پیدا نشد!');
 
-
-    // اگر region توی آبجکت نبود، می‌تونی دستی اضافه کنی یا از ساختار قبلی استفاده کنی
+    // اگر region در آبجکت نبود، می‌توانید دستی اضافه کنید یا از ساختار قبلی استفاده کنید
     const selectedCountry = { ...country, country: countryKey.toLowerCase() };
 
     ctx.session ??= {};
@@ -172,7 +164,7 @@ registration.action(/^setCountry_(\d+)_(\w+)$/, async (ctx) => {
     ctx.session.pendingUserId = requestUserId;
 
     const countryCode = ctx.session.pendingCountry.country;
-if (fc.includes(countryCode)) {
+    if (fc.includes(countryCode)) {
         return ctx.answerCbQuery('⛔ این کشور قبلاً اختصاص داده شده است.');
     }
 
@@ -184,7 +176,7 @@ if (fc.includes(countryCode)) {
         [Markup.button.callback('🔄 انتخاب مجدد', `reselect_country_${requestUserId}`)]
     ]);
 
-   await ctx.reply(`آیا مطمئنی که کشور ${selectedCountry.name} را برای ${username} انتخاب می‌کنی؟`, confirmKeyboard);
+    await ctx.reply(`آیا مطمئنی که کشور ${selectedCountry.name} را برای ${username} انتخاب می‌کنی؟`, confirmKeyboard);
     ctx.answerCbQuery();
 });
 
@@ -203,7 +195,7 @@ registration.action('confirm_country', async (ctx) => {
             government: pendingCountry.gov,
             rank: pendingCountry.rank,
         },
-        create:{
+        create: {
             userid: pendingUserId,
             country: pendingCountry.country.toLowerCase(),
             countryName: pendingCountry.name,
@@ -216,8 +208,8 @@ registration.action('confirm_country', async (ctx) => {
     await ctx.telegram.sendMessage(Number(pendingUserId), `✅ کشور شما تنظیم شد: ${pendingCountry.name}`);
     await ctx.reply(`✅ کشور ${pendingCountry.name} برای کاربر تنظیم شد.`);
 
-    // گرفتن اطلاعات کاربری که کشور گرفته
-const userChat = await ctx.telegram.getChat(Number(pendingUserId));
+    // گرفتن اطلاعات کاربری که کشور گرفت
+    const userChat = await ctx.telegram.getChat(Number(pendingUserId));
     const username = 'username' in userChat && userChat.username
         ? userChat.username
         : pendingUserId.toString();
@@ -253,7 +245,7 @@ registration.action(/^reselect_country_(\d+)$/, async (ctx) => {
     const [, userIdStr] = ctx.match!;
     ctx.session.requestUserId = BigInt(userIdStr);
 
-    // می‌تونی دوباره لیست کشورها رو بر اساس آخرین rank یا region نشونبدی
+    // می‌توانید دوباره لیست کشورها را بر اساس آخرین rank یا region نشان دهید
     await ctx.reply('🔄 لطفاً دوباره کشور را انتخاب کنید.');
     ctx.answerCbQuery();
 });
