@@ -2,9 +2,14 @@
   "token": "8093518474:AAF7CslVqKQOJcuWcEkwPMIrgE6npv4I-6g",
   "manage": {
     "status": true,
-    "admins": [6749274447,7588477963],
+    "admins": [
+      6749274447,
+      7588477963
+    ],
     "error": {
-      "admin": ["7588477963"]
+      "admin": [
+        "7588477963"
+      ]
     },
     "country": {
       "admins": [
@@ -28,7 +33,10 @@
       "status": true
     },
     "shop": {
-      "admins": [6749274447, 7588477963],
+      "admins": [
+        6749274447,
+        7588477963
+      ],
       "status": true,
       "prices": {
         "ground": {
@@ -78,26 +86,96 @@
         }
       },
       "countryPermissions": {
-        "china": ["j20", "hq9", "hyperSonicRocket"],
-        "usa": ["b2", "taad", "f35"],
-        "gbr": ["breakerShip", "chemicalRocket", "f47"],
-        "russia": ["su57", "tu16", "s400"],
-        "iran": ["hyperSonicRocket", "chemicalRocket", "hq9"],
-        "israel": ["ironDome", "chemicalRocket", "hyperSonicRocket"],
-        "south_korea": ["am50", "acash", "continentalRocket"],
-        "north_korea": ["chemicalRocket", "acash", "am50"],
-        "india": ["s300", "j20", "continentalRocket"],
-        "france": ["f47", "hyperSonicRocket", "s300"],
-        "canada": ["f47", "continentalRocket"],
-        "brazil": ["continentalRocket", "hyperSonicRocket"],
-        "pakistan": ["hq9", "hyperSonicRocket"],
-        "japan": ["breakerShip", "f22","s300"],
-        "italy": ["f47", "hyperSonicRocket"],
+        "china": [
+          "j20",
+          "hq9",
+          "hyperSonicRocket"
+        ],
+        "usa": [
+          "b2",
+          "taad",
+          "f35"
+        ],
+        "gbr": [
+          "breakerShip",
+          "chemicalRocket",
+          "f47"
+        ],
+        "russia": [
+          "su57",
+          "tu16",
+          "s400"
+        ],
+        "iran": [
+          "hyperSonicRocket",
+          "chemicalRocket",
+          "hq9"
+        ],
+        "israel": [
+          "ironDome",
+          "chemicalRocket",
+          "hyperSonicRocket"
+        ],
+        "south_korea": [
+          "am50",
+          "acash",
+          "continentalRocket"
+        ],
+        "north_korea": [
+          "chemicalRocket",
+          "acash",
+          "am50"
+        ],
+        "india": [
+          "s300",
+          "j20",
+          "continentalRocket"
+        ],
+        "france": [
+          "f47",
+          "hyperSonicRocket",
+          "s300"
+        ],
+        "canada": [
+          "f47",
+          "continentalRocket"
+        ],
+        "brazil": [
+          "continentalRocket",
+          "hyperSonicRocket"
+        ],
+        "pakistan": [
+          "hq9",
+          "hyperSonicRocket"
+        ],
+        "japan": [
+          "breakerShip",
+          "f22",
+          "s300"
+        ],
+        "italy": [
+          "f47",
+          "hyperSonicRocket"
+        ],
         "algeria": [],
-        "australia": ["f22", "chemicalRocket"],
-        "turkey": ["f47", "s300"],
-        "germany": ["f47", "taad"],
-        "switzerland": ["b2","s300","s400","chemicalRocket"]
+        "australia": [
+          "f22",
+          "chemicalRocket"
+        ],
+        "turkey": [
+          "f47",
+          "s300"
+        ],
+        "germany": [
+          "f47",
+          "taad"
+        ],
+        "switzerland": [
+          "b2",
+          "s300",
+          "s400",
+          "chemicalRocket"
+        ]
       },
       "defaultItems": [
         "simpleRocket",
@@ -114,8 +192,10 @@
       ]
     },
     "business": {
-      "admins": [6749274447,
-        7588477963],
+      "admins": [
+        6749274447,
+        7588477963
+      ],
       "status": false
     },
     "buildings": {
@@ -142,13 +222,17 @@
       }
     },
     "stock": {
-      "admins": [6749274447,
-        7588477963],
+      "admins": [
+        6749274447,
+        7588477963
+      ],
       "status": false
     },
     "management": {
-      "admins": [6749274447,
-        7588477963],
+      "admins": [
+        6749274447,
+        7588477963
+      ],
       "status": true,
       "religion": {
         "admins": [
@@ -167,14 +251,18 @@
         "default": ""
       },
       "dailyReward": {
-        "admins": [6749274447,
-          7588477963],
+        "admins": [
+          6749274447,
+          7588477963
+        ],
         "default": 0
       }
     },
     "lottery": {
-      "admins": [6749274447,
-        7588477963],
+      "admins": [
+        6749274447,
+        7588477963
+      ],
       "status": true,
       "utils": {
         "iron": "آهن",
@@ -192,6 +280,8 @@
   "images": {
     "gov": "https://img9.irna.ir/d/r2/2024/12/21/4/171573917.jpg?ts=1734769973771",
     "religion": "https://img.freepik.com/premium-photo/religious-symbols-harmony-unity_1249787-28640.jpg",
-    "trade": ["https://cdn.ecoiran.com/thumbnail/wwD1Cgvumk8R/oHtnAuLhyNvbyZYl2rKtaJbltXrQgPxBLlYct42Op8AqdzXRxhbHdwB7Y7l_4eiJ/%DA%A9%D8%B4%D8%AA%DB%8C.jpg"]
+    "trade": [
+      "https://cdn.ecoiran.com/thumbnail/wwD1Cgvumk8R/oHtnAuLhyNvbyZYl2rKtaJbltXrQgPxBLlYct42Op8AqdzXRxhbHdwB7Y7l_4eiJ/%DA%A9%D8%B4%D8%AA%DB%8C.jpg"
+    ]
   }
 }
